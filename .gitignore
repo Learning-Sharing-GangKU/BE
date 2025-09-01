@@ -1,0 +1,29 @@
+# Build output
+/build/
+/out/
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Logs / temp files
+*.log
+*.tmp
+
+# Spring config
+application-*.yml
+application-*.properties
+
+# IDE
+*.iml
+.idea/
+.vscode/
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
