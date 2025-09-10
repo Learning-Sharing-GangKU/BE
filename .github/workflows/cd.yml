@@ -1,0 +1,102 @@
+name: BE CD Pipeline
+
+on:
+  workflow_run:
+    workflows: [ "BE CI Pipeline" ]
+    types: [ "completed" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  S3_BUCKET: ${{ secrets.S3_BUCKET }}
+  CODEDEPLOY_APP: ${{ secrets.CODEDEPLOY_APP }}
+  CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
+  SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
+  ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}
+  CONCURRENCY_GROUP: "cd-prod-be"
+
+jobs:
+  deploy:
+    if: >
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ env.CONCURRENCY_GROUP }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout main at the exact SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Prepare tags
+        id: prep
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "IMAGE_SHA_TAG=sha-$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-cicd
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION \
+            | docker login --username AWS --password-stdin ${{ env.ECR_REPO_URI%/* }}
+
+      - name: Build image
+        run: |
+          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" .
+
+      - name: Push image to ECR
+        run: |
+          docker tag "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" "${{ env.ECR_REPO_URI }}:prod"
+          docker push "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}"
+          docker push "${{ env.ECR_REPO_URI }}:prod" || true
+
+      - name: Build deployment bundle
+        run: |
+          mkdir -p bundle/scripts
+          cp appspec.yml docker-compose.yml bundle/
+          cp scripts/*.sh bundle/scripts/
+
+          echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" > bundle/.env
+          echo "SERVICE_PORT=${{ env.SERVICE_PORT }}" >> bundle/.env
+
+          zip -r be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip bundle
+          aws s3 cp be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip \
+            s3://${{ env.S3_BUCKET }}/be/prod/be-${{ steps.prep.outputs.SHORT_SHA }}.zip
+
+      - name: Trigger CodeDeploy deployment
+        id: create_deployment
+        run: |
+          DEPLOYMENT_ID=$(aws deploy create-deployment \
+            --application-name "${{ env.CODEDEPLOY_APP }}" \
+            --deployment-group-name "${{ env.CODEDEPLOY_GROUP }}" \
+            --s3-location bucket=${{ env.S3_BUCKET }},key=be/prod/be-${{ steps.prep.outputs.SHORT_SHA}}.zip,bundleType=zip \
+            --description "be prod in-place ${GITHUB_SHA}" \
+            --output json | jq -r '.deploymentId')
+          if [ -z "$DEPLOYMENT_ID" ] || [ "$DEPLOYMENT_ID" == "null" ]; then
+            echo "Failed to get deployment ID."
+            exit 1
+          fi
+          echo "Deployment started with ID: $DEPLOYMENT_ID"
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+
+      - name: Wait for deployment completion
+        run: |
+          echo "Waiting for deployment ${{ steps.create_deployment.outputs.DEPLOYMENT_ID }} to complete..."
+          aws deploy wait deployment-successful --deployment-id "${{ steps.create_deployment.outputs.DEPLOYMENT_ID }}"
+          echo "Deployment ${{ steps.create_deployment.outputs.DEPLOYMENT_ID }} completed successfully."
