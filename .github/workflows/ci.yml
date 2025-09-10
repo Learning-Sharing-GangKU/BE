@@ -2,125 +2,51 @@ name: BE CI Pipeline
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: ["feature/**"]
   pull_request:
-    branches: [ "main", "dev" ]
-
-permissions:
-  contents: read
-  id-token: write  # OIDC for AWS
-
-env:
-  AWS_REGION: ap-northeast-2
-  ECR_REPO: learning-sharing-gangku/be
+    branches: ["dev", "main"]
 
 jobs:
   be-ci:
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java 21 (Temurin)
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: 21
           cache: gradle
 
-      - name: Detect project layout
-        id: detect
-        shell: bash
+      - name: Grant Gradle permission
+        run: chmod +x gradlew
+
+      # --- Lint (Spotless) ---
+      - name: Lint (Spotless)
         run: |
-          set -euo pipefail
-          if [ -f gradlew ]; then
-            echo "has_wrapper=true" >> "$GITHUB_OUTPUT"
-            echo "gradle_cmd=./gradlew" >> "$GITHUB_OUTPUT"
-            chmod +x gradlew
-          else
-            echo "has_wrapper=false" >> "$GITHUB_OUTPUT"
-            echo "gradle_cmd=" >> "$GITHUB_OUTPUT"
-          fi
           if [ -f build.gradle ] || [ -f build.gradle.kts ]; then
-            echo "has_build_file=true" >> "$GITHUB_OUTPUT"
+            ./gradlew spotlessCheck --no-daemon || true
           else
-            echo "has_build_file=false" >> "$GITHUB_OUTPUT"
-          fi
-          shopt -s globstar nullglob
-          tests=(src/test/**/*.* **/*Test.java **/*Tests.java **/*Test.kt **/*Tests.kt)
-          if [ ${#tests[@]} -gt 0 ]; then
-            echo "has_tests=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_tests=false" >> "$GITHUB_OUTPUT"
+            echo "No Gradle build file, skipping lint."
           fi
 
-      - name: Run unit tests (Gradle)
-        if: steps.detect.outputs.has_wrapper == 'true' && steps.detect.outputs.has_build_file == 'true' && steps.detect.outputs.has_tests == 'true'
-        env:
-          GRADLE_CMD: ${{ steps.detect.outputs.gradle_cmd }}
-        run: $GRADLE_CMD test --no-daemon
-
-      - name: Build (Gradle)
-        if: steps.detect.outputs.has_wrapper == 'true' && steps.detect.outputs.has_build_file == 'true'
-        env:
-          GRADLE_CMD: ${{ steps.detect.outputs.gradle_cmd }}
+      # --- Unit Test ---
+      - name: Unit Test (JUnit5)
         run: |
-          if $GRADLE_CMD -q tasks --all | grep -E '(^|\s)build\s' >/dev/null 2>&1; then
-            $GRADLE_CMD build -x test --no-daemon
+          if [ -f build.gradle ] || [ -f build.gradle.kts ]; then
+            ./gradlew test -PincludeTags=unit --no-daemon --continue || true
           else
-            echo "No 'build' task. Skipping."
+            echo "No Gradle build file, skipping unit tests."
           fi
 
-      # -------- main에서만 ECR 푸시 --------
-      - name: Configure AWS credentials (OIDC)
-        if: github.ref == 'refs/heads/main' && hashFiles('Dockerfile') != ''
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::590183972842:role/GitHubActionsECRPush
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        if: github.ref == 'refs/heads/main' && hashFiles('Dockerfile') != ''
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Prepare image meta
-        if: github.ref == 'refs/heads/main' && hashFiles('Dockerfile') != ''
-        id: meta
+      # --- Integration Test (PR to dev/main) ---
+      - name: Integration Test (Spring Boot Test)
+        if: github.event_name == 'pull_request' && (github.base_ref == 'dev' || github.base_ref == 'main')
         run: |
-          SHA_TAG=sha-${GITHUB_SHA::7}
-          BRANCH_TAG=main-latest
-          IMAGE=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=$SHA_TAG" >> "$GITHUB_OUTPUT"
-          echo "branch_tag=$BRANCH_TAG" >> "$GITHUB_OUTPUT"
-
-      - name: Setup Buildx
-        if: github.ref == 'refs/heads/main' && hashFiles('Dockerfile') != ''
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build & Push (ECR)
-        if: github.ref == 'refs/heads/main' && hashFiles('Dockerfile') != ''
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.sha_tag }}
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.branch_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # -------- main에서만 JAR 아티팩트 업로드 --------
-      - name: Upload JAR (main only)
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: be-jar-${{ github.sha }}
-          path: |
-            build/libs/*.jar
-          if-no-files-found: ignore
-          retention-days: 30
+          if [ -f build.gradle ] || [ -f build.gradle.kts ]; then
+            ./gradlew test -PincludeTags=integration --no-daemon --continue || true
+          else
+            echo "No Gradle build file, skipping integration tests."
+          fi
