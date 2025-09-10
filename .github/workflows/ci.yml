@@ -13,15 +13,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup JDK
+      # Gradle 파일 존재 여부
+      # (build.gradle*, gradle-wrapper.properties, versions 파일 등)
+      - name: Setup JDK (with Gradle cache)
+        if: ${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties','buildSrc/**/Versions.kt','buildSrc/**/Dependencies.kt','gradle/*.versions.toml','**/versions.properties') != '' }}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
           cache: gradle
 
+      - name: Setup JDK (no cache; empty project)
+        if: ${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties','buildSrc/**/Versions.kt','buildSrc/**/Dependencies.kt','gradle/*.versions.toml','**/versions.properties') == '' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
       - name: Grant Gradle permission
-        run: chmod +x gradlew
+        run: |
+          if [ -f gradlew ]; then chmod +x gradlew; fi
 
       # --- Lint (Spotless) ---
       - name: Lint (Spotless)
