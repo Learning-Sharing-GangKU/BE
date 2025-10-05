@@ -18,7 +18,6 @@ env:
   CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
   SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
   ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}
-  CONCURRENCY_GROUP: "cd-prod-be"
 
 jobs:
   deploy:
@@ -29,7 +28,7 @@ jobs:
       }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ env.CONCURRENCY_GROUP }}
+      group: cd-prod-be
       cancel-in-progress: false
 
     steps:
@@ -48,17 +47,17 @@ jobs:
       - name: Configure AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-cicd
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsECRPush
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
         run: |
           aws ecr get-login-password --region $AWS_REGION \
-            | docker login --username AWS --password-stdin ${{ env.ECR_REPO_URI%/* }}
+            | docker login --username AWS --password-stdin ${{ env.ECR_REPO_URI }}
 
       - name: Build image
         run: |
-          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" .
+          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" -f Dockerfile .
 
       - name: Push image to ECR
         run: |
@@ -71,9 +70,11 @@ jobs:
           mkdir -p bundle/scripts
           cp appspec.yml docker-compose.yml bundle/
           cp scripts/*.sh bundle/scripts/
+          chmod +x bundle/scripts/*.sh
 
           echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" > bundle/.env
           echo "SERVICE_PORT=${{ env.SERVICE_PORT }}" >> bundle/.env
+          echo "AWS_REGION=${{ env.AWS_REGION }}" >> bundle/.env
 
           zip -r be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip bundle
           aws s3 cp be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip \
