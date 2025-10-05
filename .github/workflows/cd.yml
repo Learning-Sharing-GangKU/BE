@@ -17,7 +17,7 @@ env:
   CODEDEPLOY_APP: ${{ secrets.CODEDEPLOY_APP }}
   CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
   SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
-  ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}
+  ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
 
 jobs:
   deploy:
