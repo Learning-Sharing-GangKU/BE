@@ -26,7 +26,7 @@
 | `!HOTFIX` | 급하게 치명적인 버그를 고쳐야 하는 경우 |
 
 > feat: 로그인 기능 구현
-> 
+>
 > -Google, Kakao 소셜 로그인 기능 구현 <br>
 > -OAuthProvider 분리 작업 수행
 

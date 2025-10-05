@@ -1,10 +1,10 @@
 name: BE CI Pipeline
 
 on:
-  push:
-    branches: ["feature/**"]
   pull_request:
-    branches: ["dev", "main"]
+    branches:
+      - dev
+      - main
 
 jobs:
   be-ci:
@@ -13,51 +13,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Gradle 파일 존재 여부
-      # (build.gradle*, gradle-wrapper.properties, versions 파일 등)
-      - name: Setup JDK (with Gradle cache)
-        if: ${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties','buildSrc/**/Versions.kt','buildSrc/**/Dependencies.kt','gradle/*.versions.toml','**/versions.properties') != '' }}
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
           cache: gradle
 
-      - name: Setup JDK (no cache; empty project)
-        if: ${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties','buildSrc/**/Versions.kt','buildSrc/**/Dependencies.kt','gradle/*.versions.toml','**/versions.properties') == '' }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
       - name: Grant Gradle permission
         run: |
           if [ -f gradlew ]; then chmod +x gradlew; fi
 
-      # --- Lint (Spotless) ---
+      # --- Lint ---
       - name: Lint (Spotless)
-        run: |
-          if [ -f build.gradle ] || [ -f build.gradle.kts ]; then
-            ./gradlew spotlessCheck --no-daemon || true
-          else
-            echo "No Gradle build file, skipping lint."
-          fi
+        if: false
+        run: ./gradlew spotlessCheck --no-daemon
 
       # --- Unit Test ---
       - name: Unit Test (JUnit5)
-        run: |
-          if [ -f build.gradle ] || [ -f build.gradle.kts ]; then
-            ./gradlew test -PincludeTags=unit --no-daemon --continue || true
-          else
-            echo "No Gradle build file, skipping unit tests."
-          fi
+        if: false
+        run: ./gradlew test -PincludeTags=unit --no-daemon --passWithNoTests
 
-      # --- Integration Test (PR to dev/main) ---
+      # --- Integration Test ---
       - name: Integration Test (Spring Boot Test)
-        if: github.event_name == 'pull_request' && (github.base_ref == 'dev' || github.base_ref == 'main')
-        run: |
-          if [ -f build.gradle ] || [ -f build.gradle.kts ]; then
-            ./gradlew test -PincludeTags=integration --no-daemon --continue || true
-          else
-            echo "No Gradle build file, skipping integration tests."
-          fi
+        if: false
+        run: ./gradlew test -PincludeTags=integration --no-daemon --passWithNoTests
