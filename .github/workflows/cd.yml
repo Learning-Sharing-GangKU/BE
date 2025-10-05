@@ -68,13 +68,14 @@ jobs:
       - name: Build deployment bundle
         run: |
           mkdir -p bundle/scripts
-          cp appspec.yml docker-compose.yml bundle/
+          cp appspec.yml bundle/
           cp scripts/*.sh bundle/scripts/
           chmod +x bundle/scripts/*.sh
 
-          echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" > bundle/.env
-          echo "SERVICE_PORT=${{ env.SERVICE_PORT }}" >> bundle/.env
-          echo "AWS_REGION=${{ env.AWS_REGION }}" >> bundle/.env
+          echo "APP_IMAGE=${ECR_REPO_URI}:${IMAGE_SHA_TAG}" > bundle/.env
+          echo "SERVICE_PORT=${SERVICE_PORT}" >> bundle/.env
+          echo "AWS_REGION=${AWS_REGION}" >> bundle/.env
+          echo "SPRING_PROFILES_ACTIVE=prod" >> bundle/.env
 
           zip -r be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip bundle
           aws s3 cp be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip \
