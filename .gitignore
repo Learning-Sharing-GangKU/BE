@@ -4,7 +4,6 @@
 
 # Gradle
 .gradle/
-!gradle/wrapper/gradle-wrapper.jar
 
 # Logs / temp files
 *.log
@@ -15,13 +14,7 @@ application-*.yml
 application-*.properties
 
 # IDE
-*.iml
 .idea/
-.vscode/
-*.ipr
-*.iws
-.project
-.classpath
 .settings/
 
 # OS

@@ -1,0 +1,39 @@
+name: BE CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  be-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant Gradle permission
+        run: |
+          if [ -f gradlew ]; then chmod +x gradlew; fi
+
+      # --- Lint ---
+      - name: Lint (Spotless)
+        if: hashFiles('**/*.gradle*') != ''
+        run: ./gradlew spotlessCheck --no-daemon
+
+      # --- Unit Test ---
+      - name: Unit Test (JUnit5)
+        run: ./gradlew test -PincludeTags=unit --no-daemon --passWithNoTests
+
+      # --- Integration Test ---
+      - name: Integration Test (Spring Boot Test)
+        if: github.event_name == 'pull_request' && (github.base_ref == 'dev' || github.base_ref == 'main')
+        run: ./gradlew test -PincludeTags=integration --no-daemon --passWithNoTests
