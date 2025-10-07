@@ -13,11 +13,11 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000") // 프론트 주소
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
+                registry.addMapping("/**") // 모든 경로에 대해
+                        .allowedOrigins("http://localhost:3000") // 프론트 서버 주소
+                        .allowedMethods("*") // 모든 HTTP 메서드 허용 (POST, GET 등)
+                        .allowedHeaders("*") // 모든 헤더 허용
+                        .allowCredentials(true); // 쿠키, 인증정보 포함 허용
             }
         };
     }

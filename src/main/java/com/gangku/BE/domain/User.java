@@ -40,8 +40,10 @@ public class User {
 
     private Boolean reviewsPublic;
 
+    @Column(name = "refresh_token")
     private String refreshToken;
 
+    @Column(name = "refresh_expiry")
     private LocalDateTime refreshExpiry;
 
     private LocalDateTime createdAt;
