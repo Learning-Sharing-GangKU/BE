@@ -1,9 +1,9 @@
 // src/main/java/com/gangku/BE/dto/SignupResponseDto.java
 
-package com.gangku.BE.dto;
+package com.gangku.be.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.gangku.BE.domain.User;
+import com.gangku.be.domain.User;
 import lombok.Builder;
 import lombok.Getter;
 

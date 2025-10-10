@@ -1,10 +1,10 @@
-package com.gangku.BE.controller;
+package com.gangku.be.controller;
 
-import com.gangku.BE.domain.User;
-import com.gangku.BE.dto.*;
-import com.gangku.BE.jwt.JwtTokenProvider;
-import com.gangku.BE.service.UserService;
-import com.gangku.BE.repository.UserRepository;
+import com.gangku.be.domain.User;
+import com.gangku.be.dto.*;
+import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.service.UserService;
+import com.gangku.be.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

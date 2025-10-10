@@ -1,20 +1,19 @@
 // src/main/java/com/gangku/BE/service/UserService.java
 
-package com.gangku.BE.service;
+package com.gangku.be.service;
 
-import com.gangku.BE.domain.User;
-import com.gangku.BE.dto.LoginRequestDto;
-import com.gangku.BE.dto.LoginResponseDto;
-import com.gangku.BE.dto.SignupRequestDto;
-import com.gangku.BE.repository.UserRepository;
-import com.gangku.BE.jwt.JwtTokenProvider;
+import com.gangku.be.domain.User;
+import com.gangku.be.dto.LoginRequestDto;
+import com.gangku.be.dto.LoginResponseDto;
+import com.gangku.be.dto.SignupRequestDto;
+import com.gangku.be.repository.UserRepository;
+import com.gangku.be.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 // 서비스 계층임을 나타내는 어노테이션 → 스프링이 자동으로 빈으로 등록함

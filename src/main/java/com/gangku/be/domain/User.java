@@ -1,6 +1,6 @@
 // src/main/java/com/gangku/BE/domain/User.java
 
-package com.gangku.BE.domain;
+package com.gangku.be.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

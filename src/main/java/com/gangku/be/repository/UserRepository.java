@@ -1,8 +1,8 @@
 // src/main/java/com/gangku/BE/repository/UserRepository.java
 
-package com.gangku.BE.repository;
+package com.gangku.be.repository;
 
-import com.gangku.BE.domain.User;
+import com.gangku.be.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

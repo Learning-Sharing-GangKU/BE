@@ -1,11 +1,11 @@
 // src/main/java/com/gangku/BE/controller/UserController.java
 
-package com.gangku.BE.controller;
+package com.gangku.be.controller;
 
-import com.gangku.BE.domain.User;
-import com.gangku.BE.dto.SignupRequestDto;
-import com.gangku.BE.dto.SignupResponseDto;
-import com.gangku.BE.service.UserService;
+import com.gangku.be.domain.User;
+import com.gangku.be.dto.SignupRequestDto;
+import com.gangku.be.dto.SignupResponseDto;
+import com.gangku.be.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

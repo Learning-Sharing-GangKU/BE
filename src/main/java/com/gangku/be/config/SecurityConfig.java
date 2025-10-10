@@ -1,11 +1,15 @@
-package com.gangku.BE.config;
+package com.gangku.be.config;
 
-import com.gangku.BE.jwt.JwtTokenProvider;
-import com.gangku.BE.repository.UserRepository;
-import com.gangku.BE.security.JwtAuthFilter;
+import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.repository.UserRepository;
+import com.gangku.be.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,16 +29,15 @@ public class SecurityConfig {
         http.addFilterBefore(jwtAuthFilter(), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         http
                 .cors(withDefaults())
-                .csrf(AbstractHttpConfigurer::disable) // ✅ CSRF 완전 비활성화
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/v1/users",
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/**",
-                                "/api/**"// 이메일 인증 관련 경로 포함
-                        ).permitAll()
+                        .requestMatchers(PathRequest.toH2Console()).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/*/users").permitAll()
+                        .requestMatchers("/api/*/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/*/categories/**").permitAll()
                         .anyRequest().authenticated()
-                );
+                )
+                .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable());
 
         return http.build();
     }

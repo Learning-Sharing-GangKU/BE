@@ -1,4 +1,4 @@
-package com.gangku.BE.dto;
+package com.gangku.be.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

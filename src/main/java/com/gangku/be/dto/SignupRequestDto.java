@@ -1,6 +1,6 @@
 // src/main/java/com/gangku/BE/dto/SignupRequestDto.java
 
-package com.gangku.BE.dto;
+package com.gangku.be.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
