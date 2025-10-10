@@ -16,10 +16,6 @@ logs/
 *.jar
 *.war
 
-# Spring config
-application-*.yml
-application-*.properties
-
 # IDE
 .idea/
 *.iml
