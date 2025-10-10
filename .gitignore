@@ -4,19 +4,30 @@
 
 # Gradle
 .gradle/
+build/
 
 # Logs / temp files
 *.log
+logs/
 *.tmp
 
-# Spring config
-application-*.yml
-application-*.properties
+# Java
+*.class
+*.jar
+*.war
 
 # IDE
 .idea/
+*.iml
 .settings/
+.vscode/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Env
+.env
+*.env
+.env.*
+

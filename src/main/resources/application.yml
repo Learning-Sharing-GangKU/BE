@@ -1,0 +1,10 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  profiles:
+    active: local
+
+jwt:
+  secret: ${JWT_SECRET}
+  expMin: ${JWT_EXP_MIN:60}

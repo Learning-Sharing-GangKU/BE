@@ -1,4 +1,4 @@
-package com.gangku.BE;
+package com.gangku.be;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
