@@ -1,8 +1,7 @@
 // src/main/java/com/gangku/BE/security/JwtAuthFilter.java
-package com.gangku.be.security;
+package com.gangku.be.auth;
 
 import com.gangku.be.domain.User;
-import com.gangku.be.jwt.JwtTokenProvider;
 import com.gangku.be.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

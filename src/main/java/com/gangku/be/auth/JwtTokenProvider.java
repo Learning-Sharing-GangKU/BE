@@ -1,4 +1,4 @@
-package com.gangku.be.jwt;
+package com.gangku.be.auth;
 
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;

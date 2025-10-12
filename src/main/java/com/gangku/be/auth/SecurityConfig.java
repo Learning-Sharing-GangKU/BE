@@ -1,10 +1,7 @@
-package com.gangku.be.config;
+package com.gangku.be.auth;
 
-import com.gangku.be.jwt.JwtTokenProvider;
 import com.gangku.be.repository.UserRepository;
-import com.gangku.be.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

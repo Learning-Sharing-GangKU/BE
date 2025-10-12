@@ -2,7 +2,7 @@ package com.gangku.be.controller;
 
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.*;
-import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.auth.JwtTokenProvider;
 import com.gangku.be.service.UserService;
 import com.gangku.be.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;

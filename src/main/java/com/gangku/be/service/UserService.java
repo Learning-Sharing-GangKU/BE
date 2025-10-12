@@ -7,7 +7,7 @@ import com.gangku.be.dto.LoginRequestDto;
 import com.gangku.be.dto.LoginResponseDto;
 import com.gangku.be.dto.SignupRequestDto;
 import com.gangku.be.repository.UserRepository;
-import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.auth.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
