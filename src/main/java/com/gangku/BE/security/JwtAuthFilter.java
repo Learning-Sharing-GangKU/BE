@@ -15,6 +15,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/* 리팩토링
+   UserRepository 직접 접근 -> 서비스 계층 우회해서 관심사 분리 해야함
+   권한 설정 없음 . 현재 authorities를 null로 넣고있음
+   토큰이 유효하지 않아도 로그 남기지 않음.
+ */
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 

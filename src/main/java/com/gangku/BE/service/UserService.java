@@ -17,6 +17,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/* 리팩토링
+    registerUser() 메서드에서 예외는 커스텀 예외로 분리해야함.
+    현재 login() 내부에서 너무 많은 역할 (검증+ 토큰생성+ DB 저장), 역할을 분리해야함
+    예외처리
+ */
 // 서비스 계층임을 나타내는 어노테이션 → 스프링이 자동으로 빈으로 등록함
 @Service
 @RequiredArgsConstructor // final 필드를 자동으로 생성자 주입해줌

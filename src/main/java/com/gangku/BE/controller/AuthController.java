@@ -12,6 +12,13 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/* 리팩토링
+    UserRepository 직접 사용 -> SRP 위배
+    로그인 메서드 내 authenticate() 중복
+    RefreshToken 쿠키 & DTO 중복 전달
+    ResponseCookie 중복 코드
+ */
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -53,7 +60,7 @@ public class AuthController {
         }
 
         String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserId(userId) // 추후 수정. 레파지토리가 아닌 서비스에 의존하도록
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // DB의 리프레시 토큰과 일치하는지 확인

@@ -11,6 +11,12 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
 
+/* 리펙토링
+    같은 알고리즘인데 엑세스는 Key 객체로, 리프레쉬는 문자열로 서명 -> 불일치
+    secretKey를 Key로 통일하여 .signWith(getSigningKey()로 처리해야함.
+    현재 모든 파싱에 대해 .setSigningKey(secretKey) 직접 사용 중. -> Jwts.parser().setSigningKey(secretKey)
+    예외처리 미흡
+ */
 @Component
 public class JwtTokenProvider {
 

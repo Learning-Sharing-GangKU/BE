@@ -9,7 +9,9 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+/* 리팩토링
+    "usr_" + userId 는 하드코딩 → enum 또는 헬퍼 메서드로 분리 가능
+ */
 @Getter
 public class SignupResponseDto {
 

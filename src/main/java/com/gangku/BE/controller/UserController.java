@@ -14,6 +14,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+/* 리팩토링
+    UserService 내부 구현에 대한 응답 책임 분리
+    중복된 엔티티 노출 위험
+    예외 처리 로직 없음
+ */
+
 
 // REST API 컨트롤러임을 나타냄 → 모든 메서드는 JSON으로 응답
 @RestController

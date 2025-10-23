@@ -5,7 +5,10 @@ package com.gangku.BE.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.List;
-
+/* 리팩토링
+    ProfileImage 내 @NotBlank 주석 해제 고려 및 클래스 분리 고려
+    현재 gender 하드코딩, Enum으로 관리
+ */
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class SignupRequestDto {
 

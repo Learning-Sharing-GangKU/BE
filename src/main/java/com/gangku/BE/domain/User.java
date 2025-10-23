@@ -8,6 +8,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/* 리팩토링
+    Setter 사용 제한 (OOP 관점) - 필드별로 필요한 곳에만 부여해야됨.
+    preferredCategories 추후 구조화 필요
+    null 가능 필드 처리
+    권한/역할 필드 미포함
+ */
+
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "users")  // 예약어 피하기 위해 users 사용
