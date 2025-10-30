@@ -34,19 +34,12 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginDto,
                                                   HttpServletResponse response) {
 
-        User user = userService.authenticate(loginDto.getEmail(), loginDto.getPassword());
+        // 토큰 발급 및 사용자 저장 로직을 UserService.login()에 위임
+        LoginResponseDto loginResponse = userService.login(loginDto);
 
-        // 토큰 발급 (Long id 사용)
-        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(user.getId()));
-        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(user.getId()));
-        long expiresIn = jwtTokenProvider.getAccessTokenValidity();
-
-        user.setRefreshToken(refreshToken);
-        user.setRefreshExpiry(LocalDateTime.now().plusDays(14));
-        userService.save(user);
 
         // 리프레시 토큰 HttpOnly 쿠키로 저장
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", loginResponse.getRefreshToken())
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
@@ -56,12 +49,12 @@ public class AuthController {
         response.addHeader("Set-Cookie", cookie.toString());
 
         // 응답 객체 생성 및 반환
-        LoginResponseDto loginResponse = LoginResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(expiresIn)
-                .build();
+//        LoginResponseDto loginResponse = LoginResponseDto.builder()
+//                .accessToken(accessToken)
+//                .refreshToken(refreshToken)
+//                .tokenType("Bearer")
+//                .expiresIn(expiresIn)
+//                .build();
 
         return ResponseEntity.ok(loginResponse);
 
