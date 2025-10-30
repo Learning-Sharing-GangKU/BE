@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Objects;
 
 
 @RestController
@@ -75,7 +76,7 @@ public class AuthController {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // DB의 리프레시 토큰과 일치하는지 확인
-        if (!refreshToken.equals(user.getRefreshToken())) {
+        if (!Objects.equals(refreshToken, user.getRefreshToken())) {
             throw new IllegalArgumentException("토큰이 일치하지 않습니다.");
         }
 
