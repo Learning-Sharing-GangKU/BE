@@ -14,8 +14,9 @@ import java.util.List;
 public class User {
 
     @Id
-    @Column(name = "user_id", length = 36)
-    private String userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
     @Column(nullable = false, unique = true, length = 254)
     private String email;
@@ -50,11 +51,9 @@ public class User {
 
     private LocalDateTime updatedAt;
 
-    // 카테고리 선호 (단방향 ManyToMany → JoinTable 사용 가능)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preferred_categories", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "category")
-    private List<String> preferredCategories = new ArrayList<>(); //지금은 List<String>으로 처리하지만 추후 ENUM + 별도 테이블로 확장해야함.
+    // ✅ @ElementCollection 제거하고 PreferredCategory로 대체
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PreferredCategory> preferredCategories = new ArrayList<>();
 
     //자동 시간 설정을 위한 콜백 메서드
     @PrePersist
