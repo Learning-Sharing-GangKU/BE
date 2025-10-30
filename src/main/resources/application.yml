@@ -5,6 +5,17 @@ spring:
   profiles:
     active: local
 
+logging:
+  level:
+    com.gangku.be: DEBUG
+
 jwt:
+  # 임시. 환경변수를 찾지 않고 바로 이 값을 사용하도록
+  # 임시 시크릿 키 base64 인코딩한 값
   secret: ${JWT_SECRET}
+#  secret: ${JWT_SECRET}
   expMin: ${JWT_EXP_MIN:60}
+
+#cors:
+#  allowed-origins:
+#    - http://localhost:3000
