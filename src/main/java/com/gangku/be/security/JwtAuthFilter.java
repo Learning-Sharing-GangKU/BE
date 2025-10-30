@@ -28,35 +28,46 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-
-        // ❗ 로그인, 회원가입 등은 토큰 검사하지 않도록 예외 처리
-        if (path.startsWith("/api/v1/auth")) {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (
+                path.startsWith("/api/v1/auth") ||
+                        path.equals("/api/v1/users") ||
+                        path.equals("/api/v1/signup") ||
+                        path.equals("/api/v1/categories") && request.getMethod().equals("POST")
+        )  {
+            filterChain.doFilter(request, response); // ✅ 조기 리턴
             return;
         }
 
         String authHeader = request.getHeader("Authorization");
 
-        // 헤더가 없거나 Bearer 로 시작하지 않으면 통과
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response); // ✅ 조기 리턴
             return;
         }
 
-        String token = authHeader.substring(7); // "Bearer " 제거
+        String token = authHeader.substring(7);
 
         if (jwtTokenProvider.validateToken(token)) {
-            String userId = jwtTokenProvider.getUserIdFromToken(token);
-            User user = userRepository.findByUserId(userId).orElse(null);
+            try {
+                String userIdStr = jwtTokenProvider.getUserIdFromToken(token);
+                Long userId = Long.parseLong(userIdStr);
+                User user = userRepository.findById(userId).orElse(null);
 
-            if (user != null) {
-                // Spring Security의 인증 객체 생성
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(user, null, null); // 권한은 필요 시 설정
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (user != null) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(user, null, null);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("토큰에서 사용자 ID 파싱 실패: " + e.getMessage());
             }
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); // ✅ 무조건 마지막 한 번만 실행
     }
 }
