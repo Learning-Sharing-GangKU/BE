@@ -1,7 +1,8 @@
 package com.gangku.be.controller;
 
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.*;
+import com.gangku.be.dto.user.LoginRequestDto;
+import com.gangku.be.dto.user.LoginResponseDto;
 import com.gangku.be.jwt.JwtTokenProvider;
 import com.gangku.be.service.UserService;
 import com.gangku.be.repository.UserRepository;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -21,18 +24,28 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
+    /**
+     * 로그인 처리
+     * 1. 이메일/비밀번호 인증
+     * 2. AccessToken + RefreshToken 발급
+     * 3. RefreshToken은 HttpOnly 쿠키에 저장
+     */
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginDto,
                                                   HttpServletResponse response) {
-        // loginResponse 내부에서 authenticate + 토큰 생성 + 저장
-        LoginResponseDto loginResponse = userService.login(loginDto);
+
         User user = userService.authenticate(loginDto.getEmail(), loginDto.getPassword());
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
-        long expiresIn = 60 * 60; // 1시간 = 3600초 (Access Token 유효시간)
+        // 토큰 발급 (Long id 사용)
+        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(user.getId()));
+        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(user.getId()));
+        long expiresIn = jwtTokenProvider.getAccessTokenValidity();
 
-        // HttpOnly 쿠키 설정
+        user.setRefreshToken(refreshToken);
+        user.setRefreshExpiry(LocalDateTime.now().plusDays(14));
+        userService.save(user);
+
+        // 리프레시 토큰 HttpOnly 쿠키로 저장
         ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
@@ -42,7 +55,16 @@ public class AuthController {
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
 
+        // 응답 객체 생성 및 반환
+        LoginResponseDto loginResponse = LoginResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(expiresIn)
+                .build();
+
         return ResponseEntity.ok(loginResponse);
+
     }
 
     @PostMapping("/reissue")
@@ -52,8 +74,12 @@ public class AuthController {
             throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
         }
 
-        String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-        User user = userRepository.findByUserId(userId)
+        // 토큰에서 userId(Long 형태) 추출
+        String userIdStr = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        Long userId = Long.parseLong(userIdStr);
+
+        // DB 에서 사용자 조회
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // DB의 리프레시 토큰과 일치하는지 확인
@@ -61,7 +87,7 @@ public class AuthController {
             throw new IllegalArgumentException("토큰이 일치하지 않습니다.");
         }
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
 
         return ResponseEntity.ok(LoginResponseDto.builder()
                 .accessToken(newAccessToken)
@@ -83,7 +109,12 @@ public class AuthController {
         return null;
     }
 
-    // 로그아웃
+    /**
+     * 로그아웃 처리
+     * 1. RefreshToken 검증
+     * 2. DB 토큰 제거
+     * 3. 쿠키 삭제
+     */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         // 1. 쿠키에서 refresh_token 추출
@@ -92,16 +123,21 @@ public class AuthController {
             return ResponseEntity.badRequest().body("유효하지 않은 요청입니다.");
         }
 
-        // 2. 해당 유저 찾기
-        String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-        User user = userService.findByUserId(userId);
+        // 토큰에서 userId 추출
+        String userIdStr = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        Long userId = Long.parseLong(userIdStr);
+
+        // DB에서 유저 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
 
         // 3. DB에 저장된 리프레시 토큰 제거
         user.setRefreshToken(null);
         user.setRefreshExpiry(null);
         userService.save(user); // 변경된 유저 정보 저장
 
-        // 4. 쿠키 삭제 (Set-Cookie with maxAge=0)
+        // 4. 쿠키 삭제
         ResponseCookie deleteCookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(true)
