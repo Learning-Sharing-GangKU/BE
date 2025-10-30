@@ -3,7 +3,6 @@
 package com.gangku.be.repository;
 
 import com.gangku.be.domain.User;
-import lombok.extern.java.Log;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

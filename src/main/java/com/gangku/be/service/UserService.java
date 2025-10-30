@@ -1,8 +1,7 @@
-// src/main/java/com/gangku/BE/service/UserService.java
+
 
 package com.gangku.be.service;
 
-import com.gangku.be.domain.PreferredCategory;
 import lombok.extern.slf4j.Slf4j;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.LoginRequestDto;
@@ -16,10 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-
-// 서비스 계층임을 나타내는 어노테이션 → 스프링이 자동으로 빈으로 등록함
 
 @Slf4j
 @Service
@@ -35,8 +31,9 @@ public class UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
     }
-    public User save(User user) {
-        return userRepository.save(user);
+
+    public void save(User user) { //저장만 하고 반환값 쓰이지 않으므로 void
+        userRepository.save(user);
     }
 
     // 회원가입 메서드
