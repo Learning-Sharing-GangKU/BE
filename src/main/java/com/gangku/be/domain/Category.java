@@ -35,4 +35,5 @@ public class Category {
     @Column(name = "updated_at", nullable = false)
     // 레코드 수정 시 자동으로 현재 시간 갱신
     private LocalDateTime updatedAt;
+
 }

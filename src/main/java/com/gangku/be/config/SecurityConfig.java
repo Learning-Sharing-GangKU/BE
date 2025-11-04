@@ -33,9 +33,11 @@ public class SecurityConfig {
                         .requestMatchers(PathRequest.toH2Console()).permitAll() // H2 콘솔은 인증 없이 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Preflight 요청 허용
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll() //회원가입 허용
+                        .requestMatchers(HttpMethod.POST, "/api/v1/gatherings").permitAll() //모임 생성 허용
                         .requestMatchers(HttpMethod.POST, "/api/v1/categories").permitAll() //카테고리 생성 허용
                         .requestMatchers("/api/v1/auth/**").permitAll() //로그인, 토큰 재발급, 로그아웃 등 인증 API 허용
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll() //카테고리 조회 인증없이 허용
+                        .requestMatchers(HttpMethod.POST, "/api/v1/gatherings/*/join").authenticated()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable());

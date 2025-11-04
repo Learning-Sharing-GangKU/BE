@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "users")  // 예약어 피하기 위해 users 사용
@@ -52,6 +53,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     // ✅ @ElementCollection 제거하고 PreferredCategory로 대체
+    @Builder.Default // 값을 따로 주지 않을경우 new ArrayList가 기본값으로 들어감
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
 

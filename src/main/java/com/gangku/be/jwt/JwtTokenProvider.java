@@ -43,23 +43,30 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // 토큰에서 사용자 ID 추출
     public String getUserIdFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(getSigningKey())  // ✅ 수정
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     }
 
-
+    // 토큰 유효성 검사
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token); // ✅ 수정
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
             return true;
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
+            System.err.println("JWT 토큰 검증 실패: " + e.getMessage());
             return false;
         }
     }
+
     public long getAccessTokenValidity() {
         return ACCESS_TOKEN_EXPIRATION / 1000; // milliseconds → seconds
     }

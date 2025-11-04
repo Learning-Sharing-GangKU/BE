@@ -48,14 +48,6 @@ public class AuthController {
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
 
-        // 응답 객체 생성 및 반환
-//        LoginResponseDto loginResponse = LoginResponseDto.builder()
-//                .accessToken(accessToken)
-//                .refreshToken(refreshToken)
-//                .tokenType("Bearer")
-//                .expiresIn(expiresIn)
-//                .build();
-
         return ResponseEntity.ok(loginResponse);
 
     }
