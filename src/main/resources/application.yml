@@ -2,20 +2,28 @@ server:
   port: ${SERVER_PORT:8080}
 
 spring:
-  profiles:
-    active: local
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 6MB
 
 logging:
   level:
     com.gangku.be: DEBUG
 
 jwt:
-  # 임시. 환경변수를 찾지 않고 바로 이 값을 사용하도록
-  # 임시 시크릿 키 base64 인코딩한 값
   secret: ${JWT_SECRET}
-#  secret: ${JWT_SECRET}
   expMin: ${JWT_EXP_MIN:60}
 
-#cors:
-#  allowed-origins:
-#    - http://localhost:3000
+app:
+  s3:
+    bucket: ${S3_IMAGE_BUCKET}
+    region: ${S3_REGION}
+    base-prefix: ${S3_IMAGE_BASE_PREFIX}
+    ttl-seconds: ${S3_TTL_SECONDS}
+
+assets:
+  categories:
+    - type: image
+      prefix: image
+      allowed-content-types: [ image/jpeg, image/png, image/webp ]

@@ -18,3 +18,9 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+app:
+  s3:
+    env-prefix: dev
+  cdn:
+    base-url: ""

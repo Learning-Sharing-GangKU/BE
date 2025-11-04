@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/categories").permitAll() //카테고리 생성 허용
                         .requestMatchers("/api/v1/auth/**").permitAll() //로그인, 토큰 재발급, 로그아웃 등 인증 API 허용
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll() //카테고리 조회 인증없이 허용
+                        .requestMatchers(HttpMethod.POST, "/api/v1/objects/presigned-url/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable());
