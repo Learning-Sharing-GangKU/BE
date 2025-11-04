@@ -7,6 +7,11 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  data:
+    redis:
+      host: localhost
+      password:
+      timeout: 2s
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
@@ -18,3 +23,6 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+app:
+  base-url: http://localhost:8080
