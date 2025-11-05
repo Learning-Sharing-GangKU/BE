@@ -31,3 +31,12 @@ Thumbs.db
 *.env
 .env.*
 
+# Redis persistence
+redis-data/
+appendonlydir/
+dump.rdb
+*.rdb
+appendonly.aof*
+*.aof
+*.aof.*
+*.manifest
