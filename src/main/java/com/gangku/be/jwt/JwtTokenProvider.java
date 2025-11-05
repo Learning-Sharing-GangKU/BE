@@ -39,17 +39,22 @@ public class JwtTokenProvider {
                 .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)  // ✅ 수정
                 .compact();
     }
 
     public String getUserIdFromToken(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser()
+                .setSigningKey(getSigningKey())  // ✅ 수정
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
+
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token); // ✅ 수정
             return true;
         } catch (Exception e) {
             return false;

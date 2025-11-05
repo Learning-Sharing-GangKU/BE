@@ -2,6 +2,31 @@ server:
   port: 8080
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 6MB
+
+logging:
+  level:
+    com.gangku.be: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET}
+  expMin: ${JWT_EXP_MIN:60}
+
+app:
+  s3:
+    bucket: ${S3_IMAGE_BUCKET}
+    region: ${S3_REGION}
+    base-prefix: ${S3_IMAGE_BASE_PREFIX}
+    ttl-seconds: ${S3_TTL_SECONDS}
+
+assets:
+  categories:
+    - type: image
+      prefix: image
+      allowed-content-types: [ image/jpeg, image/png, image/webp ]
   data:
     redis:
       port: 6379
@@ -17,7 +42,6 @@ spring:
     password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.starttls.enable: true
-#      mail.smtp.ssl.enable: false
 
 jwt:
   secret: ${JWT_SECRET}

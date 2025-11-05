@@ -1,7 +1,8 @@
 // src/main/java/com/gangku/BE/dto/SignupRequestDto.java
 
-package com.gangku.be.dto;
+package com.gangku.be.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.List;
@@ -34,12 +35,14 @@ public class SignupRequestDto {
     private Integer enrollNumber;
 
 //    @NotNull
+
     private ProfileImage profileImage;
 
     @Size(max = 3, message = "선호 카테고리는 최대 3개까지만 선택 가능합니다.")
     private List<String> preferredCategories;
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProfileImage {
 //        @NotBlank
         private String bucket;

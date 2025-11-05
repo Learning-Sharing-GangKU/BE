@@ -1,11 +1,12 @@
-// src/main/java/com/gangku/BE/service/UserService.java
+
 
 package com.gangku.be.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.LoginRequestDto;
-import com.gangku.be.dto.LoginResponseDto;
-import com.gangku.be.dto.SignupRequestDto;
+import com.gangku.be.dto.user.LoginRequestDto;
+import com.gangku.be.dto.user.LoginResponseDto;
+import com.gangku.be.dto.user.SignupRequestDto;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -14,30 +15,33 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-// 서비스 계층임을 나타내는 어노테이션 → 스프링이 자동으로 빈으로 등록함
+
+@Slf4j
 @Service
 @RequiredArgsConstructor // final 필드를 자동으로 생성자 주입해줌
 @Transactional
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PreferredCategoryService preferredCategoryService;
 
     // 유저ID 조회 메서드
-    public User findByUserId(String userId) {
-        return userRepository.findByUserId(userId)
+    public User findByUserId(Long id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
     }
-    public User save(User user) {
-        return userRepository.save(user);
+
+    public void save(User user) { //저장만 하고 반환값 쓰이지 않으므로 void
+        userRepository.save(user);
     }
 
     // 회원가입 메서드
     public User registerUser(SignupRequestDto requestDto) {
-
+        log.info("✅ 회원가입 시작: 이메일={}, 닉네임={}", requestDto.getEmail(), requestDto.getNickname());
         // 닉네임 중복 여부 확인
         if (userRepository.existsByNickname(requestDto.getNickname())) {
+            log.warn("⚠️ 중복된 닉네임: {}", requestDto.getNickname());
             // 중복이면 예외 던지기 (예외 클래스는 나중에 따로 정의하자)
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
@@ -48,9 +52,9 @@ public class UserService {
                 + requestDto.getProfileImage().getKey(); // 실제 구현에서는 CDN 구조 반영
 
 
+
         // 3. User 엔티티 생성
         User user = User.builder()
-                .userId(UUID.randomUUID().toString())
                 .email(requestDto.getEmail())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
                 .nickname(requestDto.getNickname())
@@ -58,15 +62,18 @@ public class UserService {
                 .gender(requestDto.getGender())
                 .enrollNumber(requestDto.getEnrollNumber())
                 .photoUrl(profileImageUrl)
-                .preferredCategories(requestDto.getPreferredCategories())
                 .emailVerified(false)
                 .reviewsPublic(true)
                 .createdAt(null)     // @PrePersist로 자동 설정됨
                 .updatedAt(null)     // @PrePersist/@PreUpdate로 자동 설정됨
                 .build();
-
+        log.info("🛠️ User 엔티티 빌드 완료: {}", user);
+        User savedUser = userRepository.save(user);
+        preferredCategoryService.setPreferredCategories(savedUser, requestDto.getPreferredCategories());
+        log.info("✅ 사용자 저장 완료: ID={}, 닉네임={}", user.getId(), user.getNickname());
+        return savedUser;
         // 4. DB에 저장
-        return userRepository.save(user);
+
     }
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -87,8 +94,8 @@ public class UserService {
     // 로그인 → JWT 토큰 생성
     public LoginResponseDto login(LoginRequestDto dto) {
         User user = authenticate(dto.getEmail(), dto.getPassword());
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
+        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(user.getId()));
+        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(user.getId()));
 
         user.setRefreshToken(refreshToken);
         user.setRefreshExpiry(LocalDateTime.now().plusDays(7)); // 리프레시 토큰 만료일

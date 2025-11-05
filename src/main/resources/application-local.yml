@@ -25,4 +25,7 @@ spring:
       path: /h2-console
 
 app:
-  base-url: http://localhost:8080
+  s3:
+    env-prefix: dev
+  cdn:
+    base-url: ""

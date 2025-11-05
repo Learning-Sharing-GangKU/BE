@@ -4,7 +4,6 @@ import com.gangku.be.jwt.JwtTokenProvider;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,10 +31,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/*/users").permitAll()
-                        .requestMatchers("/api/*/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/*/categories/**").permitAll()
-                        .requestMatchers("/api/v1/auth/email/verification/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll() 
+                        .requestMatchers(HttpMethod.POST, "/api/v1/categories").permitAll() 
+                        .requestMatchers("/api/v1/auth/**").permitAll() 
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll() 
+                        .requestMatchers(HttpMethod.POST, "/api/v1/objects/presigned-url/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable());
@@ -45,12 +46,12 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // 비밀번호 암호화용 Encoder 등록
     }
 
 
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
-        return new JwtAuthFilter(jwtTokenProvider, userRepository);
+        return new JwtAuthFilter(jwtTokenProvider, userRepository); // JwtAuthFilter 객체 등록
     }
 }
