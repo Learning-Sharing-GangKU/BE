@@ -32,4 +32,4 @@ Thumbs.db
 .env.*
 
 # Redis persistence
-.redis-data/
+redis-data/
