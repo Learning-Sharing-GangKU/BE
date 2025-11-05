@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/*/users").permitAll()
                         .requestMatchers("/api/*/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/*/categories/**").permitAll()
+                        .requestMatchers("/api/v1/auth/email/verification/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable());
