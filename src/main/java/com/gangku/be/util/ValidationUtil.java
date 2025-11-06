@@ -11,7 +11,7 @@ public class ValidationUtil {
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
     private static final Pattern PASSWORD_REGEX =
-            Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
+            Pattern.compile("^[A-Za-z0-9]{8,}$");
 
     public static boolean isValidEmail(String email) {
         return email != null && EMAIL_REGEX.matcher(email).matches();
