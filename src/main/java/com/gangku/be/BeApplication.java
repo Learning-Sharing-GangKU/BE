@@ -1,10 +1,12 @@
-package com.gangku.BE;
+package com.gangku.be;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
+// @CreatedDate, @LastModifiedDate 등 자동 시간 필드를 인식
+@EnableJpaAuditing
+@SpringBootApplication()
 public class BeApplication {
 
 	public static void main(String[] args) {
