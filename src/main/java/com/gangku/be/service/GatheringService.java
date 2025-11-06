@@ -4,20 +4,20 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
-import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
-import com.gangku.be.dto.gathering.GatheringUpdateResponseDto;
+import com.gangku.be.dto.gathering.*;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.util.GatheringValidator;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -29,6 +29,28 @@ public class GatheringService {
     private final ParticipationRepository participationRepository;
     private final GatheringValidator gatheringValidator;
 
+
+    @Transactional(readOnly = true)
+    public GatheringDetailResponseDto getGatheringById(Long gatheringId, Long userId) {
+
+        if (gatheringId == null || gatheringId <= 0) {
+            throw new CustomException(ErrorCode.INVALID_GATHERING_ID);
+        }
+
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+
+        List<Participation> participants = participationRepository.findTop3ByGatheringOrderByJoinedAtAsc(gathering);
+        long totalElements = participationRepository.countByGathering(gathering);
+
+        PageMetaDto meta = PageMetaDto.of(1, 3, totalElements, "joinedAt,asc");
+
+        List<ParticipantPreviewDto> previews = participants.stream()
+                .map(ParticipantPreviewDto::from)
+                .collect(Collectors.toList());
+
+        return GatheringDetailResponseDto.from(gathering, previews, meta);
+    }
 
     //모임 생성 메서드
     @Transactional
@@ -68,6 +90,7 @@ public class GatheringService {
                 .user(host)
                 .gathering(savedGathering)
                 .status(Participation.Status.APPROVED)
+                .role(Participation.ParticipationRole.HOST)
                 .build();
         participationRepository.save(participation);
 

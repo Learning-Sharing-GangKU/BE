@@ -14,4 +14,10 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     List<Participation> findAllByGathering(Gathering gathering);
     Optional<Participation> findByUserAndGathering(User user, Gathering gathering);
 
+
+    List<Participation> findTop3ByGatheringOrderByJoinedAtAsc(Gathering gathering);
+    long countByGathering(Gathering gathering);
+
+
+
 }

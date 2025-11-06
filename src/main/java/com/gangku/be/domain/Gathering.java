@@ -70,6 +70,7 @@ public class Gathering {
 
     // cascade 로 모임 삭제 시 참여자도 삭제 , orphanRemoval=true 로 연관 끊기면 DB에서 제거
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Participation> participations = new ArrayList<>();
 
     @PrePersist
