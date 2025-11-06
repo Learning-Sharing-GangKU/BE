@@ -1,9 +1,7 @@
 name: BE CD Pipeline
 
 on:
-  workflow_run:
-    workflows: [ "BE CI Pipeline" ]
-    types: [ completed ]
+  push:
     branches: [ main ]
 
 permissions:
@@ -22,12 +20,6 @@ env:
 
 jobs:
   deploy:
-    if: >
-      ${{
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push' &&
-        github.event.workflow_run.head_branch == 'main'
-      }}
     runs-on: ubuntu-latest
     concurrency:
       group: cd-prod-be
@@ -36,13 +28,11 @@ jobs:
     steps:
       - name: Checkout main at the exact SHA
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Prepare tags
         id: prep
         run: |
-          FULL_SHA="${{ github.event.workflow_run.head_sha }}"
+          FULL_SHA="${{ github.sha }}"
           SHORT_SHA="${FULL_SHA:0:7}"
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
           echo "IMAGE_SHA_TAG=sha-$SHORT_SHA" >> $GITHUB_OUTPUT
