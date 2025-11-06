@@ -3,10 +3,7 @@ package com.gangku.be.service;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
-import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
-import com.gangku.be.dto.gathering.GatheringUpdateResponseDto;
+import com.gangku.be.dto.gathering.*;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
@@ -118,6 +115,51 @@ public class GatheringServiceTest {
         assertThrows(CustomException.class, () ->
                 gatheringService.createGathering(invalidRequest, mockHost));
     }
+
+    @Test
+    @DisplayName("모임 상세조회 - 유효한 ID로 정상 조회된다")
+    void getGatheringById_정상조회() {
+        // given
+        GatheringCreateRequestDto createRequest = new GatheringCreateRequestDto(
+                "상세조회 테스트 모임",
+                "https://cdn.example.com/detail.jpg",
+                "스터디",
+                10,
+                LocalDateTime.of(2025, 11, 10, 15, 0),
+                "서울시 광진구",
+                "https://open.kakao.com/o/detailRoom",
+                "상세조회용 모임 설명"
+        );
+        GatheringCreateResponseDto createResponse = gatheringService.createGathering(createRequest, mockHost);
+        Long gatheringId = Long.parseLong(createResponse.getId().replace("gath_", ""));
+
+        // when
+        GatheringDetailResponseDto detailResponse = gatheringService.getGatheringById(gatheringId, mockHost.getId());
+
+        // then
+        assertThat(detailResponse).isNotNull();
+        assertThat(detailResponse.getId()).isEqualTo("gath_" + gatheringId);
+        assertThat(detailResponse.getTitle()).isEqualTo("상세조회 테스트 모임");
+        assertThat(detailResponse.getCategory()).isEqualTo("스터디");
+        assertThat(detailResponse.getHost().getNickname()).isEqualTo("테스트호스트");
+        assertThat(detailResponse.getParticipantsPreview().getData()).isNotEmpty();
+        assertThat(detailResponse.getParticipantsPreview().getMeta().getTotalElements()).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("모임 상세조회 실패 - 존재하지 않는 ID")
+    void getGatheringById_GATHERING_NOT_FOUND() {
+        assertThrows(CustomException.class, () ->
+                gatheringService.getGatheringById(99999L, mockHost.getId()));
+    }
+
+    @Test
+    @DisplayName("모임 상세조회 실패 - 잘못된 ID (0 이하)")
+    void getGatheringById_INVALID_GATHERING_ID() {
+        assertThrows(CustomException.class, () ->
+                gatheringService.getGatheringById(0L, mockHost.getId()));
+    }
+
 
     @Test
     @Transactional
