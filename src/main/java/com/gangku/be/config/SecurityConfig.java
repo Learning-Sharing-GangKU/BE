@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll() 
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll() 
                         .requestMatchers(HttpMethod.POST, "/api/v1/objects/presigned-url/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/gatherings/*/join").authenticated()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable());

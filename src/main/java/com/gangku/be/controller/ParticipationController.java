@@ -1,0 +1,49 @@
+// src/main/java/com/gangku/be/controller/ParticipationController.java
+package com.gangku.be.controller;
+
+import com.gangku.be.domain.User;
+import com.gangku.be.dto.participation.ParticipationResponseDto;
+import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.service.ParticipationService;
+import com.gangku.be.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/gatherings/{gatheringId}/participants")
+public class ParticipationController {
+
+    private final UserService userService;
+    private final ParticipationService participationService;
+
+    @PostMapping("/{userId}")
+    public ResponseEntity<ParticipationResponseDto> joinGathering(
+            @PathVariable("gatheringId") Long gatheringId,
+            @AuthenticationPrincipal Long userId // 이미 인증된 user 객체를 주입받아서 사용함.
+    ) {
+        User user = userService.findByUserId(userId); // 없으면 USER_NOT_FOUND 던짐
+
+        ParticipationResponseDto responseDto = participationService.join(gatheringId, user);
+        return ResponseEntity.ok(responseDto);
+    }
+
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> cancelParticipation(
+            @PathVariable Long gatheringId,
+            @PathVariable Long userId,
+            @AuthenticationPrincipal Long requesterId // 실제 요청자 (토큰에서 추출)
+    ) {
+        // 자기 자신 취소만 가능하거나 관리자 로직 등을 추가할 수도 있음
+        if (!userId.equals(requesterId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        participationService.cancelParticipation(gatheringId, userId);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
+}

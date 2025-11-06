@@ -2,6 +2,8 @@ package com.gangku.be.service;
 
 import com.gangku.be.domain.Category;
 import com.gangku.be.dto.category.CategoryDto;
+import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.ErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,13 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     public List<CategoryDto> getAllCategories() {
-        return categoryRepository.findAll().stream()
+        List<Category> categories = categoryRepository.findAll();
+
+        if (categories.isEmpty()) {
+            throw new CustomException(ErrorCode.CATEGORIES_NOT_FOUND);
+        }
+
+        return categories.stream()
                 .map(CategoryDto::new)
                 .collect(Collectors.toList());
     }
