@@ -2,8 +2,8 @@ package com.gangku.be.util;
 
 
 import com.gangku.be.domain.Category;
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
 import com.gangku.be.repository.CategoryRepository;

@@ -1,4 +1,4 @@
-package com.gangku.be.dto.gathering;
+package com.gangku.be.dto.gathering.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

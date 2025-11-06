@@ -1,4 +1,4 @@
-package com.gangku.be.dto.gathering;
+package com.gangku.be.dto.gathering.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;

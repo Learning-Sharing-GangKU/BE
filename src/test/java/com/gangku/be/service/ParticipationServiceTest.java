@@ -1,8 +1,8 @@
 package com.gangku.be.service;
 
 import com.gangku.be.domain.*;
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
+import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.response.GatheringCreateResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
 import com.gangku.be.repository.*;

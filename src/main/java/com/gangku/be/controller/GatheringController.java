@@ -3,9 +3,11 @@
 package com.gangku.be.controller;
 
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.gathering.*;
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
+import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.response.GatheringCreateResponseDto;
+import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
+import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringUpdateResponseDto;
 import com.gangku.be.service.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
