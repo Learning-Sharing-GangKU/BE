@@ -27,8 +27,17 @@ public class Participation {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LocalDateTime JoinedAt;
+    private ParticipationRole role;
+
+    @Column(nullable = false)
+    private LocalDateTime joinedAt;
+
+    public enum ParticipationRole {
+        HOST,
+        GUEST
+    }
 
     public enum Status {
         APPROVED,     // 정상 참여
@@ -38,7 +47,7 @@ public class Participation {
 
     @PrePersist
     public void prePersist() {
-        this.JoinedAt = LocalDateTime.now();
+        this.joinedAt = LocalDateTime.now();
     }
 
 

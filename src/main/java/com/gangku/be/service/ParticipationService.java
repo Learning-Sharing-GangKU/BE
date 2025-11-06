@@ -48,6 +48,7 @@ public class ParticipationService {
         participation.setUser(user);
         participation.setGathering(gathering);
         participation.setStatus(Participation.Status.APPROVED);
+        participation.setRole(Participation.ParticipationRole.GUEST);
         gathering.addParticipation(participation);
         participationRepository.save(participation);
         // 참여자 수 증가
