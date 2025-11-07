@@ -1,4 +1,4 @@
-package com.gangku.be.dto.gathering.response;
+package com.gangku.be.dto.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +15,7 @@ public class PageMetaDto {
     private int size;
     private long totalElements;
     private int totalPages;
+    private String nextCursor;
     private String sortedBy;
     private boolean hasPrev;
     private boolean hasNext;

@@ -42,7 +42,8 @@ public class Gathering {
     private Integer capacity;
 
     @Column(name = "participant_count", nullable = false)
-    private Integer participantCount;
+    @Builder.Default
+    private Integer participantCount = 0;
 
     @Column(nullable = false)
     private LocalDateTime date;
@@ -77,7 +78,7 @@ public class Gathering {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        this.participantCount = 0;
+//        this.participantCount = 0;
         this.status = Status.RECRUITING;
     }
 

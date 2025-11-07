@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     // 400
+    INVALID_PARAMETER_FORMAT(HttpStatus.BAD_REQUEST, "파라미터의 형식이 올바르지 않습니다."),
     INVALID_FIELD_VALUE(HttpStatus.BAD_REQUEST, "요청한 필드의 형식이 올바르지 않습니다."),
     INVALID_GATHERING_ID(HttpStatus.BAD_REQUEST, "gatheringId 형식이 올바르지 않습니다."),
     INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),

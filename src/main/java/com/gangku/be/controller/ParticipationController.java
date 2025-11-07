@@ -2,6 +2,7 @@
 package com.gangku.be.controller;
 
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.gathering.response.ParticipantsPreviewDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
@@ -45,5 +46,21 @@ public class ParticipationController {
 
         participationService.cancelParticipation(gatheringId, userId);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+     /**
+         * [참여자 전체 목록 조회]
+         * - /api/v1/gatherings/{gatheringId}/participants?page=1&size=3&sort=joinedAt,asc
+         * - 캐러셀(좌우 이동)에 따라 페이징 처리됨
+         */
+    @GetMapping
+    public ResponseEntity<ParticipantsPreviewDto> getParticipants(
+            @PathVariable("gatheringId") Long gatheringId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "joinedAt,asc") String sort
+    ) {
+        ParticipantsPreviewDto response = participationService.getParticipants(gatheringId, page, size, sort);
+        return ResponseEntity.ok(response);
     }
 }

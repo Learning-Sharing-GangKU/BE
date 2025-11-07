@@ -7,6 +7,7 @@ import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.response.GatheringCreateResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringUpdateResponseDto;
 import com.gangku.be.service.GatheringService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/gatherings")
@@ -25,6 +28,7 @@ public class GatheringController {
 
     private final GatheringService gatheringService;
 
+    // 모임 생성
     @PostMapping
     public ResponseEntity<GatheringCreateResponseDto> createGathering(
             @RequestBody GatheringCreateRequestDto requestDto,
@@ -44,6 +48,7 @@ public class GatheringController {
                 .body(responseDto);
     }
 
+    // 모임 수정
     @PatchMapping("/{gatheringId}")
     public ResponseEntity<GatheringUpdateResponseDto> updateGathering(
             @PathVariable Long gatheringId,
@@ -63,6 +68,7 @@ public class GatheringController {
         return ResponseEntity.noContent().build();
     }
 
+    // 모임의 상세정보 + 참여자 미리보기(3명) + meta 정보 반환
     @GetMapping("/{gatheringId}")
     public ResponseEntity<GatheringDetailResponseDto> getGatheringById(
             @PathVariable Long gatheringId,
@@ -72,4 +78,28 @@ public class GatheringController {
         return ResponseEntity.ok(response);
     }
 
+    // 모임 리스트 조회
+    // 카테고리 페이지에서 사용
+    @GetMapping
+    public ResponseEntity<GatheringListResponseDto> getGatherings(
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "latest") String sort,
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(required = false) String cursor
+    ) {
+        GatheringListResponseDto response = gatheringService.getGatheringList(category, sort, size);
+        return ResponseEntity.ok(response);
+    }
+
+    // 홈 화면 모임 리스트 조회
+    @GetMapping("/api/v1/home")
+    public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings() {
+        Map<String, GatheringListResponseDto> result = new HashMap<>();
+
+        result.put("recommended", gatheringService.getGatheringList(null, "recommended", 3));
+        result.put("latest", gatheringService.getGatheringList(null, "latest", 3));
+        result.put("popular", gatheringService.getGatheringList(null, "popular", 3));
+
+        return ResponseEntity.ok(result);
+    }
 }

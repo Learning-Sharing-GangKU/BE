@@ -2,15 +2,16 @@ package com.gangku.be.dto.gathering.response;
 
 import com.gangku.be.dto.common.PageMetaDto;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.List;
 
-//모임 상세 조회시, 참여자 정렬을 위한 Dto
 @Getter
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
-public class ParticipantsPreviewDto {
-    private List<ParticipantPreviewDto> data;
+@AllArgsConstructor
+public class GatheringListResponseDto {
+    private List<GatheringListItemDto> data;
     private PageMetaDto meta;
 }

@@ -1,6 +1,7 @@
 package com.gangku.be.dto.gathering.response;
 
 import com.gangku.be.domain.Gathering;
+import com.gangku.be.dto.common.PageMetaDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

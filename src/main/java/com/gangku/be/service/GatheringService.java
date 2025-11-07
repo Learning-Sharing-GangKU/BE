@@ -4,6 +4,7 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.common.PageMetaDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.*;
@@ -16,6 +17,9 @@ import com.gangku.be.util.GatheringValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +36,13 @@ public class GatheringService {
     private final GatheringValidator gatheringValidator;
 
 
+
+    /**
+     *   모임 상세 조회
+     * - 특정 모임 ID로 상세 정보 조회
+     * - 참여자 미리보기(3명) + 참여자 총원(meta) 포함
+     * - 상세 화면에서 캐러셀 형태로 사용됨
+     */
     @Transactional(readOnly = true)
     public GatheringDetailResponseDto getGatheringById(Long gatheringId, Long userId) {
 
@@ -42,16 +53,72 @@ public class GatheringService {
         Gathering gathering = gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
 
+        // 참여자 3명 미리보기 + 전체 인원수 계산
         List<Participation> participants = participationRepository.findTop3ByGatheringOrderByJoinedAtAsc(gathering);
         long totalElements = participationRepository.countByGathering(gathering);
 
+        // meta 정보 생성 , 현재는 페이지 1, 사이즈 3 고정
         PageMetaDto meta = PageMetaDto.of(1, 3, totalElements, "joinedAt,asc");
 
+        //참여자 DTO 반환
         List<ParticipantPreviewDto> previews = participants.stream()
                 .map(ParticipantPreviewDto::from)
                 .collect(Collectors.toList());
 
+        // Gathering + ParticipantsPreview 반환
         return GatheringDetailResponseDto.from(gathering, previews, meta);
+    }
+
+    /**
+     *   모임 목록 조회
+     * - 홈 화면 및 카테고리 페이지에서 사용
+     * - category, sort, size에 따라 정렬 및 필터링
+     *   - sort = latest → createdAt DESC
+     *   - sort = popular → participantCount DESC
+     */
+    @Transactional(readOnly = true)
+    public GatheringListResponseDto getGatheringList(String categoryName, String sort, int size) {
+        if (size <= 0 || size > 12) {
+            throw new CustomException(ErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+        Category category = null;
+        if (categoryName != null) {
+            category = categoryRepository.findByName(categoryName)
+                    .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
+        Pageable pageable = PageRequest.of(0, size);
+        // 정렬 조건에 따라 조회
+        List<Gathering> gatherings;
+        if (sort.equals("popular")) {
+            gatherings = gatheringRepository.findPopularGatherings(category, pageable);
+        } else {
+            gatherings = gatheringRepository.findLatestGatherings(category, pageable);
+        }
+        // 엔티티 -> Dto 변환
+        List<GatheringListItemDto> items = gatherings.stream()
+                .map(g -> GatheringListItemDto.builder()
+                        .id("gath_" + g.getId())
+                        .imageUrl(g.getImageUrl())
+                        .category(g.getCategory().getName())
+                        .title(g.getTitle())
+                        .hostName(g.getHost().getNickname())
+                        .participantCount(g.getParticipantCount())
+                        .capacity(g.getCapacity())
+                        .build())
+                .toList();
+
+        PageMetaDto meta = PageMetaDto.builder()
+                .size(items.size())
+                .sortedBy(sort.equals("popular") ? "participantCount,desc" : "createdAt,desc")
+                .nextCursor(null) // TODO: 커서 기반 페이지네이션 추가 시 구현
+                .hasPrev(false)
+                .hasNext(false)
+                .build();
+
+        return GatheringListResponseDto.builder()
+                .data(items)
+                .meta(meta)
+                .build();
     }
 
     //모임 생성 메서드

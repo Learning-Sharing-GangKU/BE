@@ -3,15 +3,26 @@ package com.gangku.be.service;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.common.PageMetaDto;
+import com.gangku.be.dto.gathering.response.ParticipantPreviewDto;
+import com.gangku.be.dto.gathering.response.ParticipantsPreviewDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.*;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +102,45 @@ public class ParticipationService {
         gathering.setParticipantCount(gathering.getParticipantCount() -1);
     }
 
+    /**
+     * [참여자 목록 조회 서비스 로직]
+     * - 특정 모임 ID의 참여자 목록을 페이지 단위로 반환
+     * - sort 파라미터는 joinedAt,asc 또는 joinedAt,desc 허용
+     */
+    @Transactional(readOnly = true)
+    public ParticipantsPreviewDto getParticipants(Long gatheringId, int page, int size, String sort) {
+        if (gatheringId == null || gatheringId <= 0) {
+            throw new CustomException(ErrorCode.INVALID_GATHERING_ID);
+        }
+
+        if (size <= 0 || size > 10) {
+            throw new CustomException(ErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+
+        // 정렬 조건 파싱
+        Sort.Direction direction = sort.endsWith("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, "joinedAt", "id"));
+
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+
+        Page<Participation> participantPage =
+                participationRepository.findByGathering(gathering, pageable);
+
+        // 참여자 DTO 변환
+        List<ParticipantPreviewDto> participants = participantPage.stream()
+                .map(ParticipantPreviewDto::from)
+                .collect(Collectors.toList());
+
+        // meta 정보 구성
+        PageMetaDto meta = PageMetaDto.of(
+                page,
+                size,
+                participantPage.getTotalElements(),
+                sort
+        );
+
+        return new ParticipantsPreviewDto(participants, meta);
+    }
 
 }

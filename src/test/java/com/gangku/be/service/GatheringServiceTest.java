@@ -2,32 +2,38 @@ package com.gangku.be.service;
 
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
+import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
-import com.gangku.be.dto.gathering.response.GatheringCreateResponseDto;
-import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
-import com.gangku.be.dto.gathering.response.GatheringUpdateResponseDto;
+import com.gangku.be.dto.gathering.response.*;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@Transactional
 public class GatheringServiceTest {
+
+    @Autowired
+    private ParticipationService participationService;
 
     @Autowired
     private GatheringService gatheringService;
@@ -76,7 +82,7 @@ public class GatheringServiceTest {
                 "https://img.url",
                 "스터디",
                 10,
-                LocalDateTime.of(2025, 11, 5, 15, 0),
+                LocalDateTime.of(2026, 11, 13, 15, 0),
                 "건대입구역 근처 카페",
                 "https://open.kakao.com/test-room",
                 "이건 모임 설명입니다"
@@ -166,6 +172,281 @@ public class GatheringServiceTest {
 
 
     @Test
+    @DisplayName("참여자 리스트 조회 - 페이지네이션 및 정렬 정상 동작")
+    void getParticipants_success() {
+        // given
+        Category study = categoryRepository.findByName("스터디").orElseThrow();
+
+        // 1️⃣ 모임 생성
+        Gathering gathering = gatheringRepository.save(Gathering.builder()
+                .title("스터디 모임")
+                .category(study)
+                .host(mockHost)
+                .capacity(10)
+                .participantCount(0)
+                .date(LocalDateTime.now().plusDays(5))
+                .location("건대입구 카페")
+                .openChatUrl("https://open.kakao.com/o/study")
+                .description("스터디 함께 해요")
+                .build());
+
+        // 2️⃣ 테스트용 참여자 5명 추가
+        for (int i = 1; i <= 5; i++) {
+            User user = userRepository.save(User.builder()
+                    .email("user" + i + "@example.com")
+                    .password("pw" + i)
+                    .nickname("참여자" + i)
+                    .photoUrl("https://cdn.example.com/profile" + i + ".jpg")
+                    .build());
+
+            Participation participation = Participation.builder()
+                    .user(user)
+                    .gathering(gathering)
+                    .role(Participation.ParticipationRole.GUEST)
+                    .status(Participation.Status.APPROVED)
+                    .joinedAt(LocalDateTime.now().minusMinutes(i)) // i값 커질수록 늦게 참여
+                    .build();
+            participationRepository.save(participation);
+
+            gathering.setParticipantCount(gathering.getParticipantCount() + 1);
+        }
+        gatheringRepository.save(gathering);
+
+        // when
+        var page1 = participationService.getParticipants(
+                gathering.getId(),
+                1, // page
+                3, // size
+                "joinedAt,asc"
+        );
+
+        // then
+        assertThat(page1).isNotNull();
+        assertThat(page1.getData()).hasSize(3); // 3명만 조회
+        assertThat(page1.getMeta().getSize()).isEqualTo(3);
+        assertThat(page1.getMeta().getPage()).isEqualTo(1);
+        assertThat(page1.getMeta().getSortedBy()).isEqualTo("joinedAt,asc");
+        assertThat(page1.getMeta().isHasNext()).isTrue(); // 남은 참여자 있음
+
+        // 정렬 검증 (joinedAt 오름차순 → 먼저 참여한 사람이 먼저 나와야 함)
+        LocalDateTime firstJoined = page1.getData().get(0).getJoinedAt();
+        LocalDateTime secondJoined = page1.getData().get(1).getJoinedAt();
+        assertThat(firstJoined).isBeforeOrEqualTo(secondJoined);
+        // when - 두 번째 페이지 (page=2, size=3)
+        var page2 = participationService.getParticipants(
+                gathering.getId(),
+                2,
+                3,
+                "joinedAt,asc"
+        );
+        // then - 2페이지 검증
+        assertThat(page2).isNotNull();
+        assertThat(page2.getData()).hasSize(2); // 남은 2명만 조회
+        assertThat(page2.getMeta().getPage()).isEqualTo(2);
+        assertThat(page2.getMeta().isHasPrev()).isTrue();
+        assertThat(page2.getMeta().isHasNext()).isFalse();
+
+        // 1페이지 마지막 참여자와 2페이지 첫 참여자 joinedAt 순서 검증
+        LocalDateTime lastPage1 = page1.getData().get(2).getJoinedAt();
+        LocalDateTime firstPage2 = page2.getData().get(0).getJoinedAt();
+        assertThat(lastPage1).isBeforeOrEqualTo(firstPage2);
+    }
+
+    /**
+     * 홈화면 조회 테스트
+     * - 최신/인기 모임을 각 3개씩 반환하는지 검증
+     * - recommended는 현재 미구현 상태로 제외
+     */
+    @Test
+    @DisplayName("홈화면 조회 - 최신/인기 모임 3개씩 정상 반환")
+    void getHomeGatherings_success() {
+        // given
+        Category study = categoryRepository.findByName("스터디").orElseThrow();
+
+        // 🔹 인기순용 모임들
+        for (int i = 1; i <= 5; i++) {
+            gatheringRepository.save(Gathering.builder()
+                    .title("인기모임" + i)
+                    .category(study)
+                    .host(mockHost)
+                    .capacity(10)
+                    .participantCount(10 - i)
+                    .date(LocalDateTime.now().plusDays(i))
+                    .location("건대" + i)
+                    .openChatUrl("https://open.kakao.com/o/popular" + i)
+                    .description("인기 테스트용 모임")
+                    .build());
+        }
+
+        // 🔹 최신순용 모임들
+        for (int i = 1; i <= 5; i++) {
+            gatheringRepository.save(Gathering.builder()
+                    .title("최신모임" + i)
+                    .category(study)
+                    .host(mockHost)
+                    .capacity(10)
+                    .participantCount(i)
+                    .date(LocalDateTime.now().plusDays(i))
+                    .location("건대" + i)
+                    .openChatUrl("https://open.kakao.com/o/latest" + i)
+                    .description("최신 테스트용 모임")
+                    .build());
+        }
+
+        // when
+        GatheringListResponseDto latestResponse = gatheringService.getGatheringList(null, "latest", 3);
+        GatheringListResponseDto popularResponse = gatheringService.getGatheringList(null, "popular", 3);
+
+        // then
+        assertThat(latestResponse).isNotNull();
+        assertThat(popularResponse).isNotNull();
+
+        // 최신순: 최근에 만든 모임이 맨 위
+        assertThat(latestResponse.getData().getFirst().getTitle()).startsWith("최신모임");
+        assertThat(latestResponse.getMeta().getSortedBy()).isEqualTo("createdAt,desc");
+
+        // 인기순: 참여자 수가 많은 순으로 정렬되어야 함
+        assertThat(popularResponse.getData().getFirst().getTitle()).startsWith("인기모임");
+        assertThat(popularResponse.getMeta().getSortedBy()).isEqualTo("popularScore,desc");
+    }
+
+    /**
+     * ✅ 카테고리 페이지 조회 테스트
+     * - 특정 카테고리만 필터링되고 정렬 조건이 잘 적용되는지 검증
+     */
+    @Test
+    @DisplayName("모임 리스트 조회 - 최신순 정렬 성공")
+    void getGatheringList_latest_success() {
+        // given
+        Category sports = categoryRepository.findByName("운동").orElseThrow();
+        Category study = categoryRepository.findByName("스터디").orElseThrow();
+
+        // 운동 카테고리 모임
+        gatheringRepository.save(Gathering.builder()
+                .title("헬스 모임")
+                .category(sports)
+                .host(mockHost)
+                .capacity(10)
+                .participantCount(3)
+                .date(LocalDateTime.of(2025, 11, 25, 18, 0))
+                .location("스포애니")
+                .openChatUrl("https://open.kakao.com/o/gym1")
+                .description("운동 좋아하는 사람들")
+                .build());
+
+        gatheringRepository.save(Gathering.builder()
+                .title("러닝 클럽")
+                .category(sports)
+                .host(mockHost)
+                .capacity(20)
+                .participantCount(10)
+                .date(LocalDateTime.of(2025, 11, 26, 18, 0))
+                .location("뚝섬유원지")
+                .openChatUrl("https://open.kakao.com/o/run")
+                .description("주말 러닝 모임")
+                .build());
+
+        // 다른 카테고리 모임
+        gatheringRepository.save(Gathering.builder()
+                .title("스터디 모임")
+                .category(study)
+                .host(mockHost)
+                .capacity(10)
+                .participantCount(5)
+                .date(LocalDateTime.of(2025, 11, 27, 18, 0))
+                .location("건대")
+                .openChatUrl("https://open.kakao.com/o/study123")
+                .description("스터디 모임")
+                .build());
+
+
+        // when
+        GatheringListResponseDto response = gatheringService.getGatheringList("운동", "latest", 3);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getData()).hasSize(2);
+        assertThat(response.getData().getFirst().getCategory()).isEqualTo("운동");
+        assertThat(response.getMeta().getSortedBy()).isEqualTo("createdAt,desc");
+    }
+
+    @Test
+    @DisplayName("모임 리스트 조회 - 인기순 정렬 성공")
+    void getGatheringList_popular_success() {
+
+        // given
+        Category sports = categoryRepository.findByName("운동").orElseThrow();
+        Category study = categoryRepository.findByName("스터디").orElseThrow();
+
+        // 운동 카테고리 모임
+        gatheringRepository.save(Gathering.builder()
+                .title("헬스 모임")
+                .category(sports)
+                .host(mockHost)
+                .capacity(10)
+                .participantCount(3)
+                .date(LocalDateTime.of(2025, 11, 25, 18, 0))
+                .location("스포애니")
+                .openChatUrl("https://open.kakao.com/o/gym1")
+                .description("운동 좋아하는 사람들")
+                .build());
+
+        gatheringRepository.save(Gathering.builder()
+                .title("러닝 클럽")
+                .category(sports)
+                .host(mockHost)
+                .capacity(20)
+                .participantCount(10)
+                .date(LocalDateTime.of(2025, 11, 26, 18, 0))
+                .location("뚝섬유원지")
+                .openChatUrl("https://open.kakao.com/o/run")
+                .description("주말 러닝 모임")
+                .build());
+
+        // 다른 카테고리 모임
+        gatheringRepository.save(Gathering.builder()
+                .title("스터디 모임")
+                .category(study)
+                .host(mockHost)
+                .capacity(10)
+                .participantCount(5)
+                .date(LocalDateTime.of(2025, 11, 27, 18, 0))
+                .location("건대")
+                .openChatUrl("https://open.kakao.com/o/study123")
+                .description("스터디 모임")
+                .build());
+
+
+        // when
+        GatheringListResponseDto response = gatheringService.getGatheringList("운동", "popular", 3);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getData()).hasSize(2);
+        assertThat(response.getData().getFirst().getCategory()).isEqualTo("운동");
+        assertThat(response.getMeta().getSortedBy()).isEqualTo("participantCount,desc");
+    }
+
+    @Test
+    @DisplayName("모임 리스트 조회 실패 - 잘못된 size 파라미터 (400 Bad Request)")
+    void getGatheringList_invalid_size() {
+        // when & then
+        assertThrows(CustomException.class, () ->
+                gatheringService.getGatheringList(null, "latest", 0)
+        );
+    }
+
+    @Test
+    @DisplayName("모임 리스트 조회 실패 - 존재하지 않는 카테고리 (404 Not Found)")
+    void getGatheringList_category_not_found() {
+        // when & then
+        assertThrows(CustomException.class, () ->
+                gatheringService.getGatheringList("없는카테고리", "latest", 3)
+        );
+    }
+
+
+    @Test
     @Transactional
     @DisplayName("모임 정보를 호스트가 정상적으로 수정할 수 있어야 한다")
     void updateGathering_정상수정() {
@@ -175,7 +456,7 @@ public class GatheringServiceTest {
                 "https://cdn.example.com/original.jpg",
                 "스터디",
                 10,
-                LocalDateTime.of(2025, 11, 3, 15, 0),
+                LocalDateTime.of(2026, 11, 3, 15, 0),
                 "강의동 101호",
                 "https://open.kakao.com/o/original",
                 "오리지널 설명"
