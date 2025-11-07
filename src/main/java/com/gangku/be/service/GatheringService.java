@@ -14,6 +14,7 @@ import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.util.GatheringValidator;
+import com.gangku.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class GatheringService {
     private final CategoryRepository categoryRepository;
     private final ParticipationRepository participationRepository;
     private final GatheringValidator gatheringValidator;
+    private final UserRepository userRepository;
 
 
 
@@ -120,6 +122,58 @@ public class GatheringService {
                 .meta(meta)
                 .build();
     }
+
+    /**
+     * 사용자별 모임 목록 조회 (role=host | guest)
+     * - host: 내가 만든 모임
+     * - guest: 내가 참여한 모임
+     */
+    @Transactional(readOnly = true)
+    public GatheringListResponseDto getUserGatherings(Long userId, String role, int size, String cursor, String sort) {
+        if (!role.equals("host") && !role.equals("guest")) {
+            throw new CustomException(ErrorCode.INVALID_ROLE);
+        }
+        if (size <= 0 || size > 50) {
+            throw new CustomException(ErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(0, size);
+        List<Gathering> gatherings;
+
+        if (role.equals("host")) {
+            gatherings = gatheringRepository.findByHostIdOrderByCreatedAtDesc(userId, pageable);
+        } else {
+            gatherings = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
+        }
+
+        List<GatheringListItemDto> items = gatherings.stream()
+                .map(g -> GatheringListItemDto.builder()
+                        .id("gath_" + g.getId())
+                        .imageUrl(g.getImageUrl())
+                        .category(g.getCategory().getName())
+                        .title(g.getTitle())
+                        .hostName(g.getHost().getNickname())
+                        .participantCount(g.getParticipantCount())
+                        .capacity(g.getCapacity())
+                        .build())
+                .toList();
+
+        PageMetaDto meta = PageMetaDto.builder()
+                .size(items.size())
+                .sortedBy(sort)
+                .nextCursor(null)
+                .hasNext(false)
+                .build();
+
+        return GatheringListResponseDto.builder()
+                .data(items)
+                .meta(meta)
+                .build();
+    }
+
 
     //모임 생성 메서드
     @Transactional

@@ -252,6 +252,104 @@ public class GatheringServiceTest {
         assertThat(lastPage1).isBeforeOrEqualTo(firstPage2);
     }
 
+    @Test
+    @DisplayName("내가 만든 모임 리스트 조회 - role=host 성공")
+    void getUserGatherings_host_success() {
+        // given
+        Category study = categoryRepository.findByName("스터디").orElseThrow();
+
+        // 내가 만든 모임 2개 생성
+        Gathering g1 = gatheringRepository.save(Gathering.builder()
+                .title("알고리즘 스터디")
+                .category(study)
+                .host(mockHost)
+                .capacity(10)
+                .participantCount(5)
+                .date(LocalDateTime.now().plusDays(3))
+                .location("건대입구")
+                .openChatUrl("https://open.kakao.com/o/study1")
+                .description("기초 알고리즘")
+                .imageUrl("https://cdn.example.com/101.jpg")
+                .build());
+
+        Gathering g2 = gatheringRepository.save(Gathering.builder()
+                .title("자료구조 스터디")
+                .category(study)
+                .host(mockHost)
+                .capacity(8)
+                .participantCount(3)
+                .date(LocalDateTime.now().plusDays(5))
+                .location("강남")
+                .openChatUrl("https://open.kakao.com/o/study2")
+                .description("자료구조 스터디")
+                .imageUrl("https://cdn.example.com/102.jpg")
+                .build());
+
+        // when
+        var response = gatheringService.getUserGatherings(mockHost.getId(), "host", 10, null, "createdAt,desc");
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getData()).hasSize(2);
+        assertThat(response.getData().get(0).getTitle()).isEqualTo("자료구조 스터디"); // 최신순 정렬 확인
+        assertThat(response.getData().get(1).getTitle()).isEqualTo("알고리즘 스터디");
+        assertThat(response.getMeta().getSortedBy()).isEqualTo("createdAt,desc");
+    }
+
+    @Test
+    @DisplayName("내가 참여한 모임 리스트 조회 - role=guest 성공")
+    void getUserGatherings_guest_success() {
+        // given
+        Category music = categoryRepository.findByName("음악").orElseThrow();
+
+        // 다른 유저(호스트)
+        User otherHost = userRepository.save(User.builder()
+                .email("other@example.com")
+                .password("pw")
+                .nickname("다른호스트")
+                .photoUrl("https://cdn.example.com/other.jpg")
+                .build());
+
+        // 다른 유저가 만든 모임
+        Gathering g1 = gatheringRepository.save(Gathering.builder()
+                .title("음악 감상 모임")
+                .category(music)
+                .host(otherHost)
+                .capacity(10)
+                .participantCount(1)
+                .date(LocalDateTime.now().plusDays(1))
+                .location("홍대")
+                .openChatUrl("https://open.kakao.com/o/music1")
+                .description("음악 감상")
+                .build());
+
+        // mockHost가 guest로 참여
+        participationRepository.save(Participation.builder()
+                .user(mockHost)
+                .gathering(g1)
+                .status(Participation.Status.APPROVED)
+                .role(Participation.ParticipationRole.GUEST)
+                .joinedAt(LocalDateTime.now())
+                .build());
+
+        // when
+        var response = gatheringService.getUserGatherings(mockHost.getId(), "guest", 10, null, "createdAt,desc");
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getData()).hasSize(1);
+        assertThat(response.getData().get(0).getTitle()).isEqualTo("음악 감상 모임");
+        assertThat(response.getData().get(0).getHostName()).isEqualTo("다른호스트");
+    }
+
+    @Test
+    @DisplayName("내 모임 조회 실패 - 잘못된 role 파라미터 (INVALID_ROLE)")
+    void getUserGatherings_INVALID_ROLE() {
+        assertThrows(CustomException.class, () ->
+                gatheringService.getUserGatherings(mockHost.getId(), "wrongRole", 10, null, "createdAt,desc"));
+    }
+
+
     /**
      * 홈화면 조회 테스트
      * - 최신/인기 모임을 각 3개씩 반환하는지 검증

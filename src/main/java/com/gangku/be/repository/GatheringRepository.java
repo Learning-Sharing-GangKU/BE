@@ -26,4 +26,18 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
     ORDER BY g.participantCount DESC, g.id DESC
 """)
     List<Gathering> findPopularGatherings(@Param("category") Category category, Pageable pageable);
+
+    @Query("""
+SELECT g
+FROM Gathering g
+JOIN FETCH g.host h
+WHERE g.host.id = :hostId
+ORDER BY g.createdAt DESC, g.id DESC
+""")
+    List<Gathering> findByHostIdOrderByCreatedAtDesc(
+            @Param("hostId") Long hostId,
+            Pageable pageable
+    );
+
+
 }

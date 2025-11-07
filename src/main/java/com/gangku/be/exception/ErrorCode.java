@@ -11,6 +11,7 @@ public enum ErrorCode {
     INVALID_FIELD_VALUE(HttpStatus.BAD_REQUEST, "요청한 필드의 형식이 올바르지 않습니다."),
     INVALID_GATHERING_ID(HttpStatus.BAD_REQUEST, "gatheringId 형식이 올바르지 않습니다."),
     INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "이메일 형식이 올바르지 않습니다."),
+    INVALID_ROLE(HttpStatus.BAD_REQUEST, "role은 hose 또는 guest 중 하나여야 합니다."),
     PASSWORD_TOO_WEAK(HttpStatus.BAD_REQUEST, "비밀번호 규칙을 확인해주세요."),
     // 401
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다. 유효한 액세스 토큰을 제공해주세요."),
