@@ -1,8 +1,8 @@
 package com.gangku.be.config;
 
-import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.security.jwt.JwtTokenProvider;
 import com.gangku.be.repository.UserRepository;
-import com.gangku.be.security.JwtAuthFilter;
+import com.gangku.be.security.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;

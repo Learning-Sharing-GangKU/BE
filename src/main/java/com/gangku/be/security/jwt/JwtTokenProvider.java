@@ -1,4 +1,4 @@
-package com.gangku.be.jwt;
+package com.gangku.be.security.jwt;
 
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,10 +66,5 @@ public class JwtTokenProvider {
             return false;
         }
     }
-
-    public long getAccessTokenValidity() {
-        return ACCESS_TOKEN_EXPIRATION / 1000; // milliseconds → seconds
-    }
-
 
 }

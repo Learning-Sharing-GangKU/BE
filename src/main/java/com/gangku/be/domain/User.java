@@ -10,7 +10,7 @@ import java.util.List;
 
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "users")  // 예약어 피하기 위해 users 사용
 public class User {
 
@@ -71,5 +71,15 @@ public class User {
 
     public String getProfileImageUrl() {
         return this.photoUrl;
+    }
+
+    public void updateRefreshToken(String refreshToken, LocalDateTime refreshExpiry) {
+        this.refreshToken = refreshToken;
+        this.refreshExpiry = refreshExpiry;
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = null;
+        this.refreshExpiry = null;
     }
 }

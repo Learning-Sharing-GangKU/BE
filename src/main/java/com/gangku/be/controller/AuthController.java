@@ -3,12 +3,15 @@ package com.gangku.be.controller;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.LoginRequestDto;
 import com.gangku.be.dto.user.LoginResponseDto;
-import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.security.jwt.JwtTokenProvider;
+import com.gangku.be.security.jwt.TokenPair;
+import com.gangku.be.service.AuthService;
 import com.gangku.be.service.UserService;
 import com.gangku.be.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,40 +23,34 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
+    private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider; // -> 서비스 계층으로 보내야 함
+    private final UserRepository userRepository; // -> 서비스 계층으로 보내야 함
 
-    /**
-     * 로그인 처리
-     * 1. 이메일/비밀번호 인증
-     * 2. AccessToken + RefreshToken 발급
-     * 3. RefreshToken은 HttpOnly 쿠키에 저장
-     */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginDto,
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto,
                                                   HttpServletResponse response) {
 
-        // 토큰 발급 및 사용자 저장 로직을 UserService.login()에 위임
-        LoginResponseDto loginResponse = userService.login(loginDto);
+        // 1) 토큰 발급
+        TokenPair tokenPair = authService.login(loginRequestDto);
 
-
-        // 리프레시 토큰 HttpOnly 쿠키로 저장
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", loginResponse.getRefreshToken())
+        // 2) Refresh Token -> HttpOnly Cookie로 설정
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenPair.refreshToken())
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
                 .path("/")
-                .maxAge(60 * 60 * 24 * 7)
+                .maxAge(60 * 60 * 24 * 14) // 설계에 적은대로 14일 기준으로 수정
                 .build();
-        response.addHeader("Set-Cookie", cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok(loginResponse);
-
+        // 3) Access Token,  -> Response Body로 반환
+        return ResponseEntity.ok(LoginResponseDto.from(tokenPair.accessToken()));
     }
 
     @PostMapping("/reissue")
     public ResponseEntity<LoginResponseDto> reissue(HttpServletRequest request) {
+
         String refreshToken = extractRefreshTokenFromCookie(request);
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");

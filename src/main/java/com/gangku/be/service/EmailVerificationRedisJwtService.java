@@ -1,7 +1,7 @@
 package com.gangku.be.service;
 
 import com.gangku.be.config.redis.EmailVerificationProps;
-import com.gangku.be.jwt.EmailVerificationJwt;
+import com.gangku.be.security.jwt.EmailVerificationJwt;
 import com.gangku.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;

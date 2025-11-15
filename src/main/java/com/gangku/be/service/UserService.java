@@ -4,13 +4,14 @@ package com.gangku.be.service;
 
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.security.jwt.TokenPair;
 import lombok.extern.slf4j.Slf4j;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.LoginRequestDto;
 import com.gangku.be.dto.user.LoginResponseDto;
 import com.gangku.be.dto.user.SignupRequestDto;
 import com.gangku.be.repository.UserRepository;
-import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PreferredCategoryService preferredCategoryService;
-
+    private final PasswordEncoder passwordEncoder;
 
     // 유저ID 조회 메서드
     public User findByUserId(Long id) {
@@ -91,40 +92,4 @@ public class UserService {
         // 4. DB에 저장
 
     }
-
-    private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder;
-
-    // 로그인 (비밀번호 체크)
-    public User authenticate(String email, String rawPassword) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
-
-        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
-        return user;
-    }
-
-    // 로그인 → JWT 토큰 생성
-    public LoginResponseDto login(LoginRequestDto dto) {
-        User user = authenticate(dto.getEmail(), dto.getPassword());
-        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(user.getId()));
-        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(user.getId()));
-
-        user.setRefreshToken(refreshToken);
-        user.setRefreshExpiry(LocalDateTime.now().plusDays(7)); // 리프레시 토큰 만료일
-        userRepository.save(user);
-
-        return LoginResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(jwtTokenProvider.getAccessTokenValidity()) // 초 단위
-                .build();
-    }
-
-
 }
-

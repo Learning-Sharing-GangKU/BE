@@ -1,4 +1,4 @@
-package com.gangku.be.jwt;
+package com.gangku.be.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

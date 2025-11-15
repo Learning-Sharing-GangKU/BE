@@ -9,7 +9,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public class LoginResponseDto {
     private String accessToken;
-    private String refreshToken;
     private String tokenType;
-    private long expiresIn;
+
+    public static LoginResponseDto from(String accessToken) {
+        return LoginResponseDto.builder()
+                .accessToken(accessToken)
+                .tokenType("Bearer")
+                .build();
+    }
 }
