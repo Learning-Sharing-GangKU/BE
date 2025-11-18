@@ -1,9 +1,10 @@
 // src/main/java/com/gangku/BE/security/JwtAuthFilter.java
-package com.gangku.be.security.jwt;
+package com.gangku.be.util.jwt;
 
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -82,7 +83,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 System.err.println("토큰에서 사용자 ID 파싱 실패: " + e.getMessage());
             }
         }else {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
+            throw new CustomException(AuthErrorCode.UNAUTHORIZED);
         }
         filterChain.doFilter(request, response); // ✅ 무조건 마지막 한 번만 실행
     }

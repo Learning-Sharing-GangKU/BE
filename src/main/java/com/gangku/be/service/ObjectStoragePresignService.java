@@ -1,7 +1,7 @@
 package com.gangku.be.service;
 
-import com.gangku.be.config.s3.AppProps;
-import com.gangku.be.config.s3.AssetPolicyProps;
+import com.gangku.be.config.aws.AppProps;
+import com.gangku.be.config.aws.AssetPolicyProps;
 import com.gangku.be.dto.object.PresignRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

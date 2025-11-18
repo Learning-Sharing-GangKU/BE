@@ -1,4 +1,4 @@
-package com.gangku.be.config.s3;
+package com.gangku.be.config.aws;
 
 import lombok.Getter; import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

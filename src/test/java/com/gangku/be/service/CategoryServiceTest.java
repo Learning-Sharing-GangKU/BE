@@ -4,6 +4,7 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.dto.category.CategoryDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.exception.ErrorCodeOld;
 import com.gangku.be.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +83,7 @@ public class CategoryServiceTest {
         CustomException ex = assertThrows(CustomException.class, () ->
                 categoryService.getAllCategories());
 
-        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CATEGORIES_NOT_FOUND);
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCodeOld.CATEGORIES_NOT_FOUND);
         assertThat(ex.getMessage()).contains("카테고리 목록을 찾을 수 없습니다");
     }
 }

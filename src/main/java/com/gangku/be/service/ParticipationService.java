@@ -5,7 +5,9 @@ import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.CustomExceptionOld;
 import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.exception.ErrorCodeOld;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
@@ -29,19 +31,19 @@ public class ParticipationService {
         // 401 Unauthorized 는 JwtAuthFilter에서 처리
 
         Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
 
         userRepository.findById(user.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.USER_NOT_FOUND));
 
         // 중복 참여 방지
         if (participationRepository.existsByUserAndGathering(user, gathering)) {
-            throw new CustomException(ErrorCode.ALREADY_JOINED);
+            throw new CustomExceptionOld(ErrorCodeOld.ALREADY_JOINED);
         }
 
         // 인원 제한 검사
         if (gathering.getParticipantCount() >= gathering.getCapacity()) {
-            throw new CustomException(ErrorCode.CAPACITY_FULL);
+            throw new CustomExceptionOld(ErrorCodeOld.CAPACITY_FULL);
         }
 
         Participation participation = new Participation();
@@ -70,16 +72,16 @@ public class ParticipationService {
 
         // 모임 존재 확인
         Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
 
         // 유저 존재 확인
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.USER_NOT_FOUND));
 
         // 참여자 정보 확인
         Participation participation = participationRepository
                 .findByUserAndGathering(user, gathering)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALREADY_LEFT));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.ALREADY_LEFT));
 
         // 모임 객체에서 Participation 제거 (양방향일 경우)
         gathering.removeParticipation(participation);

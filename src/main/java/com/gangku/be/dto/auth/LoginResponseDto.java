@@ -1,4 +1,4 @@
-package com.gangku.be.dto.user;
+package com.gangku.be.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

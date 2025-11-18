@@ -19,11 +19,8 @@ import java.net.URI;
 import java.util.List;
 
 
-// REST API 컨트롤러임을 나타냄 → 모든 메서드는 JSON으로 응답
 @RestController
-// 해당 클래스의 모든 요청 경로 앞에 붙는 prefix
 @RequestMapping("/api/v1/users")
-// final 필드를 자동 생성자 주입 + 필드 초기화
 @RequiredArgsConstructor
 public class UserController {
 

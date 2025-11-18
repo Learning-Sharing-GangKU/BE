@@ -21,6 +21,11 @@ app:
     region: ${S3_REGION}
     base-prefix: ${S3_IMAGE_BASE_PREFIX}
     ttl-seconds: ${S3_TTL_SECONDS}
+  email:
+    from: ${MAIL_FROM}
+    verification:
+      token-ttl-minutes: 10
+      session-ttl-minutes: 60
 
 assets:
   categories:
@@ -42,14 +47,3 @@ assets:
     password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.starttls.enable: true
-
-jwt:
-  secret: ${JWT_SECRET}
-  expMin: 60
-
-app:
-  email:
-    from: ${MAIL_FROM}
-    verification:
-      token-ttl-minutes: 10
-      session-ttl-minutes: 60

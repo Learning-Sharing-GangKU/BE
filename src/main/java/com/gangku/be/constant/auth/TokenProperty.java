@@ -1,5 +1,8 @@
 package com.gangku.be.constant.auth;
 
+import lombok.Getter;
+
+@Getter
 public enum TokenProperty {
 
     ACCESS_TOKEN(1000L * 60 * 30),
@@ -9,10 +12,6 @@ public enum TokenProperty {
 
     TokenProperty(long expirationInMillis) {
         this.expirationInMillis = expirationInMillis;
-    }
-
-    public long getExpirationInMillis() {
-        return expirationInMillis;
     }
 
     public long getExpirationInSeconds() {

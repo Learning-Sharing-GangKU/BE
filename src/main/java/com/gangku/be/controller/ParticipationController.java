@@ -4,7 +4,9 @@ package com.gangku.be.controller;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.CustomExceptionOld;
 import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.exception.ErrorCodeOld;
 import com.gangku.be.service.ParticipationService;
 import com.gangku.be.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +42,7 @@ public class ParticipationController {
     ) {
         // 자기 자신 취소만 가능하거나 관리자 로직 등을 추가할 수도 있음
         if (!userId.equals(requesterId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
+            throw new CustomExceptionOld(ErrorCodeOld.FORBIDDEN);
         }
 
         participationService.cancelParticipation(gatheringId, userId);

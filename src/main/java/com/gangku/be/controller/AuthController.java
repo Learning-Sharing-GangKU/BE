@@ -1,12 +1,19 @@
 package com.gangku.be.controller;
 
+import com.gangku.be.constant.auth.CookieProperty;
 import com.gangku.be.constant.auth.TokenProperty;
-import com.gangku.be.dto.user.LoginRequestDto;
-import com.gangku.be.dto.user.LoginResponseDto;
-import com.gangku.be.security.jwt.TokenPair;
+import com.gangku.be.dto.auth.EmailVerificationRequestDto;
+import com.gangku.be.dto.auth.EmailVerificationResponseDto;
+import com.gangku.be.dto.auth.LoginRequestDto;
+import com.gangku.be.dto.auth.LoginResponseDto;
+import com.gangku.be.model.EmailVerificationConfirmResult;
+import com.gangku.be.model.EmailVerificationSendResult;
+import com.gangku.be.model.TokenPair;
 import com.gangku.be.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -19,11 +26,12 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto,
-                                                  HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDto> login(
+            @RequestBody @Valid LoginRequestDto loginRequestDto,
+            HttpServletResponse response
+    ) {
 
         // 1) 토큰 발급
         TokenPair tokenPair = authService.login(loginRequestDto);
@@ -49,7 +57,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
 
         // 1) 로그 아웃 처리
         authService.logout(request);
@@ -60,19 +68,70 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+    @PostMapping("/email/verification")
+    public ResponseEntity<Map<String, String>> sendEmailVerification(
+            @RequestBody @Valid EmailVerificationRequestDto emailVerificationRequestDto,
+            HttpServletResponse response
+    ) {
+        EmailVerificationSendResult emailVerificationSendResult =
+                authService.sendEmailVerification(emailVerificationRequestDto.getEmail());
 
-        buildAndSetCookie(response, refreshToken, TokenProperty.REFRESH_TOKEN.getExpirationInSeconds());
+        setSignUpSessionCookie(response, emailVerificationSendResult);
+
+        return ResponseEntity.ok(Map.of("message","인증 이메일이 성공적으로 발송되었습니다."));
+    }
+
+    @GetMapping("/email/verification/start")
+    public ResponseEntity<Void> startEmailVerification(
+            @RequestParam("token") String emailVerificationToken
+    ) {
+        authService.consumeEmailVerification(emailVerificationToken);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/email/verification/confirm")
+    public ResponseEntity<EmailVerificationResponseDto> confirmEmailVerification(
+            @CookieValue(value = "signup_session", required = false) String signupSessionId
+    ) {
+
+        EmailVerificationConfirmResult confirmResult =
+                authService.confirmEmailVerification(signupSessionId);
+
+        return ResponseEntity.ok(EmailVerificationResponseDto.from(confirmResult));
+    }
+
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        buildAndSetCookie(
+                response,
+                CookieProperty.REFRESH_TOKEN_COOKIE_NAME.getCookieName(),
+                refreshToken,
+                TokenProperty.REFRESH_TOKEN.getExpirationInSeconds());
     }
 
     private void clearRefreshTokenCookie(HttpServletResponse response) {
-
-        buildAndSetCookie(response, "", 0L);
+        buildAndSetCookie(
+                response,
+                CookieProperty.REFRESH_TOKEN_COOKIE_NAME.getCookieName(),
+                "",
+                0L
+        );
     }
 
-    private static void buildAndSetCookie(HttpServletResponse response, String refreshToken, Long maxAge) {
+    private void setSignUpSessionCookie(
+            HttpServletResponse response,
+            EmailVerificationSendResult emailVerificationSendResult
+    ) {
+        buildAndSetCookie(
+                response,
+                CookieProperty.SIGNUP_SESSION_COOKIE_NAME.getCookieName(),
+                emailVerificationSendResult.sessionId(),
+                emailVerificationSendResult.sessionTtlMinutes() * 60
+        );
+    }
 
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+    private void buildAndSetCookie(HttpServletResponse response, String cookieName, String value, long maxAge) {
+
+        ResponseCookie cookie = ResponseCookie.from(cookieName, value)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")

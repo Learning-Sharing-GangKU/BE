@@ -1,4 +1,4 @@
-package com.gangku.be.config.s3;
+package com.gangku.be.config.aws;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

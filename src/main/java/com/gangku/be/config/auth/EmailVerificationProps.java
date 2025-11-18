@@ -1,4 +1,4 @@
-package com.gangku.be.config.redis;
+package com.gangku.be.config.auth;
 
 import lombok.Getter;
 import lombok.Setter;

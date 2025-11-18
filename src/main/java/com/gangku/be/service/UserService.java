@@ -3,21 +3,19 @@
 package com.gangku.be.service;
 
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.CustomExceptionOld;
 import com.gangku.be.exception.ErrorCode;
-import com.gangku.be.security.jwt.TokenPair;
+import com.gangku.be.exception.ErrorCodeOld;
+import com.gangku.be.exception.constant.AuthErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.user.LoginRequestDto;
-import com.gangku.be.dto.user.LoginResponseDto;
 import com.gangku.be.dto.user.SignupRequestDto;
 import com.gangku.be.repository.UserRepository;
-import com.gangku.be.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import static com.gangku.be.util.ValidationUtil.*;
-import java.time.LocalDateTime;
 
 
 @Slf4j
@@ -33,7 +31,7 @@ public class UserService {
     // 유저ID 조회 메서드
     public User findByUserId(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.USER_NOT_FOUND));
     }
 
     public void save(User user) { //저장만 하고 반환값 쓰이지 않으므로 void
@@ -52,22 +50,22 @@ public class UserService {
 
         // 이메일 형식 에러 예외처리
         if (!isValidEmail(requestDto.getEmail())) {
-            throw new CustomException(ErrorCode.INVALID_EMAIL_FORMAT);
+            throw new CustomException(AuthErrorCode.INVALID_EMAIL_FORMAT);
         }
 
         // 비밀번호 규칙 에러 예외처리
         if (!isValidPassword(requestDto.getPassword())) {
-            throw new CustomException(ErrorCode.PASSWORD_TOO_WEAK);
+            throw new CustomExceptionOld(ErrorCodeOld.PASSWORD_TOO_WEAK);
         }
 
         // 중복된 이메일 예외처리
         if(userRepository.existsByEmail(requestDto.getEmail())){
-            throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            throw new CustomExceptionOld(ErrorCodeOld.EMAIL_ALREADY_EXISTS);
         }
 
         // 중복된 닉네임 예외처리
         if (userRepository.existsByNickname(requestDto.getNickname())) {
-            throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
+            throw new CustomExceptionOld(ErrorCodeOld.NICKNAME_ALREADY_EXISTS);
         }
 
         // 3. User 엔티티 생성

@@ -3,11 +3,10 @@ package com.gangku.be.dto.common;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-//에러 응답용 Dto
-
 @Getter
 @AllArgsConstructor
 public class ErrorResponseDto {
+
     private ErrorDetail error;
 
     @Getter
@@ -15,5 +14,9 @@ public class ErrorResponseDto {
     public static class ErrorDetail {
         private String code;
         private String message;
+    }
+
+    public static ErrorResponseDto of(String code, String message) {
+        return new ErrorResponseDto(new ErrorDetail(code, message));
     }
 }

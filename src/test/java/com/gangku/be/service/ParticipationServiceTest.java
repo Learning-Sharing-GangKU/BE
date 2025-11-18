@@ -5,6 +5,7 @@ import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.exception.ErrorCodeOld;
 import com.gangku.be.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -108,7 +109,7 @@ public class ParticipationServiceTest {
         CustomException ex = assertThrows(CustomException.class, () ->
                 participationService.join(savedGathering.getId(), invalidUser));
 
-        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCodeOld.USER_NOT_FOUND);
         assertThat(ex.getMessage()).contains("존재하지 않는 사용자입니다");
     }
 
@@ -122,7 +123,7 @@ public class ParticipationServiceTest {
         CustomException ex = assertThrows(CustomException.class, () ->
                 participationService.join(invalidGatheringId, guestUser));
 
-        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.GATHERING_NOT_FOUND);
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCodeOld.GATHERING_NOT_FOUND);
     }
 
     @Test
@@ -135,7 +136,7 @@ public class ParticipationServiceTest {
         CustomException ex = assertThrows(CustomException.class, () ->
                 participationService.join(savedGathering.getId(), guestUser));
 
-        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.ALREADY_JOINED);
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCodeOld.ALREADY_JOINED);
     }
 
     @Test
@@ -161,7 +162,7 @@ public class ParticipationServiceTest {
         CustomException ex = assertThrows(CustomException.class, () ->
                 participationService.join(gatheringId, guestUser));
 
-        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CAPACITY_FULL);
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCodeOld.CAPACITY_FULL);
     }
 
     @Test
@@ -190,6 +191,6 @@ public class ParticipationServiceTest {
         CustomException ex = assertThrows(CustomException.class, () ->
                 participationService.cancelParticipation(savedGathering.getId(), invalidUserId));
 
-        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCodeOld.USER_NOT_FOUND);
     }
 }

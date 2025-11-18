@@ -9,7 +9,9 @@ import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
 import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.GatheringUpdateResponseDto;
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.CustomExceptionOld;
 import com.gangku.be.exception.ErrorCode;
+import com.gangku.be.exception.ErrorCodeOld;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -89,10 +91,10 @@ public class GatheringService {
         // 401 Unauthorized 예외처리는 JwtAuthFilter에서 처리함
 
         Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
 
         if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
+            throw new CustomExceptionOld(ErrorCodeOld.FORBIDDEN);
         }
 
         if (request.getTitle() != null) gathering.setTitle(request.getTitle());
@@ -131,10 +133,10 @@ public class GatheringService {
         // 400 Bad Request는 GlobalExceptionHandler 에서 처리
 
         Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
 
         if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN, "해당 모임을 삭제할 권한이 없습니다.");
+            throw new CustomExceptionOld(ErrorCodeOld.FORBIDDEN, "해당 모임을 삭제할 권한이 없습니다.");
         }
 
         gatheringRepository.delete(gathering);
@@ -142,7 +144,7 @@ public class GatheringService {
 
     public Gathering getGatheringById(Long id) {
         return gatheringRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
         // 401 Unauthorized 예외처리는 JwtAuthFilter에서 처리함
         // 400 Bad Request는 GlobalExceptionHandler 에서 처리
     }

@@ -1,3 +1,3 @@
-package com.gangku.be.security.jwt;
+package com.gangku.be.model;
 
 public record TokenPair(String accessToken, String refreshToken) {}
