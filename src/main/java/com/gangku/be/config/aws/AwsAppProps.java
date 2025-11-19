@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter @Setter
 @ConfigurationProperties(prefix = "app")
-public class AppProps {
+public class AwsAppProps {
     private S3Props s3 = new S3Props();
     private CdnProps cdn = new CdnProps();
 

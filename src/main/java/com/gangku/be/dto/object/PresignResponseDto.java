@@ -1,8 +1,13 @@
 package com.gangku.be.dto.object;
 
-public record PresignResponseDto (
-    String objectKey,
-    String uploadUrl,
-    String fileUrl,
-    int    expiresIn
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class PresignResponseDto {
+    private String objectKey;
+    private String uploadUrl;
+    private String fileUrl;
+    private int expiresIn;
+}

@@ -31,7 +31,7 @@ assets:
   categories:
     - type: image
       prefix: image
-      allowed-content-types: [ image/jpeg, image/png, image/webp ]
+      allowed-content-types: [ image/jpeg, image/png, image/jpg ]
   data:
     redis:
       port: 6379
