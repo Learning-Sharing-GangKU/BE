@@ -10,7 +10,7 @@ import java.util.List;
 
 
 @Entity
-@Getter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "users")  // 예약어 피하기 위해 users 사용
 public class User {
 
