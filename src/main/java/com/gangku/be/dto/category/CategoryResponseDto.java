@@ -7,6 +7,6 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class CategoryListResponseDto {
+public class CategoryResponseDto {
     private List<String> categories;
 }

@@ -33,7 +33,8 @@ public class UserController {
     public ResponseEntity<?> registerUser(
             // @RequestBody: 요청 본문에서 JSON → Java 객체로 매핑
             // @Validated: 유효성 검증 수행
-            @RequestBody @Validated SignupRequestDto requestDto) {
+            @RequestBody @Validated SignupRequestDto requestDto
+    ) {
 
         //  회원가입 처리 후 저장된 유저 반환
         User savedUser = userService.registerUser(requestDto);
@@ -58,4 +59,4 @@ public class UserController {
 
 
     }
-    }
+}
