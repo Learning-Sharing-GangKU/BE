@@ -4,7 +4,6 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.SignUpResponseDto;
 import com.gangku.be.service.UserService;
-import com.gangku.be.service.PreferredCategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
