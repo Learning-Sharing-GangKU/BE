@@ -1,7 +1,6 @@
-// src/main/java/com/gangku/BE/domain/User.java
-
 package com.gangku.be.domain;
 
+import com.gangku.be.dto.user.SignUpRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -36,7 +35,7 @@ public class User {
     private Integer enrollNumber;
 
     @Column(nullable = false, length = 2000)
-    private String photoUrl;
+    private String profileObjectKey;
 
     private Boolean emailVerified;
 
@@ -52,8 +51,7 @@ public class User {
 
     private LocalDateTime updatedAt;
 
-    // ✅ @ElementCollection 제거하고 PreferredCategory로 대체
-    @Builder.Default // 값을 따로 주지 않을경우 new ArrayList가 기본값으로 들어감
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
 
@@ -69,10 +67,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public String getProfileImageUrl() {
-        return this.photoUrl;
-    }
-
     public void updateRefreshToken(String refreshToken, LocalDateTime refreshExpiry) {
         this.refreshToken = refreshToken;
         this.refreshExpiry = refreshExpiry;
@@ -81,5 +75,33 @@ public class User {
     public void clearRefreshToken() {
         this.refreshToken = null;
         this.refreshExpiry = null;
+    }
+
+    public void addPreferredCategory(PreferredCategory preferredCategory) {
+        this.preferredCategories.add(preferredCategory);
+        preferredCategory.setUser(this);
+    }
+
+    public static User create(
+            SignUpRequestDto signUpRequestDto,
+            String encodedPassword
+    ) {
+        return User.builder()
+                .email(signUpRequestDto.getEmail())
+                .password(encodedPassword)
+                .nickname(signUpRequestDto.getNickname())
+                .age(signUpRequestDto.getAge())
+                .gender(signUpRequestDto.getGender())
+                .enrollNumber(signUpRequestDto.getEnrollNumber())
+                .profileObjectKey(
+                        signUpRequestDto.getProfileImage().getBucket()
+                                + "/"
+                                +  signUpRequestDto.getProfileImage().getKey()
+                )
+                .emailVerified(false)
+                .reviewsPublic(true)
+                .createdAt(null)     // @PrePersist로 자동 설정됨
+                .updatedAt(null)     // @PrePersist/@PreUpdate로 자동 설정됨
+                .build();
     }
 }

@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findByName(String name); // 중복 체크용
+    List<Category> findByNameIn(List<String> names);
     List<Category> findAllByOrderByNameAsc();
 }
