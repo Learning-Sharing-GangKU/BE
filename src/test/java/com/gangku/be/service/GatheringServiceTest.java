@@ -52,7 +52,7 @@ public class GatheringServiceTest {
                 .email("host@example.com")
                 .password("encoded_pw")
                 .nickname("테스트호스트")
-                .photoUrl("https://cdn.example.com/default-profile.jpg")
+                .profileObjectKey("https://cdn.example.com/default-profile.jpg")
                 .build());
 
         List<String> categoryNames = List.of("스터디", "운동", "음악", "영화", "게임");
@@ -200,7 +200,7 @@ public class GatheringServiceTest {
                 .email("stranger@example.com")
                 .password("pw")
                 .nickname("낯선이")
-                .photoUrl("https://cdn.example.com/stranger.jpg")
+                .profileObjectKey("https://cdn.example.com/stranger.jpg")
                 .build());
 
         GatheringUpdateRequestDto updateDto = GatheringUpdateRequestDto.builder()
@@ -264,7 +264,7 @@ public class GatheringServiceTest {
                 .email("stranger2@example.com")
                 .password("pw")
                 .nickname("낯선2")
-                .photoUrl("https://cdn.example.com/stranger2.jpg")
+                .profileObjectKey("https://cdn.example.com/stranger2.jpg")
                 .build());
 
         assertThrows(CustomException.class, () ->

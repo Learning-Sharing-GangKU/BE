@@ -52,14 +52,14 @@ public class ParticipationServiceTest {
                 .email("host@gangku.com")
                 .nickname("호스트")
                 .password("password")
-                .photoUrl("https://photo.url/host")
+                .profileObjectKey("https://photo.url/host")
                 .build());
 
         guestUser = userRepository.save(User.builder()
                 .email("guest@gangku.com")
                 .nickname("게스트")
                 .password("password")
-                .photoUrl("https://photo.url/guest")
+                .profileObjectKey("https://photo.url/guest")
                 .build());
 
         // 카테고리 저장
