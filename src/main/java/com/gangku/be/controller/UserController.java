@@ -24,11 +24,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    // 서비스 레이어 의존성 주입
     private final UserService userService;
     private final PreferredCategoryService preferredCategoryService;
 
-    // POST 요청으로 회원가입 처리
     @PostMapping
     public ResponseEntity<?> registerUser(
             // @RequestBody: 요청 본문에서 JSON → Java 객체로 매핑
