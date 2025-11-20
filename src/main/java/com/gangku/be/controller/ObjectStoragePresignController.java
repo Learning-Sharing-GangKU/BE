@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/objects")
 @RequiredArgsConstructor
-public class ObjectStorageController {
+public class ObjectStoragePresignController {
 
     private final ObjectStoragePresignService objectStoragePresignService;
 
