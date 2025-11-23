@@ -26,6 +26,7 @@ JOIN p.gathering g
 JOIN g.host h
 WHERE p.user.id = :userId
 AND p.status = 'APPROVED'
+AND p.role = 'GUEST'
 ORDER BY p.joinedAt DESC, g.id DESC
 """)
     List<Gathering> findJoinedGatheringsByUserId(

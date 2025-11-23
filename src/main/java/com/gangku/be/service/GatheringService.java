@@ -214,6 +214,7 @@ public class GatheringService {
                 .gathering(savedGathering)
                 .status(Participation.Status.APPROVED)
                 .role(Participation.ParticipationRole.HOST)
+                .joinedAt(LocalDateTime.now())
                 .build();
         participationRepository.save(participation);
 

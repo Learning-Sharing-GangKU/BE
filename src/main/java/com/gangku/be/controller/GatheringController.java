@@ -73,6 +73,7 @@ public class GatheringController {
     public ResponseEntity<GatheringDetailResponseDto> getGatheringById(
             @PathVariable Long gatheringId,
             @AuthenticationPrincipal Long userId
+
     ) {
         GatheringDetailResponseDto response = gatheringService.getGatheringById(gatheringId, userId);
         return ResponseEntity.ok(response);
