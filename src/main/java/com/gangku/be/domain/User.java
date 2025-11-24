@@ -1,6 +1,7 @@
 package com.gangku.be.domain;
 
 import com.gangku.be.dto.user.SignUpRequestDto;
+import com.gangku.be.dto.user.SignUpRequestDto.ProfileImage;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -83,25 +84,28 @@ public class User {
     }
 
     public static User create(
-            SignUpRequestDto signUpRequestDto,
-            String encodedPassword
+            String email,
+            String encodedPassword,
+            String nickname,
+            Integer age,
+            String gender,
+            Integer enrollNumber,
+            ProfileImage profileImage
     ) {
         return User.builder()
-                .email(signUpRequestDto.getEmail())
+                .email(email)
                 .password(encodedPassword)
-                .nickname(signUpRequestDto.getNickname())
-                .age(signUpRequestDto.getAge())
-                .gender(signUpRequestDto.getGender())
-                .enrollNumber(signUpRequestDto.getEnrollNumber())
+                .nickname(nickname)
+                .age(age)
+                .gender(gender)
+                .enrollNumber(enrollNumber)
                 .profileObjectKey(
-                        signUpRequestDto.getProfileImage().getBucket()
-                                + "/"
-                                +  signUpRequestDto.getProfileImage().getKey()
+                        profileImage.getBucket() +
+                                "/" +
+                                profileImage.getKey()
                 )
                 .emailVerified(false)
                 .reviewsPublic(true)
-                .createdAt(null)     // @PrePersist로 자동 설정됨
-                .updatedAt(null)     // @PrePersist/@PreUpdate로 자동 설정됨
                 .build();
     }
 }

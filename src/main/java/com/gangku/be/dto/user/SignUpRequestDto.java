@@ -5,7 +5,10 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.List;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SignUpRequestDto {
 
     @NotBlank
@@ -41,6 +44,7 @@ public class SignUpRequestDto {
 
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class ProfileImage {
 
         @NotBlank

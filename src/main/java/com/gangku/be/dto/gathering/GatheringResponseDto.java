@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class GatheringCreateResponseDto {
+public class GatheringResponseDto {
 
-    private String id;                  // 예: "gath_12345"
+    private String id;
     private String title;
     private String imageUrl;
     private String category;
@@ -23,14 +23,14 @@ public class GatheringCreateResponseDto {
     private String location;
     private String openChatUrl;
     private String description;
-    private String hostId;             // 예: "usr_67890"
+    private String hostId;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime createdAt;
 
 
-    public static GatheringCreateResponseDto from(Gathering gathering) {
-        return new GatheringCreateResponseDto(
+    public static GatheringResponseDto from(Gathering gathering) {
+        return new GatheringResponseDto(
                 "gath_" + gathering.getId(),
                 gathering.getTitle(),
                 gathering.getImageUrl(),
@@ -44,5 +44,4 @@ public class GatheringCreateResponseDto {
                 gathering.getCreatedAt()
         );
     }
-
 }

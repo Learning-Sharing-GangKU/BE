@@ -1,5 +1,6 @@
 package com.gangku.be.domain;
 
+import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -19,12 +20,10 @@ public class Gathering {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 🔗 호스트: User
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
 
-    // 🔗 카테고리
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
@@ -53,7 +52,6 @@ public class Gathering {
     @Column(name = "openchat_url", nullable = false, length = 50, unique = true)
     private String openChatUrl;
 
-    // 상태 ENUM
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Status status;
@@ -76,8 +74,6 @@ public class Gathering {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        this.participantCount = 0;
-        this.status = Status.RECRUITING;
     }
 
     @PreUpdate
@@ -94,5 +90,31 @@ public class Gathering {
     public void removeParticipation(Participation participation) {
         participations.remove(participation);
         participation.setGathering(null);
+    }
+
+    public static Gathering create(
+            User host,
+            Category category,
+            String title,
+            String description,
+            String imageUrl,
+            Integer capacity,
+            LocalDateTime date,
+            String location,
+            String openChatUrl
+    ) {
+        return Gathering.builder()
+                .host(host)
+                .category(category)
+                .title(title)
+                .description(description)
+                .imageUrl(imageUrl)
+                .capacity(capacity)
+                .participantCount(1)
+                .date(date)
+                .location(location)
+                .openChatUrl(openChatUrl)
+                .status(Status.RECRUITING)
+                .build();
     }
 }

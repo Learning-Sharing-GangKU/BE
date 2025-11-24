@@ -41,6 +41,12 @@ public class Participation {
         this.JoinedAt = LocalDateTime.now();
     }
 
+    public static Participation create(User host, Gathering gathering) {
 
-    // Getter/Setter 생략
+        return Participation.builder()
+                .user(host)
+                .gathering(gathering)
+                .status(Participation.Status.APPROVED)
+                .build();
+    }
 }

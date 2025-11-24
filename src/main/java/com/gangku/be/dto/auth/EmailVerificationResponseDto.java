@@ -18,11 +18,4 @@ public class EmailVerificationResponseDto {
                 .email(confirmResult.email())
                 .build();
     }
-
-    public static LoginResponseDto from(String accessToken) {
-        return LoginResponseDto.builder()
-                .accessToken(accessToken)
-                .tokenType("Bearer")
-                .build();
-    }
 }

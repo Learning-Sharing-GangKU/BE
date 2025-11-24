@@ -1,20 +1,16 @@
-// src/main/java/com/gangku/be/controller/GatheringController.java
-
 package com.gangku.be.controller;
 
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.*;
 import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
 import com.gangku.be.service.GatheringService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/v1/gatherings")
@@ -24,30 +20,33 @@ public class GatheringController {
     private final GatheringService gatheringService;
 
     @PostMapping
-    public ResponseEntity<GatheringCreateResponseDto> createGathering(
-            @RequestBody GatheringCreateRequestDto requestDto,
-            @AuthenticationPrincipal User user  // JWT에서 userId 추출됨
+    public ResponseEntity<GatheringResponseDto> createGathering(
+            @RequestBody GatheringCreateRequestDto gatheringCreateRequestDto,
+            @AuthenticationPrincipal User user
     ) {
 
         // 모임 생성
-        GatheringCreateResponseDto responseDto = gatheringService.createGathering(requestDto, user);
+        GatheringResponseDto gatheringCreateResponseDto = gatheringService.createGathering(
+                gatheringCreateRequestDto,
+                user.getId()
+        );
 
         // 응답 구성
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("/api/v1/gatherings/" + responseDto.getId()));
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(gatheringCreateResponseDto.getId())
+                .toUri();
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .headers(headers)
-                .body(responseDto);
+        return ResponseEntity.created(location).body(gatheringCreateResponseDto);
     }
 
     @PatchMapping("/{gatheringId}")
-    public ResponseEntity<GatheringUpdateResponseDto> updateGathering(
+    public ResponseEntity<GatheringResponseDto> updateGathering(
             @PathVariable Long gatheringId,
             @AuthenticationPrincipal Long userId,
-            @RequestBody GatheringUpdateRequestDto requestDto) {
-        GatheringUpdateResponseDto updated = gatheringService.updateGathering(gatheringId, userId, requestDto);
+            @RequestBody GatheringUpdateRequestDto gatheringUpdateRequestDto
+    ) {
+        GatheringResponseDto updated = gatheringService.updateGathering(gatheringId, userId, gatheringUpdateRequestDto);
         return ResponseEntity.ok(updated);
     }
 

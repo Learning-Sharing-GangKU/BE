@@ -5,19 +5,21 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringCreateResponseDto;
+import com.gangku.be.dto.gathering.GatheringResponseDto;
 import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
-import com.gangku.be.dto.gathering.GatheringUpdateResponseDto;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.CustomExceptionOld;
-import com.gangku.be.exception.ErrorCode;
-import com.gangku.be.exception.ErrorCodeOld;
+import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.CategoryErrorCode;
+import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.util.GatheringValidator;
+import com.gangku.be.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
@@ -29,125 +31,216 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final CategoryRepository categoryRepository;
     private final ParticipationRepository participationRepository;
-    private final GatheringValidator gatheringValidator;
-
+    private final UserRepository userRepository;
 
     //모임 생성 메서드
     @Transactional
-    public GatheringCreateResponseDto createGathering(GatheringCreateRequestDto request, User host) {
+    public GatheringResponseDto createGathering(
+            GatheringCreateRequestDto gatheringCreateRequestDto,
+            Long hostId
+    ) {
 
         //필드 유효성 검사 예외처리
-        gatheringValidator.validateFields(request);
+        validateFields(gatheringCreateRequestDto);
 
-        // 401 Unauthorized 예외처리는 JwtAuthFilter에서 처리함
+        User host = findUserById(hostId);
 
-        // 카테고리 유효성 검사
-        Category category = categoryRepository.findByName(request.getCategory())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 카테고리입니다."));
-
+        Category category = findCategoryByName(gatheringCreateRequestDto.getCategory());
 
         // 엔티티 생성
-        Gathering gathering = Gathering.builder()
-                .host(host)
-                .title(request.getTitle())
-                .imageUrl(request.getImageUrl())
-                .category(category)
-                .capacity(request.getCapacity())
-                .participantCount(0)
-                .date(request.getDate())
-                .location(request.getLocation())
-                .openChatUrl(request.getOpenChatUrl())
-                .description(request.getDescription())
-                .status(Gathering.Status.RECRUITING)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
+        Gathering gathering = Gathering.create(
+                host,
+                category,
+                gatheringCreateRequestDto.getTitle(),
+                gatheringCreateRequestDto.getDescription(),
+                gatheringCreateRequestDto.getImageUrl(),
+                gatheringCreateRequestDto.getCapacity(),
+                gatheringCreateRequestDto.getDate(),
+                gatheringCreateRequestDto.getLocation(),
+                gatheringCreateRequestDto.getOpenChatUrl()
+        );
         Gathering savedGathering = gatheringRepository.save(gathering);
 
         // 호스트도 참여자로 추가
-        Participation participation = Participation.builder()
-                .user(host)
-                .gathering(savedGathering)
-                .status(Participation.Status.APPROVED)
-                .build();
+        Participation participation = Participation.create(host, savedGathering);
         participationRepository.save(participation);
 
-        savedGathering.setParticipantCount(savedGathering.getParticipantCount() + 1);
-        gatheringRepository.save(savedGathering); // 업데이트 반영
-
         // 4. 응답 DTO 생성
-        return GatheringCreateResponseDto.from(savedGathering);
+        return GatheringResponseDto.from(savedGathering);
     }
-
 
     // 모임 수정 메서드
     @Transactional
-    public GatheringUpdateResponseDto updateGathering(Long gatheringId, Long userId, GatheringUpdateRequestDto request) {
+    public GatheringResponseDto updateGathering(
+            Long gatheringId,
+            Long userId,
+            GatheringUpdateRequestDto gatheringUpdateRequestDto
+    ) {
 
         // 필드 유효성 검사 예외처리
-        gatheringValidator.validateFields(request);
+        validateFields(gatheringUpdateRequestDto);
 
-        // 401 Unauthorized 예외처리는 JwtAuthFilter에서 처리함
+        Gathering gathering = findGatheringById(gatheringId);
 
-        Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
+        validateGatheringHost(userId, gathering);
 
-        if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomExceptionOld(ErrorCodeOld.FORBIDDEN);
-        }
+        checkRequestBodyAndUpdate(gatheringUpdateRequestDto, gathering);
 
-        if (request.getTitle() != null) gathering.setTitle(request.getTitle());
-        if (request.getImageUrl() != null) gathering.setImageUrl(request.getImageUrl());
-        if (request.getCategory() != null) {
-            Category category = categoryRepository.findByName(request.getCategory())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
-            gathering.setCategory(category);
-        }
-        if (request.getCapacity() != null) gathering.setCapacity(request.getCapacity());
-        if (request.getDate() != null) gathering.setDate(request.getDate());
-        if (request.getLocation() != null) gathering.setLocation(request.getLocation());
-        if (request.getOpenChatUrl() != null) gathering.setOpenChatUrl(request.getOpenChatUrl());
-        if (request.getDescription() != null) gathering.setDescription(request.getDescription());
+        Gathering updatedGathering = gatheringRepository.save(gathering);
 
-        Gathering updated = gatheringRepository.save(gathering);
-
-        return GatheringUpdateResponseDto.builder()
-                .id("gath_" + updated.getId())
-                .title(updated.getTitle())
-                .imageUrl(updated.getImageUrl())
-                .category(updated.getCategory().getName())
-                .capacity(updated.getCapacity())
-                .date(updated.getDate())
-                .location(updated.getLocation())
-                .openChatUrl(updated.getOpenChatUrl())
-                .description(updated.getDescription())
-                .updatedAt(updated.getUpdatedAt().toString())
-                .build();
+        return GatheringResponseDto.from(updatedGathering);
     }
 
     // 모임 삭제 메서드
     @Transactional
     public void deleteGathering(Long gatheringId, Long userId) {
 
-        // 400 Bad Request는 GlobalExceptionHandler 에서 처리
+        Gathering gathering = findGatheringById(gatheringId);   
 
-        Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
-
-        if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomExceptionOld(ErrorCodeOld.FORBIDDEN, "해당 모임을 삭제할 권한이 없습니다.");
-        }
+        validateGatheringHost(userId, gathering);
 
         gatheringRepository.delete(gathering);
     }
 
-    public Gathering getGatheringById(Long id) {
-        return gatheringRepository.findById(id)
-                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.GATHERING_NOT_FOUND));
-        // 401 Unauthorized 예외처리는 JwtAuthFilter에서 처리함
-        // 400 Bad Request는 GlobalExceptionHandler 에서 처리
+    private User findUserById(Long hostId) {
+        User host = userRepository.findById(hostId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        return host;
+    }
+
+    private Category findCategoryByName(String categoryName) {
+        return categoryRepository.findByName(categoryName)
+                .orElseThrow(() -> new CustomException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+    }
+
+    public Gathering findGatheringById(Long gatheringId) {
+        return gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
+    }
+
+    private void checkRequestBodyAndUpdate(GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
+        if (gatheringUpdateRequestDto.getTitle() != null) gathering.setTitle(gatheringUpdateRequestDto.getTitle());
+        if (gatheringUpdateRequestDto.getImageUrl() != null) gathering.setImageUrl(gatheringUpdateRequestDto.getImageUrl());
+        if (gatheringUpdateRequestDto.getCategory() != null) gathering.setCategory(findCategoryByName(
+                gatheringUpdateRequestDto.getCategory()));
+        if (gatheringUpdateRequestDto.getCapacity() != null) gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
+        if (gatheringUpdateRequestDto.getDate() != null) gathering.setDate(gatheringUpdateRequestDto.getDate());
+        if (gatheringUpdateRequestDto.getLocation() != null) gathering.setLocation(gatheringUpdateRequestDto.getLocation());
+        if (gatheringUpdateRequestDto.getOpenChatUrl() != null) gathering.setOpenChatUrl(gatheringUpdateRequestDto.getOpenChatUrl());
+        if (gatheringUpdateRequestDto.getDescription() != null) gathering.setDescription(gatheringUpdateRequestDto.getDescription());
+    }
+
+    private void validateGatheringHost(Long userId, Gathering gathering) {
+        if (!gathering.getHost().getId().equals(userId)) {
+            throw new CustomException(GatheringErrorCode.FORBIDDEN);
+        }
+    }
+
+    private boolean isValidUrl(String url) {
+        return UrlValidator.getInstance().isValid(url);
+    }
+
+    private void validateFields(GatheringCreateRequestDto request) {
+        // title: 1~30자
+        String title = request.getTitle();
+        if (title == null || title.length() < 1 || title.length() > 30) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // imageUrl: URL 형식일 경우만 검사
+        String imageUrl = request.getImageUrl();
+        if (imageUrl != null && !isValidUrl(imageUrl)) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // category: DB에서 조회된 것 중 하나여야 함
+        List<String> allowed = categoryRepository.findAll().stream()
+                .map(Category::getName)
+                .collect(Collectors.toList());
+        if (!allowed.contains(request.getCategory())) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // capacity: 1~100
+        int capacity = request.getCapacity();
+        if (capacity < 1 || capacity > 100) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // date: ISO 8601, 과거 불가
+        if (request.getDate() == null || request.getDate().isBefore(LocalDateTime.now())) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // location: 1~30자
+        String location = request.getLocation();
+        if (location == null || location.length() < 1 || location.length() > 30) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // openChatUrl: https로 시작
+        String chatUrl = request.getOpenChatUrl();
+        if (chatUrl == null || !chatUrl.startsWith("https://")) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // description: 최대 800자
+        String desc = request.getDescription();
+        if (desc == null || desc.length() > 800) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
     }
 
 
+    // 모임 수정 필드 검증 메서드
+    private void validateFields(GatheringUpdateRequestDto request) {
+        // title: 1~30자
+        String title = request.getTitle();
+        if (title == null || title.length() < 1 || title.length() > 30) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // imageUrl: URL 형식일 경우만 검사
+        String imageUrl = request.getImageUrl();
+        if (imageUrl != null && !isValidUrl(imageUrl)) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // category: DB에서 조회된 것 중 하나여야 함
+        List<String> allowed = categoryRepository.findAll().stream()
+                .map(Category::getName)
+                .collect(Collectors.toList());
+        if (!allowed.contains(request.getCategory())) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // capacity: 1~100
+        int capacity = request.getCapacity();
+        if (capacity < 1 || capacity > 100) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // date: ISO 8601, 과거 불가
+        if (request.getDate() == null || request.getDate().isBefore(LocalDateTime.now())) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // location: 1~30자
+        String location = request.getLocation();
+        if (location == null || location.length() < 1 || location.length() > 30) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // openChatUrl: https로 시작
+        String chatUrl = request.getOpenChatUrl();
+        if (chatUrl == null || !chatUrl.startsWith("https://")) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+
+        // description: 최대 800자
+        String desc = request.getDescription();
+        if (desc == null || desc.length() > 800) {
+            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+    }
 }

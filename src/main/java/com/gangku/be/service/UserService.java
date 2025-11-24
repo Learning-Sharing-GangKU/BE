@@ -51,10 +51,16 @@ public class UserService {
         // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
-        String encodedPassword = passwordEncoder.encode(signUpRequestDto.getPassword());
-
         // 4) DB에 저장
-        User newUser = User.create(signUpRequestDto, encodedPassword);
+        User newUser = User.create(
+                signUpRequestDto.getEmail(),
+                passwordEncoder.encode(signUpRequestDto.getPassword()),
+                signUpRequestDto.getNickname(),
+                signUpRequestDto.getAge(),
+                signUpRequestDto.getGender(),
+                signUpRequestDto.getEnrollNumber(),
+                signUpRequestDto.getProfileImage()
+        );
 
         assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
 
