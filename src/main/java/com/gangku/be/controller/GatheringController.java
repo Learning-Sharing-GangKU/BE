@@ -1,6 +1,5 @@
 package com.gangku.be.controller;
 
-import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.*;
 import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
 import com.gangku.be.service.GatheringService;
@@ -22,13 +21,13 @@ public class GatheringController {
     @PostMapping
     public ResponseEntity<GatheringResponseDto> createGathering(
             @RequestBody GatheringCreateRequestDto gatheringCreateRequestDto,
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal Long userId
     ) {
 
         // 모임 생성
         GatheringResponseDto gatheringCreateResponseDto = gatheringService.createGathering(
                 gatheringCreateRequestDto,
-                user.getId()
+                userId
         );
 
         // 응답 구성
