@@ -7,6 +7,7 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.auth.LoginRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.EmailVerificationSendResult;
 import com.gangku.be.model.EmailVerificationConfirmResult;
 import com.gangku.be.repository.UserRepository;
@@ -302,7 +303,7 @@ public class AuthService {
         String userId = jwtTokenProvider.getSubject(refreshToken);
 
         return userRepository.findById(Long.valueOf(userId))
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private String findRefreshTokenFromCookie(HttpServletRequest request) {

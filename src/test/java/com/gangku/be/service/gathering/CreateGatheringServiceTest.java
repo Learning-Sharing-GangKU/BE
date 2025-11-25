@@ -7,9 +7,9 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -24,8 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -201,7 +199,7 @@ class CreateGatheringServiceTest {
                 () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
-        assertEquals(AuthErrorCode.USER_NOT_FOUND, ex.getErrorCode());
+        assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
     }
 
     @Test

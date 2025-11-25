@@ -11,11 +11,6 @@ public enum AuthErrorCode implements ErrorCode {
             "이메일 또는 비밀번호가 올바르지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
-    USER_NOT_FOUND(
-            "USER_NOT_FOUND",
-            "사용자를 찾을 수 없습니다.",
-            HttpStatus.NOT_FOUND.value()
-    ),
     REFRESH_TOKEN_NOT_FOUND(
             "REFRESH_TOKEN_NOT_FOUND",
             "리프레시 토큰이 없습니다.",
@@ -75,7 +70,7 @@ public enum AuthErrorCode implements ErrorCode {
     ),
     EMAIL_MISMATCH(
             "EMAIL_MISMATCH",
-            "세션의 이메일과 이늦ㅇ된 이메일이 일치하지 않습니다.",
+            "세션의 이메일과 인증된 이메일이 일치하지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
     TOKEN_EXPIRED_OR_USED(

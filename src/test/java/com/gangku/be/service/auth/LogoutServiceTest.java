@@ -4,6 +4,7 @@ import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
 import com.gangku.be.util.jwt.EmailVerificationJwt;
@@ -125,7 +126,7 @@ class LogoutServiceTest {
                 () -> authService.logout(request));
 
         // then
-        assertEquals(AuthErrorCode.USER_NOT_FOUND, ex.getErrorCode());
+        assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
 
         verify(jwtTokenProvider).getSubject(refreshToken);
         verify(userRepository).findById(userId);

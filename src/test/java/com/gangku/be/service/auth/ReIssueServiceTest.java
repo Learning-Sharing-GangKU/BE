@@ -5,6 +5,7 @@ import com.gangku.be.constant.auth.TokenProperty;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.TokenPair;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
@@ -170,7 +171,7 @@ class ReIssueServiceTest {
                 () -> authService.reIssue(request));
 
         // then
-        assertEquals(AuthErrorCode.USER_NOT_FOUND, ex.getErrorCode());
+        assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
 
         verify(jwtTokenProvider).isRefreshToken(refreshToken);
         verify(jwtTokenProvider).getSubject(refreshToken);

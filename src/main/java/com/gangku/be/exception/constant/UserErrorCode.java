@@ -6,6 +6,11 @@ import org.springframework.http.HttpStatus;
 public enum UserErrorCode implements ErrorCode {
 
     // --- 회원가입 ---
+    USER_NOT_FOUND(
+            "USER_NOT_FOUND",
+            "사용자를 찾을 수 없습니다.",
+            HttpStatus.NOT_FOUND.value()
+    ),
     INVALID_EMAIL_FORMAT(
             "INVALID_EMAIL_FORMAT",
             "이메일 형식이 올바르지 않습니다.",

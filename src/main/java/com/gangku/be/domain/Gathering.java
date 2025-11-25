@@ -1,6 +1,5 @@
 package com.gangku.be.domain;
 
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -83,13 +82,25 @@ public class Gathering {
 
     // 양방향 연관관계 편의 메서드
     public void addParticipation(Participation participation) {
-        participations.add(participation);
+        this.participations.add(participation);
         participation.setGathering(this);
+
+        this.participantCount++;
+
+        if (this.participantCount >= this.capacity) {
+            this.status = Status.FULL;
+        }
     }
 
     public void removeParticipation(Participation participation) {
         participations.remove(participation);
         participation.setGathering(null);
+
+        this.participantCount--;
+
+        if (this.participantCount < this.capacity) {
+            this.status = Status.RECRUITING;
+        }
     }
 
     public static Gathering create(

@@ -8,9 +8,9 @@ import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.GatheringResponseDto;
 import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -104,7 +104,7 @@ public class GatheringService {
 
     private User findUserById(Long hostId) {
         User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         return host;
     }
 

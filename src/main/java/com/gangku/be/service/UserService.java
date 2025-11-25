@@ -4,8 +4,6 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.CustomExceptionOld;
-import com.gangku.be.exception.ErrorCodeOld;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
@@ -31,11 +29,6 @@ public class UserService {
 
     private static final Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     private static final Pattern PASSWORD_REGEX = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
-
-    public User findByUserId(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new CustomExceptionOld(ErrorCodeOld.USER_NOT_FOUND));
-    }
 
     public User registerUser(SignUpRequestDto signUpRequestDto) {
 
