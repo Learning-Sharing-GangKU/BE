@@ -6,6 +6,13 @@ spring:
     multipart:
       max-file-size: 6MB
       max-request-size: 6MB
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.starttls.enable: true
 
 logging:
   level:
@@ -40,10 +47,3 @@ assets:
           max-active: 16
           max-idle: 8
           min-idle: 0
-  mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail.smtp.starttls.enable: true
