@@ -28,8 +28,7 @@ public class ParticipationController {
     @DeleteMapping()
     public ResponseEntity<Void> cancelParticipation(
             @PathVariable Long gatheringId,
-            @PathVariable Long userId,
-            @AuthenticationPrincipal Long requesterId // 실제 요청자 (토큰에서 추출)
+            @AuthenticationPrincipal Long userId // 실제 요청자 (토큰에서 추출)
     ) {
         participationService.cancelParticipation(gatheringId, userId);
         return ResponseEntity.noContent().build(); // 204 No Content
