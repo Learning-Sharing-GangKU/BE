@@ -26,9 +26,8 @@ public class GatheringCreateRequestDto {
     @Max(value = 100)
     private int capacity;
 
-    @NotBlank
+    @NotNull
     private LocalDateTime date;
-//    private String date; // ISO 8601 문자열 (ex: 2025-10-01T10:00:00Z)
 
     @NotBlank
     @Size(min = 1, max = 30, message = "장소는 1자 이상 30자 이하여야 합니다.")

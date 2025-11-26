@@ -6,7 +6,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @Entity
 @Table(name = "participations")
 @NoArgsConstructor
@@ -21,6 +20,7 @@ public class Participation {
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     private Gathering gathering;
 
@@ -41,6 +41,11 @@ public class Participation {
         this.JoinedAt = LocalDateTime.now();
     }
 
-
-    // Getter/Setter 생략
+    public static Participation create(User host, Gathering gathering) {
+        return Participation.builder()
+                .user(host)
+                .gathering(gathering)
+                .status(Participation.Status.APPROVED)
+                .build();
+    }
 }

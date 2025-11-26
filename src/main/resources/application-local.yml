@@ -12,13 +12,11 @@ spring:
       host: localhost
       password:
       timeout: 2s
-
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     show-sql: true
-
   h2:
     console:
       enabled: true
@@ -29,3 +27,4 @@ app:
     env-prefix: dev
   cdn:
     base-url: ""
+  base-url: "http://localhost:3000"

@@ -1,4 +1,3 @@
-// PreferredCategory.java
 package com.gangku.be.domain;
 
 import jakarta.persistence.*;
@@ -12,7 +11,7 @@ import lombok.Setter;
  */
 @Entity
 @Table(name = "preferred_categories", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "category_id"}) // 유저-카테고리 조합은 유일해야 함
+        @UniqueConstraint(columnNames = {"user_id", "category_id"})
 })
 @Getter
 @Setter
