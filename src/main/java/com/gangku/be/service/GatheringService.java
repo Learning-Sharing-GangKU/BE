@@ -5,6 +5,8 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.GatheringIntroRequestDto;
+import com.gangku.be.dto.gathering.GatheringIntroResponseDto;
 import com.gangku.be.dto.gathering.GatheringResponseDto;
 import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
 import com.gangku.be.exception.CustomException;
@@ -20,8 +22,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 
 @Service
@@ -32,6 +39,11 @@ public class GatheringService {
     private final CategoryRepository categoryRepository;
     private final ParticipationRepository participationRepository;
     private final UserRepository userRepository;
+
+    private final WebClient webClient;
+
+    @Value("${ai.server.base-url")
+    private String aiServerBaseUrl;
 
     //모임 생성 메서드
     @Transactional
@@ -100,6 +112,23 @@ public class GatheringService {
         validateGatheringHost(userId, gathering);
 
         gatheringRepository.delete(gathering);
+    }
+
+    public GatheringIntroResponseDto createGatheringIntro(GatheringIntroRequestDto gatheringIntroRequestDto) {
+
+        validateKeywords(gatheringIntroRequestDto.getKeywords());
+
+        return webClient.post()
+                .uri(aiServerBaseUrl + "/ai/v1/gatherings/intro")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(gatheringIntroRequestDto)
+                .retrieve()
+                .onStatus(
+                        HttpStatusCode::is5xxServerError,
+                        response -> Mono.error(new CustomException(GatheringErrorCode.AI_SERVICE_UNAVAILABLE))
+                )
+                .bodyToMono(GatheringIntroResponseDto.class)
+                .block();
     }
 
     private User findUserById(Long hostId) {
@@ -241,6 +270,12 @@ public class GatheringService {
         String desc = request.getDescription();
         if (desc == null || desc.length() > 800) {
             throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        }
+    }
+
+    private  void validateKeywords(List<String> keywords) {
+        if (keywords == null || keywords.isEmpty()) {
+            throw new CustomException(GatheringErrorCode.INVALID_KEYWORD_VALUE);
         }
     }
 }

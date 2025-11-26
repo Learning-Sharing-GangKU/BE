@@ -24,6 +24,16 @@ public enum GatheringErrorCode implements ErrorCode {
             "GATHERING_NOT_FOUND",
             "해당 모임을 찾을 수 없습니다.",
             HttpStatus.NOT_FOUND.value()
+    ),
+    AI_SERVICE_UNAVAILABLE(
+            "AI_SERVICE_UNAVAILABLE",
+            "AI 모델 서버와의 통신에 실패했습니다.",
+            HttpStatus.INTERNAL_SERVER_ERROR.value()
+    ),
+    INVALID_KEYWORD_VALUE(
+            "INVALID_KEYWORD_VALUE",
+            "키워드의 형식이 잘못되었습니다.",
+            HttpStatus.BAD_REQUEST.value()
     );
 
     private final String code;
