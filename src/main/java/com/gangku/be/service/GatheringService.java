@@ -3,8 +3,10 @@ package com.gangku.be.service;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
+import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.GatheringDetailResponseDto;
 import com.gangku.be.dto.gathering.GatheringIntroRequestDto;
 import com.gangku.be.dto.gathering.GatheringIntroResponseDto;
 import com.gangku.be.dto.gathering.GatheringResponseDto;
@@ -12,6 +14,7 @@ import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
+import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
@@ -23,6 +26,10 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -74,7 +81,7 @@ public class GatheringService {
         Gathering savedGathering = gatheringRepository.save(gathering);
 
         // 호스트도 참여자로 추가
-        Participation participation = Participation.create(host, savedGathering);
+        Participation participation = Participation.create(host, savedGathering, Role.HOST);
         participationRepository.save(participation);
 
         // 4. 응답 DTO 생성
@@ -113,6 +120,26 @@ public class GatheringService {
 
         gatheringRepository.delete(gathering);
     }
+
+    @Transactional
+    public GatheringDetailResponseDto getGathering(Long gatheringId, int page, int size, String sortParam) {
+
+        Gathering gathering = findGatheringById(gatheringId);
+
+        String dirStr = validateParamsFormatAndParseSortParam(page, size, sortParam);
+
+        Sort.Direction direction = dirStr.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, "joinedAt").and(Sort.by(direction, "id"));
+
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        Page<Participation> participationPage =
+                participationRepository.findByGatheringId(gatheringId, pageable);
+
+        return GatheringDetailResponseDto.from(gathering, participationPage, page, size, "joinedAt,asc");
+    }
+
+
 
     public GatheringIntroResponseDto createGatheringIntro(GatheringIntroRequestDto gatheringIntroRequestDto) {
 
@@ -275,7 +302,23 @@ public class GatheringService {
 
     private  void validateKeywords(List<String> keywords) {
         if (keywords == null || keywords.isEmpty()) {
-            throw new CustomException(GatheringErrorCode.INVALID_KEYWORD_VALUE);
+            throw new CustomException(GatheringErrorCode.INVALID_KEYWORD_FORMAT);
         }
+    }
+
+    private String validateParamsFormatAndParseSortParam(int page, int size, String sortParam) {
+        if  (page < 1 || size < 1 || size > 10) {
+            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+
+        String[] parts = sortParam.split(",");
+        String property = (parts.length > 0 && !parts[0].isBlank()) ? parts[0] : "joinedAt";
+        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
+
+        if (!property.equals("joinedAt")) {
+            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+
+        return dirStr;
     }
 }

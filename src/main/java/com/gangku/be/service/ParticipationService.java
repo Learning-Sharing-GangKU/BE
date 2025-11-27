@@ -2,17 +2,23 @@ package com.gangku.be.service;
 
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
+import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.model.ParticipantsPreview;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,7 +28,6 @@ public class ParticipationService {
     private final ParticipationRepository participationRepository;
     private final GatheringRepository gatheringRepository;
     private final UserRepository userRepository;
-
 
     @Transactional
     public ParticipationResponseDto joinParticipation(Long gatheringId, Long userId) {
@@ -34,7 +39,7 @@ public class ParticipationService {
 
         validateConflict(user, gathering);
 
-        Participation participation = Participation.create(user, gathering);
+        Participation participation = Participation.create(user, gathering, Role.GUEST);
         gathering.addParticipation(participation);
         participationRepository.save(participation);
         // 이거 테스트 해보고 지울 수 있으면 지우자
@@ -58,6 +63,24 @@ public class ParticipationService {
 
         // DB에서 참여 정보 삭제
         participationRepository.delete(participation);
+    }
+
+    @Transactional
+    public ParticipantsPreview getParticipants(Long gatheringId, int page, int size, String sortParam) {
+
+        findGatheringById(gatheringId); // 404 찾기 위해 추가
+
+        String dirStr = validateParamsFormatAndParseSortParam(page, size, sortParam);
+
+        Sort.Direction direction = dirStr.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, "joinedAt").and(Sort.by(direction, "id"));
+
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        Page<Participation> participationPage =
+                participationRepository.findByGatheringId(gatheringId, pageable);
+
+        return ParticipantsPreview.from(participationPage, page, size, sortParam);
     }
 
     private Participation verifyUserInParticipation(User user, Gathering gathering) {
@@ -89,5 +112,21 @@ public class ParticipationService {
     private Gathering findGatheringById(Long gatheringId) {
         return gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
+    }
+
+    private String validateParamsFormatAndParseSortParam(int page, int size, String sortParam) {
+        if  (page < 1 || size < 1 || size > 10) {
+            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+
+        String[] parts = sortParam.split(",");
+        String property = (parts.length > 0 && !parts[0].isBlank()) ? parts[0] : "joinedAt";
+        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
+
+        if (!property.equals("joinedAt")) {
+            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+
+        return dirStr;
     }
 }

@@ -49,10 +49,22 @@ public class GatheringController {
         return ResponseEntity.ok(updated);
     }
 
+    @GetMapping("/{gatheringId}")
+    public ResponseEntity<GatheringDetailResponseDto> getGathering(
+            @PathVariable Long gatheringId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "joinedAt.asc") String sort
+    ) {
+        GatheringDetailResponseDto gatheringDetailResponseDto =
+                gatheringService.getGathering(gatheringId, page, size, sort);
+        return ResponseEntity.ok(gatheringDetailResponseDto);
+    }
+
     // 모임 삭제
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGathering(
-            @PathVariable("gatheringId") Long gatheringId,
+            @PathVariable Long gatheringId,
             @AuthenticationPrincipal Long userId
     ) {
         gatheringService.deleteGathering(gatheringId, userId);

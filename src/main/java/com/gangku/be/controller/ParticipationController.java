@@ -1,6 +1,7 @@
 package com.gangku.be.controller;
 
 import com.gangku.be.dto.participation.ParticipationResponseDto;
+import com.gangku.be.model.ParticipantsPreview;
 import com.gangku.be.service.ParticipationService;
 import com.gangku.be.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +18,12 @@ public class ParticipationController {
     private final ParticipationService participationService;
 
     @PostMapping()
-    public ResponseEntity<ParticipationResponseDto> joinGathering(
+    public ResponseEntity<ParticipationResponseDto> joinParticipation(
             @PathVariable("gatheringId") Long gatheringId,
             @AuthenticationPrincipal Long userId
     ) {
         return ResponseEntity.ok(participationService.joinParticipation(gatheringId, userId));
     }
-
 
     @DeleteMapping()
     public ResponseEntity<Void> cancelParticipation(
@@ -32,5 +32,18 @@ public class ParticipationController {
     ) {
         participationService.cancelParticipation(gatheringId, userId);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    @GetMapping()
+    public ResponseEntity<ParticipantsPreview> getParticipants(
+            @PathVariable Long gatheringId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "joinedAt.asc") String sort
+    ) {
+        ParticipantsPreview participantsPreview =
+                participationService.getParticipants(gatheringId, page, size, sort);
+
+        return ResponseEntity.ok(participantsPreview);
     }
 }

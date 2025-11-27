@@ -4,10 +4,12 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Getter
 @AllArgsConstructor
 public class ParticipationResponseDto {
@@ -20,14 +22,15 @@ public class ParticipationResponseDto {
     private LocalDateTime joinedAt;
 
     public static ParticipationResponseDto from(Participation participation, Gathering gathering, User user) {
-        return new ParticipationResponseDto(
-                "gath_" + gathering.getId(),
-                "part_" + participation.getId(),
-                "usr_" + user.getId(),
-                "guest",
-                gathering.getParticipantCount(),
-                gathering.getCapacity(),
-                participation.getJoinedAt()
-        );
+
+        return ParticipationResponseDto.builder()
+                .gatheringId("gath_" + gathering.getId())
+                .participantId("part_" + participation.getId())
+                .userId("usr_" + user.getId())
+                .role(participation.getRole().name())
+                .participantCount(gathering.getParticipantCount())
+                .capacity(gathering.getCapacity())
+                .joinedAt(participation.getJoinedAt())
+                .build();
     }
 }

@@ -2,11 +2,13 @@ package com.gangku.be.dto.gathering;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import com.gangku.be.domain.Gathering;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Getter
 @AllArgsConstructor
 public class GatheringResponseDto {
@@ -30,18 +32,18 @@ public class GatheringResponseDto {
 
 
     public static GatheringResponseDto from(Gathering gathering) {
-        return new GatheringResponseDto(
-                "gath_" + gathering.getId(),
-                gathering.getTitle(),
-                gathering.getImageUrl(),
-                gathering.getCategory().getName(),
-                gathering.getCapacity(),
-                gathering.getDate(),
-                gathering.getLocation(),
-                gathering.getOpenChatUrl(),
-                gathering.getDescription(),
-                "usr_" + gathering.getHost().getId(),
-                gathering.getCreatedAt()
-        );
+
+        return GatheringResponseDto.builder()
+                .id("gath_" + gathering.getId())
+                .title(gathering.getTitle())
+                .category(gathering.getCategory().getName())
+                .capacity(gathering.getCapacity())
+                .date(gathering.getDate())
+                .location(gathering.getLocation())
+                .openChatUrl(gathering.getOpenChatUrl())
+                .description(gathering.getDescription())
+                .hostId("usr_" + gathering.getHost().getId())
+                .createdAt(gathering.getCreatedAt())
+                .build();
     }
 }

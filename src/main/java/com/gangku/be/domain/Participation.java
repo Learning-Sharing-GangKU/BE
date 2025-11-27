@@ -27,13 +27,22 @@ public class Participation {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     @Column(nullable = false)
     private LocalDateTime JoinedAt;
 
     public enum Status {
-        APPROVED,     // 정상 참여
+        APPROVED,
         PENDING,
-        CANCELED    // 참여 취소
+        CANCELED
+    }
+
+    public enum Role {
+        HOST,
+        GUEST
     }
 
     @PrePersist
@@ -41,11 +50,12 @@ public class Participation {
         this.JoinedAt = LocalDateTime.now();
     }
 
-    public static Participation create(User host, Gathering gathering) {
+    public static Participation create(User user, Gathering gathering, Role role) {
         return Participation.builder()
-                .user(host)
+                .user(user)
                 .gathering(gathering)
-                .status(Participation.Status.APPROVED)
+                .status(Status.APPROVED)
+                .role(role)
                 .build();
     }
 }
