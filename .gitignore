@@ -31,4 +31,4 @@ Thumbs.db
 *.env
 .env.*
 
-./redis-data/
+redis-data/

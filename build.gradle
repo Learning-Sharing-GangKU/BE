@@ -33,6 +33,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     implementation 'commons-validator:commons-validator:1.7'
     implementation platform('software.amazon.awssdk:bom:2.25.60')

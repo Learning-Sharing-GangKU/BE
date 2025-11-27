@@ -59,4 +59,13 @@ public class GatheringController {
         return ResponseEntity.noContent().build();
     }
 
+    // AI 모임 정보 생성
+    @PostMapping("/intro")
+    public ResponseEntity<GatheringIntroResponseDto> createGatheringIntro(
+            @RequestBody GatheringIntroRequestDto gatheringIntroRequestDto
+    ) {
+        GatheringIntroResponseDto gatheringIntroResponseDto =
+                gatheringService.createGatheringIntro(gatheringIntroRequestDto);
+        return ResponseEntity.ok(gatheringIntroResponseDto);
+    }
 }
