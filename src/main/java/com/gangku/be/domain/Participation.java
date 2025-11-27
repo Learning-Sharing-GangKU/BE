@@ -32,7 +32,7 @@ public class Participation {
     private Role role;
 
     @Column(nullable = false)
-    private LocalDateTime JoinedAt;
+    private LocalDateTime joinedAt;
 
     public enum Status {
         APPROVED,
@@ -47,7 +47,7 @@ public class Participation {
 
     @PrePersist
     public void prePersist() {
-        this.JoinedAt = LocalDateTime.now();
+        this.joinedAt = LocalDateTime.now();
     }
 
     public static Participation create(User user, Gathering gathering, Role role) {

@@ -1,7 +1,12 @@
 package com.gangku.be.controller;
 
-import com.gangku.be.dto.gathering.*;
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
+import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.service.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -50,14 +57,14 @@ public class GatheringController {
     }
 
     @GetMapping("/{gatheringId}")
-    public ResponseEntity<GatheringDetailResponseDto> getGathering(
+    public ResponseEntity<GatheringDetailResponseDto> getGatheringDetail(
             @PathVariable Long gatheringId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int size,
             @RequestParam(defaultValue = "joinedAt.asc") String sort
     ) {
         GatheringDetailResponseDto gatheringDetailResponseDto =
-                gatheringService.getGathering(gatheringId, page, size, sort);
+                gatheringService.getGatheringDetail(gatheringId, page, size, sort);
         return ResponseEntity.ok(gatheringDetailResponseDto);
     }
 
@@ -79,5 +86,29 @@ public class GatheringController {
         GatheringIntroResponseDto gatheringIntroResponseDto =
                 gatheringService.createGatheringIntro(gatheringIntroRequestDto);
         return ResponseEntity.ok(gatheringIntroResponseDto);
+    }
+
+    // 모임 리스트 조회
+    // 카테고리 페이지에서 사용
+    @GetMapping
+    public ResponseEntity<GatheringListResponseDto> getGatherings(
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "latest") String sort,
+            @RequestParam(defaultValue = "3") int size
+    ) {
+        GatheringListResponseDto response = gatheringService.getGatheringList(category, sort, size);
+        return ResponseEntity.ok(response);
+    }
+
+    // 홈 화면 모임 리스트 조회
+    @GetMapping("/api/v1/home")
+    public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings() {
+        Map<String, GatheringListResponseDto> result = new HashMap<>();
+
+        result.put("recommended", gatheringService.getGatheringList(null, "recommended", 3));
+        result.put("latest", gatheringService.getGatheringList(null, "latest", 3));
+        result.put("popular", gatheringService.getGatheringList(null, "popular", 3));
+
+        return ResponseEntity.ok(result);
     }
 }

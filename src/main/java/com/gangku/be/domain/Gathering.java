@@ -40,7 +40,8 @@ public class Gathering {
     private Integer capacity;
 
     @Column(name = "participant_count", nullable = false)
-    private Integer participantCount;
+    @Builder.Default
+    private Integer participantCount = 0;
 
     @Column(nullable = false)
     private LocalDateTime date;
@@ -67,6 +68,7 @@ public class Gathering {
 
     // cascade 로 모임 삭제 시 참여자도 삭제 , orphanRemoval=true 로 연관 끊기면 DB에서 제거
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Participation> participations = new ArrayList<>();
 
     @PrePersist
@@ -82,7 +84,7 @@ public class Gathering {
 
     // 양방향 연관관계 편의 메서드
     public void addParticipation(Participation participation) {
-        this.participations.add(participation);
+        participations.add(participation);
         participation.setGathering(this);
 
         this.participantCount++;

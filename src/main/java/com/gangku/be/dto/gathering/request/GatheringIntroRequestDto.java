@@ -1,4 +1,4 @@
-package com.gangku.be.dto.gathering;
+package com.gangku.be.dto.gathering.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

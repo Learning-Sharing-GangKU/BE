@@ -1,4 +1,4 @@
-package com.gangku.be.dto.gathering;
+package com.gangku.be.dto.gathering.request;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;

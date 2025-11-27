@@ -3,7 +3,6 @@ package com.gangku.be.controller;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.model.ParticipantsPreview;
 import com.gangku.be.service.ParticipationService;
-import com.gangku.be.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/gatherings/{gatheringId}/participants")
 public class ParticipationController {
 
-    private final UserService userService;
     private final ParticipationService participationService;
 
     @PostMapping()

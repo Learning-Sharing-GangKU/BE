@@ -5,22 +5,23 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.gathering.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.GatheringDetailResponseDto;
-import com.gangku.be.dto.gathering.GatheringIntroRequestDto;
-import com.gangku.be.dto.gathering.GatheringIntroResponseDto;
-import com.gangku.be.dto.gathering.GatheringResponseDto;
-import com.gangku.be.dto.gathering.GatheringUpdateRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
+import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
+import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringResponseDto;
+import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
+import com.gangku.be.dto.gathering.response.*;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.model.PageMeta;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+
+
 import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -114,7 +118,7 @@ public class GatheringService {
     @Transactional
     public void deleteGathering(Long gatheringId, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);   
+        Gathering gathering = findGatheringById(gatheringId);
 
         validateGatheringHost(userId, gathering);
 
@@ -122,7 +126,7 @@ public class GatheringService {
     }
 
     @Transactional
-    public GatheringDetailResponseDto getGathering(Long gatheringId, int page, int size, String sortParam) {
+    public GatheringDetailResponseDto getGatheringDetail(Long gatheringId, int page, int size, String sortParam) {
 
         Gathering gathering = findGatheringById(gatheringId);
 
@@ -138,8 +142,6 @@ public class GatheringService {
 
         return GatheringDetailResponseDto.from(gathering, participationPage, page, size, "joinedAt,asc");
     }
-
-
 
     public GatheringIntroResponseDto createGatheringIntro(GatheringIntroRequestDto gatheringIntroRequestDto) {
 
@@ -157,6 +159,110 @@ public class GatheringService {
                 .bodyToMono(GatheringIntroResponseDto.class)
                 .block();
     }
+
+    /**
+     *   모임 목록 조회
+     * - 홈 화면 및 카테고리 페이지에서 사용
+     * - category, sort, size에 따라 정렬 및 필터링
+     *   - sort = latest → createdAt DESC
+     *   - sort = popular → participantCount DESC
+     */
+    @Transactional(readOnly = true)
+    public GatheringListResponseDto getGatheringList(String categoryName, String sort, int size) {
+        if (size <= 0 || size > 12) {
+            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+        Category category = null;
+        if (categoryName != null) {
+            category = categoryRepository.findByName(categoryName)
+                    .orElseThrow(() -> new CustomException(GatheringErrorCode.CATEGORY_NOT_FOUND));
+        }
+        Pageable pageable = PageRequest.of(0, size);
+        // 정렬 조건에 따라 조회
+        List<Gathering> gatherings;
+        if (sort.equals("popular")) {
+            gatherings = gatheringRepository.findPopularGatherings(category, pageable);
+        } else {
+            gatherings = gatheringRepository.findLatestGatherings(category, pageable);
+        }
+        // 엔티티 -> Dto 변환
+        List<GatheringListItemDto> items = gatherings.stream()
+                .map(g -> GatheringListItemDto.builder()
+                        .id("gath_" + g.getId())
+                        .imageUrl(g.getImageUrl())
+                        .category(g.getCategory().getName())
+                        .title(g.getTitle())
+                        .hostName(g.getHost().getNickname())
+                        .participantCount(g.getParticipantCount())
+                        .capacity(g.getCapacity())
+                        .build())
+                .toList();
+
+        PageMeta meta = PageMeta.builder()
+                .size(items.size())
+                .sortedBy(sort.equals("popular") ? "participantCount,desc" : "createdAt,desc")
+                .nextCursor(null) // TODO: 커서 기반 페이지네이션 추가 시 구현
+                .hasPrev(false)
+                .hasNext(false)
+                .build();
+
+        return GatheringListResponseDto.builder()
+                .data(items)
+                .meta(meta)
+                .build();
+    }
+
+    /**
+     * 사용자별 모임 목록 조회 (role=host | guest)
+     * - host: 내가 만든 모임
+     * - guest: 내가 참여한 모임
+     */
+    @Transactional(readOnly = true)
+    public GatheringListResponseDto getUserGatherings(Long userId, String role, int size, String cursor, String sort) {
+        if (!role.equals("host") && !role.equals("guest")) {
+            throw new CustomException(ErrorCode.INVALID_ROLE);
+        }
+        if (size <= 0 || size > 50) {
+            throw new CustomException(ErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(0, size);
+        List<Gathering> gatherings;
+
+        if (role.equals("host")) {
+            gatherings = gatheringRepository.findByHostIdOrderByCreatedAtDesc(userId, pageable);
+        } else {
+            gatherings = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
+        }
+
+        List<GatheringListItemDto> items = gatherings.stream()
+                .map(g -> GatheringListItemDto.builder()
+                        .id("gath_" + g.getId())
+                        .imageUrl(g.getImageUrl())
+                        .category(g.getCategory().getName())
+                        .title(g.getTitle())
+                        .hostName(g.getHost().getNickname())
+                        .participantCount(g.getParticipantCount())
+                        .capacity(g.getCapacity())
+                        .build())
+                .toList();
+
+        PageMetaDto meta = PageMetaDto.builder()
+                .size(items.size())
+                .sortedBy(sort)
+                .nextCursor(null)
+                .hasNext(false)
+                .build();
+
+        return GatheringListResponseDto.builder()
+                .data(items)
+                .meta(meta)
+                .build();
+    }
+
 
     private User findUserById(Long hostId) {
         User host = userRepository.findById(hostId)
@@ -252,7 +358,7 @@ public class GatheringService {
     private void validateFields(GatheringUpdateRequestDto request) {
         // title: 1~30자
         String title = request.getTitle();
-        if (title == null || title.length() < 1 || title.length() > 30) {
+        if (title == null || title.isEmpty() || title.length() > 30) {
             throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
         }
 
@@ -308,7 +414,7 @@ public class GatheringService {
 
     private String validateParamsFormatAndParseSortParam(int page, int size, String sortParam) {
         if  (page < 1 || size < 1 || size > 10) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
         }
 
         String[] parts = sortParam.split(",");
