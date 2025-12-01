@@ -32,7 +32,7 @@ public class SignUpResponseDto {
                 .id("usr_" + user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
-                .profileObjectKey(user.getProfileObjectKey())
+                .profileObjectKey(user.getProfileImageObject())
                 .age(user.getAge())
                 .gender(user.getGender())
                 .enrollNumber(user.getEnrollNumber())

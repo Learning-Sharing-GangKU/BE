@@ -1,5 +1,6 @@
 package com.gangku.be.controller;
 
+import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
@@ -52,8 +53,9 @@ public class GatheringController {
             @AuthenticationPrincipal Long userId,
             @RequestBody GatheringUpdateRequestDto gatheringUpdateRequestDto
     ) {
-        GatheringResponseDto updated = gatheringService.updateGathering(gatheringId, userId, gatheringUpdateRequestDto);
-        return ResponseEntity.ok(updated);
+        GatheringResponseDto gatheringResponseDto =
+                gatheringService.updateGathering(gatheringId, userId, gatheringUpdateRequestDto);
+        return ResponseEntity.ok(gatheringResponseDto);
     }
 
     @GetMapping("/{gatheringId}")
@@ -91,13 +93,14 @@ public class GatheringController {
     // 모임 리스트 조회
     // 카테고리 페이지에서 사용
     @GetMapping
-    public ResponseEntity<GatheringListResponseDto> getGatherings(
+    public ResponseEntity<GatheringListResponseDto> getGatheringList(
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "latest") String sort,
-            @RequestParam(defaultValue = "3") int size
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "latest") String sort
     ) {
-        GatheringListResponseDto response = gatheringService.getGatheringList(category, sort, size);
-        return ResponseEntity.ok(response);
+        GatheringListResponseDto gatheringListResponseDto = gatheringService.getGatheringList(category, page, size, sort);
+        return ResponseEntity.ok(gatheringListResponseDto);
     }
 
     // 홈 화면 모임 리스트 조회
@@ -105,9 +108,9 @@ public class GatheringController {
     public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings() {
         Map<String, GatheringListResponseDto> result = new HashMap<>();
 
-        result.put("recommended", gatheringService.getGatheringList(null, "recommended", 3));
-        result.put("latest", gatheringService.getGatheringList(null, "latest", 3));
-        result.put("popular", gatheringService.getGatheringList(null, "popular", 3));
+        result.put("recommended", gatheringService.getGatheringList(null, 1, 3, "latest")); // Recommend 로직 이후에 추가 임시
+        result.put("latest", gatheringService.getGatheringList(null, 1, 3, "latest"));
+        result.put("popular", gatheringService.getGatheringList(null, 1, 3, "popular"));
 
         return ResponseEntity.ok(result);
     }

@@ -1,5 +1,6 @@
 package com.gangku.be.domain;
 
+import com.gangku.be.model.ImageObject;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -33,8 +34,8 @@ public class Gathering {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "image_url", length = 255)
-    private String imageUrl;
+    @Column(name = "gathering_image_object", length = 255)
+    private String gatheringImageObject;
 
     @Column(nullable = false)
     private Integer capacity;
@@ -110,7 +111,7 @@ public class Gathering {
             Category category,
             String title,
             String description,
-            String imageUrl,
+            ImageObject gatheringImage,
             Integer capacity,
             LocalDateTime date,
             String location,
@@ -121,7 +122,11 @@ public class Gathering {
                 .category(category)
                 .title(title)
                 .description(description)
-                .imageUrl(imageUrl)
+                .gatheringImageObject(
+                        gatheringImage.bucket() +
+                                "/" +
+                                gatheringImage.key()
+                )
                 .capacity(capacity)
                 .participantCount(1)
                 .date(date)

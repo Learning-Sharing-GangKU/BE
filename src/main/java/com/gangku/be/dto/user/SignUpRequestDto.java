@@ -1,5 +1,6 @@
 package com.gangku.be.dto.user;
 
+import com.gangku.be.model.ImageObject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -37,20 +38,8 @@ public class SignUpRequestDto {
     private Integer enrollNumber;
 
     @Valid
-    private ProfileImage profileImage;
+    private ImageObject profileImage;
 
     @Size(max = 3)
     private List<String> preferredCategories;
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ProfileImage {
-
-        @NotBlank
-        private String bucket;
-
-        @NotBlank
-        private String key;
-    }
 }

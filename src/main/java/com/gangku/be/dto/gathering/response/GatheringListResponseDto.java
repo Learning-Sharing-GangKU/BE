@@ -1,5 +1,7 @@
 package com.gangku.be.dto.gathering.response;
 
+import com.gangku.be.model.GatheringList;
+import com.gangku.be.model.GatheringListItem;
 import com.gangku.be.model.PageMeta;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +14,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GatheringListResponseDto {
-    private List<GatheringListItemDto> data;
+    private List<GatheringListItem> data;
     private PageMeta meta;
+
+    public static GatheringListResponseDto from(GatheringList gatheringList) {
+        return GatheringListResponseDto.builder()
+                .data(gatheringList.data())
+                .meta(gatheringList.meta())
+                .build();
+    }
 }

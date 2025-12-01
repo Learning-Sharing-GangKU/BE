@@ -1,5 +1,6 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
@@ -17,7 +18,7 @@ import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.model.PageMeta;
+import com.gangku.be.model.GatheringList;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -76,7 +77,7 @@ public class GatheringService {
                 category,
                 gatheringCreateRequestDto.getTitle(),
                 gatheringCreateRequestDto.getDescription(),
-                gatheringCreateRequestDto.getImageUrl(),
+                gatheringCreateRequestDto.getGatheringImage(),
                 gatheringCreateRequestDto.getCapacity(),
                 gatheringCreateRequestDto.getDate(),
                 gatheringCreateRequestDto.getLocation(),
@@ -168,48 +169,45 @@ public class GatheringService {
      *   - sort = popular → participantCount DESC
      */
     @Transactional(readOnly = true)
-    public GatheringListResponseDto getGatheringList(String categoryName, String sort, int size) {
-        if (size <= 0 || size > 12) {
-            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
-        }
-        Category category = null;
-        if (categoryName != null) {
-            category = categoryRepository.findByName(categoryName)
-                    .orElseThrow(() -> new CustomException(GatheringErrorCode.CATEGORY_NOT_FOUND));
-        }
-        Pageable pageable = PageRequest.of(0, size);
-        // 정렬 조건에 따라 조회
-        List<Gathering> gatherings;
-        if (sort.equals("popular")) {
-            gatherings = gatheringRepository.findPopularGatherings(category, pageable);
-        } else {
-            gatherings = gatheringRepository.findLatestGatherings(category, pageable);
-        }
-        // 엔티티 -> Dto 변환
-        List<GatheringListItemDto> items = gatherings.stream()
-                .map(g -> GatheringListItemDto.builder()
-                        .id("gath_" + g.getId())
-                        .imageUrl(g.getImageUrl())
-                        .category(g.getCategory().getName())
-                        .title(g.getTitle())
-                        .hostName(g.getHost().getNickname())
-                        .participantCount(g.getParticipantCount())
-                        .capacity(g.getCapacity())
-                        .build())
-                .toList();
+    public GatheringListResponseDto getGatheringList(String categoryName, int page, int size, String sort) {
 
-        PageMeta meta = PageMeta.builder()
-                .size(items.size())
-                .sortedBy(sort.equals("popular") ? "participantCount,desc" : "createdAt,desc")
-                .nextCursor(null) // TODO: 커서 기반 페이지네이션 추가 시 구현
-                .hasPrev(false)
-                .hasNext(false)
-                .build();
+        validateParamsFormat(page, size);
 
-        return GatheringListResponseDto.builder()
-                .data(items)
-                .meta(meta)
-                .build();
+        Category category = verifyCategoryName(categoryName);
+
+        GatheringSort sortType = GatheringSort.from(sort);
+
+        Sort springSort = switch (sortType) {
+            case POPULAR -> Sort.by(
+                    Sort.Order.desc("popularScore"),
+                    Sort.Order.desc("id")
+            );
+            case LATEST -> Sort.by(
+                    Sort.Order.desc("createdAt"),
+                    Sort.Order.desc("id")
+            );
+        };
+
+        Pageable pageable = PageRequest.of(page - 1, size, springSort);
+
+        Page<Gathering> gatheringPage =
+                (sortType == GatheringSort.POPULAR)
+                        ? gatheringRepository.findPopularGatherings(category, pageable)
+                        : gatheringRepository.findLatestGatherings(category, pageable);
+
+        String sortedByForMeta =
+                (sortType == GatheringSort.POPULAR)
+                        ? "popularScore,desc,id,desc"
+                        : "createdAt,desc,id,desc";
+
+        GatheringList gatheringList = GatheringList.from(
+                gatheringPage,
+                page,
+                size,
+                sortedByForMeta
+        );
+
+        return GatheringListResponseDto.from(gatheringList);
     }
 
     /**
@@ -218,49 +216,40 @@ public class GatheringService {
      * - guest: 내가 참여한 모임
      */
     @Transactional(readOnly = true)
-    public GatheringListResponseDto getUserGatherings(Long userId, String role, int size, String cursor, String sort) {
+    public GatheringListResponseDto getUserGatherings(Long userId, String role, int page, int size, String sort) {
+
         if (!role.equals("host") && !role.equals("guest")) {
-            throw new CustomException(ErrorCode.INVALID_ROLE);
+            throw new CustomException(ParticipationErrorCode.INVALID_ROLE);
         }
-        if (size <= 0 || size > 50) {
-            throw new CustomException(ErrorCode.INVALID_PARAMETER_FORMAT);
+        if (size <= 0 || size > 50 || page <= 0) {
+            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
-        Pageable pageable = PageRequest.of(0, size);
-        List<Gathering> gatherings;
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Gathering> gatheringPage;
 
         if (role.equals("host")) {
-            gatherings = gatheringRepository.findByHostIdOrderByCreatedAtDesc(userId, pageable);
+            gatheringPage = gatheringRepository.findByHostIdOrderByCreatedAtDesc(userId, pageable);
         } else {
-            gatherings = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
+            gatheringPage = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
         }
 
-        List<GatheringListItemDto> items = gatherings.stream()
-                .map(g -> GatheringListItemDto.builder()
-                        .id("gath_" + g.getId())
-                        .imageUrl(g.getImageUrl())
-                        .category(g.getCategory().getName())
-                        .title(g.getTitle())
-                        .hostName(g.getHost().getNickname())
-                        .participantCount(g.getParticipantCount())
-                        .capacity(g.getCapacity())
-                        .build())
-                .toList();
+        String sortedByForMeta =
+                role.equals("host")
+                        ? "createdAt,desc,id,desc"
+                        : "joinedAt,desc,id,desc";
 
-        PageMetaDto meta = PageMetaDto.builder()
-                .size(items.size())
-                .sortedBy(sort)
-                .nextCursor(null)
-                .hasNext(false)
-                .build();
+        GatheringList gatheringList = GatheringList.from(
+                gatheringPage,
+                page,
+                size,
+                sortedByForMeta
+        );
 
-        return GatheringListResponseDto.builder()
-                .data(items)
-                .meta(meta)
-                .build();
+        return GatheringListResponseDto.from(gatheringList);
     }
 
 
@@ -282,7 +271,14 @@ public class GatheringService {
 
     private void checkRequestBodyAndUpdate(GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
         if (gatheringUpdateRequestDto.getTitle() != null) gathering.setTitle(gatheringUpdateRequestDto.getTitle());
-        if (gatheringUpdateRequestDto.getImageUrl() != null) gathering.setImageUrl(gatheringUpdateRequestDto.getImageUrl());
+        if (
+                gatheringUpdateRequestDto.getGatheringImage().bucket() != null &&
+                gatheringUpdateRequestDto.getGatheringImage().key() != null
+        ) {
+            gathering.setGatheringImageObject(gatheringUpdateRequestDto.getGatheringImage().bucket() +
+                    "/" +
+                    gatheringUpdateRequestDto.getGatheringImage().key());
+        }
         if (gatheringUpdateRequestDto.getCategory() != null) gathering.setCategory(findCategoryByName(
                 gatheringUpdateRequestDto.getCategory()));
         if (gatheringUpdateRequestDto.getCapacity() != null) gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
@@ -305,12 +301,14 @@ public class GatheringService {
     private void validateFields(GatheringCreateRequestDto request) {
         // title: 1~30자
         String title = request.getTitle();
-        if (title == null || title.length() < 1 || title.length() > 30) {
+        if (title == null || title.isEmpty() || title.length() > 30) {
             throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
         }
 
         // imageUrl: URL 형식일 경우만 검사
-        String imageUrl = request.getImageUrl();
+        String bucket = request.getGatheringImage().bucket();
+        String key = request.getGatheringImage().key();
+        String imageUrl = bucket + "/" + key;
         if (imageUrl != null && !isValidUrl(imageUrl)) {
             throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
         }
@@ -353,7 +351,6 @@ public class GatheringService {
         }
     }
 
-
     // 모임 수정 필드 검증 메서드
     private void validateFields(GatheringUpdateRequestDto request) {
         // title: 1~30자
@@ -362,8 +359,9 @@ public class GatheringService {
             throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
         }
 
-        // imageUrl: URL 형식일 경우만 검사
-        String imageUrl = request.getImageUrl();
+        String bucket = request.getGatheringImage().bucket();
+        String key = request.getGatheringImage().key();
+        String imageUrl = bucket + "/" + key;
         if (imageUrl != null && !isValidUrl(imageUrl)) {
             throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
         }
@@ -413,9 +411,7 @@ public class GatheringService {
     }
 
     private String validateParamsFormatAndParseSortParam(int page, int size, String sortParam) {
-        if  (page < 1 || size < 1 || size > 10) {
-            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
-        }
+        validateParamsFormat(page, size);
 
         String[] parts = sortParam.split(",");
         String property = (parts.length > 0 && !parts[0].isBlank()) ? parts[0] : "joinedAt";
@@ -426,5 +422,20 @@ public class GatheringService {
         }
 
         return dirStr;
+    }
+
+    private void validateParamsFormat(int page, int size) {
+        if  (page < 1 || size < 1 || size > 12) {
+            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
+        }
+    }
+
+    private Category verifyCategoryName(String categoryName) {
+        Category category = null;
+        if (categoryName != null && !categoryName.isBlank()) {
+            category = categoryRepository.findByName(categoryName)
+                    .orElseThrow(() -> new CustomException(GatheringErrorCode.CATEGORY_NOT_FOUND));
+        }
+        return category;
     }
 }

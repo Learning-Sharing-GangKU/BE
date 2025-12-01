@@ -4,6 +4,7 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
@@ -65,8 +66,8 @@ public class ParticipationService {
         participationRepository.delete(participation);
     }
 
-    @Transactional
-    public ParticipantsPreview getParticipants(Long gatheringId, int page, int size, String sortParam) {
+    @Transactional(readOnly = true)
+    public ParticipantsPreviewResponseDto getParticipants(Long gatheringId, int page, int size, String sortParam) {
 
         findGatheringById(gatheringId); // 404 찾기 위해 추가
 
@@ -80,7 +81,16 @@ public class ParticipationService {
         Page<Participation> participationPage =
                 participationRepository.findByGatheringId(gatheringId, pageable);
 
-        return ParticipantsPreview.from(participationPage, page, size, sortParam);
+        String sortedBy = "joinedAt," + dirStr + ",id," + dirStr;
+
+        ParticipantsPreview participantsPreview = ParticipantsPreview.from(
+                participationPage,
+                page,
+                size,
+                sortedBy
+        );
+
+        return ParticipantsPreviewResponseDto.from(participantsPreview);
     }
 
     private Participation verifyUserInParticipation(User user, Gathering gathering) {

@@ -1,7 +1,7 @@
 package com.gangku.be.controller;
 
+import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
-import com.gangku.be.model.ParticipantsPreview;
 import com.gangku.be.service.ParticipationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,15 +33,15 @@ public class ParticipationController {
     }
 
     @GetMapping()
-    public ResponseEntity<ParticipantsPreview> getParticipants(
+    public ResponseEntity<ParticipantsPreviewResponseDto> getParticipants(
             @PathVariable Long gatheringId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int size,
             @RequestParam(defaultValue = "joinedAt.asc") String sort
     ) {
-        ParticipantsPreview participantsPreview =
+        ParticipantsPreviewResponseDto participantsPreviewResponseDto =
                 participationService.getParticipants(gatheringId, page, size, sort);
 
-        return ResponseEntity.ok(participantsPreview);
+        return ResponseEntity.ok(participantsPreviewResponseDto);
     }
 }

@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,7 +24,6 @@ public class UserController {
 
     private final UserService userService;
     private final GatheringService gatheringService;
-
 
     @PostMapping
     public ResponseEntity<SignUpResponseDto> registerUser(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
@@ -45,15 +45,15 @@ public class UserController {
      * - role=host → 내가 만든 모임
      * - role=guest → 내가 참여한 모임
      */
-    @GetMapping("/{userId}/gatherings")
+    @GetMapping("/gatherings")
     public ResponseEntity<GatheringListResponseDto> getUserGatherings(
-            @PathVariable Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestParam String role,
+            @RequestParam int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "createdAt,desc") String sort
     ) {
-        GatheringListResponseDto response = gatheringService.getUserGatherings(userId, role, size, cursor, sort);
+        GatheringListResponseDto response = gatheringService.getUserGatherings(userId, role, page, size, sort);
         return ResponseEntity.ok()
                 .header("Cache-Control", "private, max-age=60")
                 .body(response);

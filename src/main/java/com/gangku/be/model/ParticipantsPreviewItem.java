@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record ParticipantsPreviewItem(
         Long userId,
         String nickname,
-        String profileImageUrl,
+        String profileImage,
         String role,
         LocalDateTime joinedAt
 ) {
@@ -17,7 +17,7 @@ public record ParticipantsPreviewItem(
         return new ParticipantsPreviewItem(
                 user.getId(),
                 user.getNickname(),
-                user.getProfileObjectKey(),
+                user.getProfileImageObject(),
                 participation.getRole().name(),
                 participation.getJoinedAt()
         );
