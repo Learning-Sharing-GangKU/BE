@@ -25,7 +25,7 @@ public class SignUpRequestDto {
     @Pattern(regexp = "^[가-힣a-zA-Z0-9]{2,20}$")
     private String nickname;
 
-    @NotBlank
+    @NotNull
     @Min(value = 14)
     @Max(value = 100)
     private Integer age;
