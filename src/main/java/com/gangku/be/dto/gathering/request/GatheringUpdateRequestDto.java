@@ -1,5 +1,6 @@
-package com.gangku.be.dto.gathering;
+package com.gangku.be.dto.gathering.request;
 
+import com.gangku.be.model.ImageObject;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 public class GatheringUpdateRequestDto {
 
     private String title;
-    private String imageUrl;
+    private ImageObject gatheringImage;
     private String category;
     private Integer capacity;
     private LocalDateTime date;

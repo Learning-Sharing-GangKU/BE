@@ -24,6 +24,16 @@ public enum ParticipationErrorCode implements ErrorCode {
             "HOST_CANNOT_LEAVE",
             "모임장은 참여를 취소할 수 없습니다.",
             HttpStatus.CONFLICT.value()
+    ),
+    INVALID_PARAMETER_FORMAT(
+            "INVALID_PARAMETER_FORMAT",
+                    "파라미터의 형식이 올바르지 않습니다.",
+            HttpStatus.BAD_REQUEST.value()
+    ),
+    INVALID_ROLE(
+            "INVALID_ROLE",
+            "role은 host 또는 guest 중 하나여야 합니다.",
+            HttpStatus.BAD_REQUEST.value()
     );
 
     private final String code;

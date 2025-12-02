@@ -30,10 +30,20 @@ public enum GatheringErrorCode implements ErrorCode {
             "AI 모델 서버와의 통신에 실패했습니다.",
             HttpStatus.INTERNAL_SERVER_ERROR.value()
     ),
-    INVALID_KEYWORD_VALUE(
-            "INVALID_KEYWORD_VALUE",
+    INVALID_KEYWORD_FORMAT(
+            "INVALID_KEYWORD_FORMAT",
             "키워드의 형식이 잘못되었습니다.",
             HttpStatus.BAD_REQUEST.value()
+    ),
+    INVALID_PARAMETER_FORMAT(
+            "INVALID_PARAMETER_FORMAT",
+            "파라미터의 형식이 올바르지 않습니다.",
+            HttpStatus.BAD_REQUEST.value()
+    ),
+    CATEGORY_NOT_FOUND(
+            "CATEGORY_NOT_FOUND",
+            "해당 카테고리를 찾을 수 없습니다.",
+            HttpStatus.NOT_FOUND.value()
     );
 
     private final String code;

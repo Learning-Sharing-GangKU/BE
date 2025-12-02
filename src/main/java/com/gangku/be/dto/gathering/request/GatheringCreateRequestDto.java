@@ -1,5 +1,6 @@
-package com.gangku.be.dto.gathering;
+package com.gangku.be.dto.gathering.request;
 
+import com.gangku.be.model.ImageObject;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +18,7 @@ public class GatheringCreateRequestDto {
     private String title;
 
     @Size(max = 255)
-    private String imageUrl;
+    private ImageObject gatheringImage;
 
     @NotBlank
     private String category;

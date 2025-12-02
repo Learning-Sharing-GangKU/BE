@@ -47,3 +47,7 @@ assets:
           max-active: 16
           max-idle: 8
           min-idle: 0
+
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL:8000}

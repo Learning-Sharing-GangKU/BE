@@ -2,11 +2,13 @@ package com.gangku.be.dto.user;
 
 import com.gangku.be.domain.User;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Builder
 @Getter
 @AllArgsConstructor
 public class SignUpResponseDto {
@@ -26,16 +28,16 @@ public class SignUpResponseDto {
                 .map(preferredCategory -> preferredCategory.getCategory().getName())
                 .toList();
 
-        return new SignUpResponseDto(
-                "usr_" + user.getId(),
-                user.getEmail(),
-                user.getNickname(),
-                user.getProfileObjectKey(),
-                user.getAge(),
-                user.getGender(),
-                user.getEnrollNumber(),
-                preferredCategoryNames,
-                user.getCreatedAt()
-        );
+        return SignUpResponseDto.builder()
+                .id("usr_" + user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileObjectKey(user.getProfileImageObject())
+                .age(user.getAge())
+                .gender(user.getGender())
+                .enrollNumber(user.getEnrollNumber())
+                .preferredCategories(preferredCategoryNames)
+                .createdAt(user.getCreatedAt())
+                .build();
     }
 }

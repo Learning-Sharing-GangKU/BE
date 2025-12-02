@@ -1,5 +1,6 @@
 package com.gangku.be.domain;
 
+import com.gangku.be.model.ImageObject;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -33,14 +34,15 @@ public class Gathering {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "image_url", length = 255)
-    private String imageUrl;
+    @Column(name = "gathering_image_object", length = 255)
+    private String gatheringImageObject;
 
     @Column(nullable = false)
     private Integer capacity;
 
     @Column(name = "participant_count", nullable = false)
-    private Integer participantCount;
+    @Builder.Default
+    private Integer participantCount = 0;
 
     @Column(nullable = false)
     private LocalDateTime date;
@@ -67,6 +69,7 @@ public class Gathering {
 
     // cascade 로 모임 삭제 시 참여자도 삭제 , orphanRemoval=true 로 연관 끊기면 DB에서 제거
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Participation> participations = new ArrayList<>();
 
     @PrePersist
@@ -82,7 +85,7 @@ public class Gathering {
 
     // 양방향 연관관계 편의 메서드
     public void addParticipation(Participation participation) {
-        this.participations.add(participation);
+        participations.add(participation);
         participation.setGathering(this);
 
         this.participantCount++;
@@ -108,7 +111,7 @@ public class Gathering {
             Category category,
             String title,
             String description,
-            String imageUrl,
+            ImageObject gatheringImage,
             Integer capacity,
             LocalDateTime date,
             String location,
@@ -119,7 +122,11 @@ public class Gathering {
                 .category(category)
                 .title(title)
                 .description(description)
-                .imageUrl(imageUrl)
+                .gatheringImageObject(
+                        gatheringImage.bucket() +
+                                "/" +
+                                gatheringImage.key()
+                )
                 .capacity(capacity)
                 .participantCount(1)
                 .date(date)
