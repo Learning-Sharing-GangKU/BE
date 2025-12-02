@@ -98,11 +98,7 @@ public class User {
                 .age(age)
                 .gender(gender)
                 .enrollNumber(enrollNumber)
-                .profileImageObject(
-                        profileImage.bucket() +
-                                "/" +
-                                profileImage.key()
-                )
+                .profileImageObject(ImageObject.toPathOrNull(profileImage))
                 .emailVerified(false)
                 .reviewsPublic(true)
                 .build();
