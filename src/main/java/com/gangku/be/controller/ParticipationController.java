@@ -18,7 +18,7 @@ public class ParticipationController {
     @PostMapping()
     public ResponseEntity<ParticipationResponseDto> joinParticipation(
             @PathVariable("gatheringId") Long gatheringId,
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
         return ResponseEntity.ok(participationService.joinParticipation(gatheringId, userId));
     }
@@ -26,7 +26,7 @@ public class ParticipationController {
     @DeleteMapping()
     public ResponseEntity<Void> cancelParticipation(
             @PathVariable Long gatheringId,
-            @AuthenticationPrincipal Long userId // 실제 요청자 (토큰에서 추출)
+            @AuthenticationPrincipal(expression = "id") Long userId // 실제 요청자 (토큰에서 추출)
     ) {
         participationService.cancelParticipation(gatheringId, userId);
         return ResponseEntity.noContent().build(); // 204 No Content

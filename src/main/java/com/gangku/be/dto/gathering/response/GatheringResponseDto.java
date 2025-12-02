@@ -15,7 +15,7 @@ public class GatheringResponseDto {
 
     private String id;
     private String title;
-    private String imageUrl;
+    private String gatheringImageUrl;
     private String category;
     private int capacity;
 
@@ -36,6 +36,7 @@ public class GatheringResponseDto {
         return GatheringResponseDto.builder()
                 .id("gath_" + gathering.getId())
                 .title(gathering.getTitle())
+                .gatheringImageUrl(gathering.getGatheringImageObject())
                 .category(gathering.getCategory().getName())
                 .capacity(gathering.getCapacity())
                 .date(gathering.getDate())

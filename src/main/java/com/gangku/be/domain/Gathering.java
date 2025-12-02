@@ -122,11 +122,7 @@ public class Gathering {
                 .category(category)
                 .title(title)
                 .description(description)
-                .gatheringImageObject(
-                        gatheringImage.bucket() +
-                                "/" +
-                                gatheringImage.key()
-                )
+                .gatheringImageObject(ImageObject.toPathOrNull(gatheringImage))
                 .capacity(capacity)
                 .participantCount(1)
                 .date(date)

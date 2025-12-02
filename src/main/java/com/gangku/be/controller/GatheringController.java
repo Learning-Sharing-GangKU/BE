@@ -29,7 +29,7 @@ public class GatheringController {
     @PostMapping
     public ResponseEntity<GatheringResponseDto> createGathering(
             @RequestBody GatheringCreateRequestDto gatheringCreateRequestDto,
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
 
         // 모임 생성
@@ -50,7 +50,7 @@ public class GatheringController {
     @PatchMapping("/{gatheringId}")
     public ResponseEntity<GatheringResponseDto> updateGathering(
             @PathVariable Long gatheringId,
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "id") Long userId,
             @RequestBody GatheringUpdateRequestDto gatheringUpdateRequestDto
     ) {
         GatheringResponseDto gatheringResponseDto =
@@ -74,7 +74,7 @@ public class GatheringController {
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGathering(
             @PathVariable Long gatheringId,
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
         gatheringService.deleteGathering(gatheringId, userId);
         return ResponseEntity.noContent().build();

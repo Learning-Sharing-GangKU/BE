@@ -47,7 +47,7 @@ public class UserController {
      */
     @GetMapping("/gatherings")
     public ResponseEntity<GatheringListResponseDto> getUserGatherings(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "id") Long userId,
             @RequestParam String role,
             @RequestParam int page,
             @RequestParam(defaultValue = "10") int size,

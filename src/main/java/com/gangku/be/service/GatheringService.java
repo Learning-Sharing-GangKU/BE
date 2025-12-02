@@ -19,6 +19,7 @@ import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.GatheringList;
+import com.gangku.be.model.ImageObject;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 
@@ -108,7 +110,7 @@ public class GatheringService {
 
         validateGatheringHost(userId, gathering);
 
-        checkRequestBodyAndUpdate(gatheringUpdateRequestDto, gathering);
+        updateRequestBody(gatheringUpdateRequestDto, gathering);
 
         Gathering updatedGathering = gatheringRepository.save(gathering);
 
@@ -260,8 +262,12 @@ public class GatheringService {
     }
 
     private Category findCategoryByName(String categoryName) {
-        return categoryRepository.findByName(categoryName)
-                .orElseThrow(() -> new CustomException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+        Category category= null;
+        if (categoryName != null) {
+            category = categoryRepository.findByName(categoryName)
+                    .orElseThrow(() -> new CustomException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+        }
+        return category;
     }
 
     public Gathering findGatheringById(Long gatheringId) {
@@ -269,18 +275,10 @@ public class GatheringService {
                 .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
     }
 
-    private void checkRequestBodyAndUpdate(GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
+    private void updateRequestBody(GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
         if (gatheringUpdateRequestDto.getTitle() != null) gathering.setTitle(gatheringUpdateRequestDto.getTitle());
-        if (
-                gatheringUpdateRequestDto.getGatheringImage().bucket() != null &&
-                gatheringUpdateRequestDto.getGatheringImage().key() != null
-        ) {
-            gathering.setGatheringImageObject(gatheringUpdateRequestDto.getGatheringImage().bucket() +
-                    "/" +
-                    gatheringUpdateRequestDto.getGatheringImage().key());
-        }
-        if (gatheringUpdateRequestDto.getCategory() != null) gathering.setCategory(findCategoryByName(
-                gatheringUpdateRequestDto.getCategory()));
+        if (gatheringUpdateRequestDto.getGatheringImage() != null) gathering.setGatheringImageObject(ImageObject.toPathOrNull(gatheringUpdateRequestDto.getGatheringImage()));
+        if (gatheringUpdateRequestDto.getCategory() != null) gathering.setCategory(findCategoryByName(gatheringUpdateRequestDto.getCategory()));
         if (gatheringUpdateRequestDto.getCapacity() != null) gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
         if (gatheringUpdateRequestDto.getDate() != null) gathering.setDate(gatheringUpdateRequestDto.getDate());
         if (gatheringUpdateRequestDto.getLocation() != null) gathering.setLocation(gatheringUpdateRequestDto.getLocation());
@@ -306,11 +304,17 @@ public class GatheringService {
         }
 
         // imageUrl: URL 형식일 경우만 검사
-        String bucket = request.getGatheringImage().bucket();
-        String key = request.getGatheringImage().key();
-        String imageUrl = bucket + "/" + key;
-        if (imageUrl != null && !isValidUrl(imageUrl)) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        /**
+         * 이거 나중에 수정해야 됨 null 값이 들어오면 기본이미지로 하게
+         */
+        ImageObject imageObject = request.getGatheringImage();
+        if (imageObject != null) {
+            String bucket = request.getGatheringImage().bucket();
+            String key = request.getGatheringImage().key();
+            String imageUrl = bucket + "/" + key;
+            if (imageUrl != null && !isValidUrl(imageUrl)) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
         // category: DB에서 조회된 것 중 하나여야 함
@@ -353,54 +357,82 @@ public class GatheringService {
 
     // 모임 수정 필드 검증 메서드
     private void validateFields(GatheringUpdateRequestDto request) {
-        // title: 1~30자
+
+        // 1) title: 제공된 경우에만 검사
         String title = request.getTitle();
-        if (title == null || title.isEmpty() || title.length() > 30) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        if (title != null) { // <= 여기 중요
+            if (title.isEmpty() || title.length() > 30) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
-        String bucket = request.getGatheringImage().bucket();
-        String key = request.getGatheringImage().key();
-        String imageUrl = bucket + "/" + key;
-        if (imageUrl != null && !isValidUrl(imageUrl)) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        // 2) image: null 이면 검사 X, null 아닌 경우만 URL 형식 체크
+        ImageObject imageObject = request.getGatheringImage();
+        if (imageObject != null) {
+            String bucket = imageObject.bucket();
+            String key = imageObject.key();
+
+            // bucket 또는 key 가 비어있으면 에러
+            if (bucket == null || bucket.isBlank()
+                    || key == null || key.isBlank()) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
+
+            String imageUrl = bucket + "/" + key;
+            if (!isValidUrl(imageUrl)) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
-        // category: DB에서 조회된 것 중 하나여야 함
-        List<String> allowed = categoryRepository.findAll().stream()
-                .map(Category::getName)
-                .collect(Collectors.toList());
-        if (!allowed.contains(request.getCategory())) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        // 3) category: 제공된 경우에만 “허용 목록” 검사
+        String category = request.getCategory();
+        if (category != null) {
+            List<String> allowed = categoryRepository.findAll().stream()
+                    .map(Category::getName)
+                    .collect(Collectors.toList());
+            if (!allowed.contains(category)) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
-        // capacity: 1~100
-        int capacity = request.getCapacity();
-        if (capacity < 1 || capacity > 100) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        // 4) capacity: 제공된 경우만 1~100 범위 검사
+        Integer capacity = request.getCapacity();
+        if (capacity != null) {
+            if (capacity < 1 || capacity > 100) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
-        // date: ISO 8601, 과거 불가
-        if (request.getDate() == null || request.getDate().isBefore(LocalDateTime.now())) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        // 5) date: 제공된 경우만 미래 시점인지 검사
+        LocalDateTime date = request.getDate();
+        if (date != null) {
+            if (date.isBefore(LocalDateTime.now())) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
-        // location: 1~30자
+        // 6) location: 제공된 경우만 길이 검사
         String location = request.getLocation();
-        if (location == null || location.length() < 1 || location.length() > 30) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        if (location != null) {
+            if (location.length() < 1 || location.length() > 30) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
-        // openChatUrl: https로 시작
+        // 7) openChatUrl: 제공된 경우만 https 검사
         String chatUrl = request.getOpenChatUrl();
-        if (chatUrl == null || !chatUrl.startsWith("https://")) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        if (chatUrl != null) {
+            if (!chatUrl.startsWith("https://")) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
 
-        // description: 최대 800자
+        // 8) description: 제공된 경우만 800자 제한
         String desc = request.getDescription();
-        if (desc == null || desc.length() > 800) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+        if (desc != null) {
+            if (desc.length() > 800) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
         }
     }
 
