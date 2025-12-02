@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+/**
+ * 모임 관련 컨트롤러
+ */
 @RestController
 @RequestMapping("/api/v1/gatherings")
 @RequiredArgsConstructor
@@ -106,6 +109,9 @@ public class GatheringController {
     // 홈 화면 모임 리스트 조회
     @GetMapping("/api/v1/home")
     public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings() {
+        /*
+        이거 홈화면 추천 모임 보내는거
+         */
         Map<String, GatheringListResponseDto> result = new HashMap<>();
 
         result.put("recommended", gatheringService.getGatheringList(null, 1, 3, "latest")); // Recommend 로직 이후에 추가 임시
