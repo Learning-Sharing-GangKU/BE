@@ -25,7 +25,3 @@ app:
   cdn:
     base-url: ${CDN_BASE_URL}
   base-url: ${APP_BASE_URL}
-
-ai:
-  server:
-    base-url: ${AI_SERVER_BASE_URL}
