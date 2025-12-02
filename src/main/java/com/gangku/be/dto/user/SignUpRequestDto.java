@@ -34,7 +34,7 @@ public class SignUpRequestDto {
     @Pattern(regexp = "^(MALE|FEMALE)$")
     private String gender;
 
-    @NotBlank
+    @NotNull
     private Integer enrollNumber;
 
     @Valid
