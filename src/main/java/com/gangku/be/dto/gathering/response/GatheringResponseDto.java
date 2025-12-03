@@ -1,6 +1,8 @@
 package com.gangku.be.dto.gathering.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gangku.be.constant.id.ResourceType;
+import com.gangku.be.model.PrefixedId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,8 +34,11 @@ public class GatheringResponseDto {
 
 
     public static GatheringResponseDto from(Gathering gathering, String gatheringImageUrl) {
+        String publicGatheringId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
+        String publicUserId = PrefixedId.of(ResourceType.USER, gathering.getHost().getId()).toExternal();
+
         return GatheringResponseDto.builder()
-                .id("gath_" + gathering.getId())
+                .id(publicGatheringId)
                 .title(gathering.getTitle())
                 .gatheringImageUrl(gatheringImageUrl)
                 .category(gathering.getCategory().getName())
@@ -42,7 +47,7 @@ public class GatheringResponseDto {
                 .location(gathering.getLocation())
                 .openChatUrl(gathering.getOpenChatUrl())
                 .description(gathering.getDescription())
-                .hostId("usr_" + gathering.getHost().getId())
+                .hostId(publicUserId)
                 .createdAt(gathering.getCreatedAt())
                 .build();
     }

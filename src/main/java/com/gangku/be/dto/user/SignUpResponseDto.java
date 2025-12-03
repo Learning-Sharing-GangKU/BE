@@ -1,6 +1,8 @@
 package com.gangku.be.dto.user;
 
+import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
+import com.gangku.be.model.PrefixedId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,8 +30,10 @@ public class SignUpResponseDto {
                 .map(preferredCategory -> preferredCategory.getCategory().getName())
                 .toList();
 
+        String publicUserId = PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
+
         return SignUpResponseDto.builder()
-                .id("usr_" + user.getId())
+                .id(publicUserId)
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImageUrl(profileImageUrl)

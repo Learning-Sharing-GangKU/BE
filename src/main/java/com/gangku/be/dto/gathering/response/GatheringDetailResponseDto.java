@@ -1,9 +1,11 @@
 package com.gangku.be.dto.gathering.response;
 
+import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.model.HostSummary;
 import com.gangku.be.model.ParticipantsPreview;
+import com.gangku.be.model.PrefixedId;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +17,7 @@ import org.springframework.data.domain.Page;
 @AllArgsConstructor
 public class GatheringDetailResponseDto {
 
-    private Long id;
+    private String id;
     private String title;
     private String gatheringImageUrl;
     private String category;
@@ -34,11 +36,12 @@ public class GatheringDetailResponseDto {
             ParticipantsPreview participantsPreview,
             String gatheringImageUrl
     ) {
-
         HostSummary host = HostSummary.from(gathering.getHost());
 
+        String publicId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
+
         return GatheringDetailResponseDto.builder()
-                .id(gathering.getId())
+                .id(publicId)
                 .title(gathering.getTitle())
                 .gatheringImageUrl(gatheringImageUrl)
                 .category(gathering.getCategory().getName())
