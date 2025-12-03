@@ -52,14 +52,17 @@ public class GatheringRecommendAiRequest {
 
     // 이거 어떻게 뭐 pathparam으로 받는지 어떻게 받는지 모르겠는데 암튼 이렇게 둘게요
     // 그리고 이게
+
+    //Nullable
     private int userId;
 
-    @NotNull
     @Min(value = 14)
     @Max(value = 100)
+    //Nullable
     private Integer age;
 
     @Size(max = 3)
+    //Nullable
     private List<String> preferredCategories;
 
     @NotNull
