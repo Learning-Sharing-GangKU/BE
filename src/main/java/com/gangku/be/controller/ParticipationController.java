@@ -37,7 +37,7 @@ public class ParticipationController {
             @PathVariable Long gatheringId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int size,
-            @RequestParam(defaultValue = "joinedAt.asc") String sort
+            @RequestParam(defaultValue = "joinedAt,asc") String sort
     ) {
         ParticipantsPreviewResponseDto participantsPreviewResponseDto =
                 participationService.getParticipants(gatheringId, page, size, sort);

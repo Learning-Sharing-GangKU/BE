@@ -63,7 +63,7 @@ public class GatheringController {
             @PathVariable Long gatheringId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int size,
-            @RequestParam(defaultValue = "joinedAt.asc") String sort
+            @RequestParam(defaultValue = "joinedAt,asc") String sort
     ) {
         GatheringDetailResponseDto gatheringDetailResponseDto =
                 gatheringService.getGatheringDetail(gatheringId, page, size, sort);
