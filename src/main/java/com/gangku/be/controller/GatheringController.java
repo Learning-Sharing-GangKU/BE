@@ -1,6 +1,5 @@
 package com.gangku.be.controller;
 
-import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
@@ -15,8 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -99,19 +96,8 @@ public class GatheringController {
             @RequestParam(defaultValue = "3") int size,
             @RequestParam(defaultValue = "latest") String sort
     ) {
-        GatheringListResponseDto gatheringListResponseDto = gatheringService.getGatheringList(category, page, size, sort);
+        GatheringListResponseDto gatheringListResponseDto = gatheringService.getGatheringList(category, page, size,
+                sort);
         return ResponseEntity.ok(gatheringListResponseDto);
-    }
-
-    // 홈 화면 모임 리스트 조회
-    @GetMapping("/api/v1/home")
-    public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings() {
-        Map<String, GatheringListResponseDto> result = new HashMap<>();
-
-        result.put("recommended", gatheringService.getGatheringList(null, 1, 3, "latest")); // Recommend 로직 이후에 추가 임시
-        result.put("latest", gatheringService.getGatheringList(null, 1, 3, "latest"));
-        result.put("popular", gatheringService.getGatheringList(null, 1, 3, "popular"));
-
-        return ResponseEntity.ok(result);
     }
 }

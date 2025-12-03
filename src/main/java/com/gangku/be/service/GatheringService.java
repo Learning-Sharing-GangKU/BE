@@ -19,15 +19,15 @@ import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.GatheringList;
-import com.gangku.be.model.ImageObject;
+import com.gangku.be.model.ParticipantsPreview;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 
@@ -55,12 +54,10 @@ public class GatheringService {
     private final UserRepository userRepository;
 
     private final WebClient webClient;
+    private final FileUrlResolver fileUrlResolver;
 
     @Value("${ai.server.base-url")
     private String aiServerBaseUrl;
-
-    @Value("${app.cdn.base-url}")
-    private String cdnBaseUrl;
 
     //모임 생성 메서드
     @Transactional
@@ -82,7 +79,7 @@ public class GatheringService {
                 category,
                 gatheringCreateRequestDto.getTitle(),
                 gatheringCreateRequestDto.getDescription(),
-                gatheringCreateRequestDto.getGatheringImage(),
+                gatheringCreateRequestDto.getGatheringImageObjectKey(),
                 gatheringCreateRequestDto.getCapacity(),
                 gatheringCreateRequestDto.getDate(),
                 gatheringCreateRequestDto.getLocation(),
@@ -95,7 +92,10 @@ public class GatheringService {
         participationRepository.save(participation);
 
         // 4. 응답 DTO 생성
-        return GatheringResponseDto.from(savedGathering, cdnBaseUrl);
+        return GatheringResponseDto.from(
+                savedGathering,
+                fileUrlResolver.toPublicUrl(gathering.getGatheringImageObjectKey())
+        );
     }
 
     // 모임 수정 메서드
@@ -117,7 +117,10 @@ public class GatheringService {
 
         Gathering updatedGathering = gatheringRepository.save(gathering);
 
-        return GatheringResponseDto.from(updatedGathering, cdnBaseUrl);
+        return GatheringResponseDto.from(
+                updatedGathering,
+                fileUrlResolver.toPublicUrl(updatedGathering.getGatheringImageObjectKey())
+        );
     }
 
     // 모임 삭제 메서드
@@ -146,7 +149,31 @@ public class GatheringService {
         Page<Participation> participationPage =
                 participationRepository.findByGatheringId(gatheringId, pageable);
 
-        return GatheringDetailResponseDto.from(gathering, participationPage, page, size, "joinedAt,asc");
+        ParticipantsPreview participantsPreview = ParticipantsPreview.from(
+                participationPage,
+                page,
+                size,
+                "joinedAt,asc",
+                user -> {
+                    String key = user.getProfileImageObjectKey();
+                    if (key == null || key.isBlank()) {
+                        return null;
+                    }
+                    return fileUrlResolver.toPublicUrl(key);
+                }
+        );
+
+        String gatheringImageUrl = null;
+        String gatheringKey = gathering.getGatheringImageObjectKey();
+        if (gatheringKey == null || gatheringKey.isBlank()) {
+            gatheringImageUrl = gathering.getGatheringImageObjectKey();
+        }
+
+        return GatheringDetailResponseDto.from(
+                gathering,
+                participantsPreview,
+                gatheringImageUrl
+        );
     }
 
     public GatheringIntroResponseDto createGatheringIntro(GatheringIntroRequestDto gatheringIntroRequestDto) {
@@ -184,7 +211,7 @@ public class GatheringService {
 
         Sort springSort = switch (sortType) {
             case POPULAR -> Sort.by(
-                    Sort.Order.desc("popularScore"),
+                    Sort.Order.desc("participantCount"),
                     Sort.Order.desc("id")
             );
             case LATEST -> Sort.by(
@@ -209,7 +236,14 @@ public class GatheringService {
                 gatheringPage,
                 page,
                 size,
-                sortedByForMeta
+                sortedByForMeta,
+                g -> {
+                    String key = g.getGatheringImageObjectKey();
+                    if (key == null || key.isBlank()) {
+                        return null;
+                    }
+                    return fileUrlResolver.toPublicUrl(key);
+                }
         );
 
         return GatheringListResponseDto.from(gatheringList);
@@ -251,7 +285,14 @@ public class GatheringService {
                 gatheringPage,
                 page,
                 size,
-                sortedByForMeta
+                sortedByForMeta,
+                g -> {
+                    String key = g.getGatheringImageObjectKey();
+                    if (key ==null || key.isBlank()) {
+                        return null;
+                    }
+                    return fileUrlResolver.toPublicUrl(key);
+                }
         );
 
         return GatheringListResponseDto.from(gatheringList);
@@ -280,7 +321,7 @@ public class GatheringService {
 
     private void updateRequestBody(GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
         if (gatheringUpdateRequestDto.getTitle() != null) gathering.setTitle(gatheringUpdateRequestDto.getTitle());
-        if (gatheringUpdateRequestDto.getGatheringImage() != null) gathering.setGatheringImageObject(ImageObject.toPathOrNull(gatheringUpdateRequestDto.getGatheringImage()));
+        if (gatheringUpdateRequestDto.getGatheringImageObjectKey() != null) gathering.setGatheringImageObjectKey(gatheringUpdateRequestDto.getGatheringImageObjectKey());
         if (gatheringUpdateRequestDto.getCategory() != null) gathering.setCategory(findCategoryByName(gatheringUpdateRequestDto.getCategory()));
         if (gatheringUpdateRequestDto.getCapacity() != null) gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
         if (gatheringUpdateRequestDto.getDate() != null) gathering.setDate(gatheringUpdateRequestDto.getDate());
@@ -295,10 +336,6 @@ public class GatheringService {
         }
     }
 
-    private boolean isValidUrl(String url) {
-        return UrlValidator.getInstance().isValid(url);
-    }
-
     private void validateFields(GatheringCreateRequestDto request) {
         // title: 1~30자
         String title = request.getTitle();
@@ -307,18 +344,16 @@ public class GatheringService {
         }
 
         // imageUrl: URL 형식일 경우만 검사
-        /**
-         * 이거 나중에 수정해야 됨 null 값이 들어오면 기본이미지로 하게
-         */
-//        ImageObject imageObject = request.getGatheringImage();
-//        if (imageObject != null) {
-//            String bucket = request.getGatheringImage().bucket();
-//            String key = request.getGatheringImage().key();
-//            String imageUrl = bucket + "/" + key;
-//            if (imageUrl != null && !isValidUrl(imageUrl)) {
-//                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-//            }
-//        }
+        String imageObjectKey = request.getGatheringImageObjectKey();
+        if (imageObjectKey != null) {
+            if (imageObjectKey.isBlank()) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
+
+            if (!imageObjectKey.matches("^[a-zA-Z0-9/_.-]+$")) {
+                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+            }
+        }
 
         // category: DB에서 조회된 것 중 하나여야 함
         List<String> allowed = categoryRepository.findAll().stream()
@@ -370,19 +405,13 @@ public class GatheringService {
         }
 
         // 2) image: null 이면 검사 X, null 아닌 경우만 URL 형식 체크
-        ImageObject imageObject = request.getGatheringImage();
-        if (imageObject != null) {
-            String bucket = imageObject.bucket();
-            String key = imageObject.key();
-
-            // bucket 또는 key 가 비어있으면 에러
-            if (bucket == null || bucket.isBlank()
-                    || key == null || key.isBlank()) {
+        String imageObjectKey = request.getGatheringImageObjectKey();
+        if (imageObjectKey != null) {
+            if (imageObjectKey.isBlank()) {
                 throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
             }
 
-            String imageUrl = bucket + "/" + key;
-            if (!isValidUrl(imageUrl)) {
+            if (!imageObjectKey.matches("^[a-zA-Z0-9/_.-]+$")) {
                 throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
             }
         }

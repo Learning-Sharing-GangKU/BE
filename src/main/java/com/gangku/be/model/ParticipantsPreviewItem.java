@@ -7,17 +7,17 @@ import java.time.LocalDateTime;
 public record ParticipantsPreviewItem(
         Long userId,
         String nickname,
-        String profileImage,
+        String profileImageUrl,
         String role,
         LocalDateTime joinedAt
 ) {
-    public static ParticipantsPreviewItem from(Participation participation) {
+    public static ParticipantsPreviewItem from(Participation participation, String profileImageUrl) {
         User user = participation.getUser();
 
         return new ParticipantsPreviewItem(
                 user.getId(),
                 user.getNickname(),
-                user.getProfileImageObject(),
+                profileImageUrl,
                 participation.getRole().name(),
                 participation.getJoinedAt()
         );

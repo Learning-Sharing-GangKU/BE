@@ -16,29 +16,23 @@ public class SignUpResponseDto {
     private final String id;
     private final String email;
     private final String nickname;
-    private final String profileObjectUrl;
+    private final String profileImageUrl;
     private final Integer age;
     private final String gender;
     private final Integer enrollNumber;
     private final List<String> preferredCategories;
     private final LocalDateTime createdAt;
 
-    public static SignUpResponseDto from(User user, String cdnBaseUrl) {
+    public static SignUpResponseDto from(User user, String profileImageUrl) {
         List<String> preferredCategoryNames = user.getPreferredCategories().stream()
                 .map(preferredCategory -> preferredCategory.getCategory().getName())
                 .toList();
-
-        String imageUrl = null;
-        String path = user.getProfileImageObject();
-        if (path != null) {
-            imageUrl = cdnBaseUrl + "/" + path;
-        }
 
         return SignUpResponseDto.builder()
                 .id("usr_" + user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
-                .profileObjectUrl(imageUrl)
+                .profileImageUrl(profileImageUrl)
                 .age(user.getAge())
                 .gender(user.getGender())
                 .enrollNumber(user.getEnrollNumber())

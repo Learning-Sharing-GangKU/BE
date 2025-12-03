@@ -52,7 +52,7 @@ public class UserService {
                 signUpRequestDto.getAge(),
                 signUpRequestDto.getGender(),
                 signUpRequestDto.getEnrollNumber(),
-                signUpRequestDto.getProfileImage()
+                signUpRequestDto.getProfileImageObjectKey()
         );
 
         assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);

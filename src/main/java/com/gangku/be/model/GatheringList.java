@@ -2,6 +2,7 @@ package com.gangku.be.model;
 
 import com.gangku.be.domain.Gathering;
 import java.util.List;
+import java.util.function.Function;
 import org.springframework.data.domain.Page;
 
 public record GatheringList(
@@ -12,10 +13,11 @@ public record GatheringList(
             Page<Gathering> gatheringPage,
             int pageNumber,
             int size,
-            String sortedBy
+            String sortedBy,
+            Function<Gathering, String> imageUrlResolver
     ) {
         List<GatheringListItem> items = gatheringPage.getContent().stream()
-                .map(GatheringListItem::from)
+                .map(g -> GatheringListItem.from(g, imageUrlResolver.apply(g)))
                 .toList();
 
         PageMeta meta = PageMeta.from(

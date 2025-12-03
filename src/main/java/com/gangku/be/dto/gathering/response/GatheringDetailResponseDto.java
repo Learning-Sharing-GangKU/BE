@@ -17,7 +17,7 @@ public class GatheringDetailResponseDto {
 
     private Long id;
     private String title;
-    private String gatheringImage;
+    private String gatheringImageUrl;
     private String category;
     private int capacity;
     private LocalDateTime date;
@@ -31,26 +31,16 @@ public class GatheringDetailResponseDto {
 
     public static GatheringDetailResponseDto from(
             Gathering gathering,
-            Page<Participation> participationPage,
-            int page,
-            int size,
-            String sortedBy
+            ParticipantsPreview participantsPreview,
+            String gatheringImageUrl
     ) {
 
         HostSummary host = HostSummary.from(gathering.getHost());
 
-        ParticipantsPreview participantsPreview =
-                ParticipantsPreview.from(
-                        participationPage,
-                        page,
-                        size,
-                        sortedBy
-                );
-
         return GatheringDetailResponseDto.builder()
                 .id(gathering.getId())
                 .title(gathering.getTitle())
-                .gatheringImage(gathering.getGatheringImageObject())
+                .gatheringImageUrl(gatheringImageUrl)
                 .category(gathering.getCategory().getName())
                 .capacity(gathering.getCapacity())
                 .date(gathering.getDate())

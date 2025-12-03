@@ -6,6 +6,7 @@ import com.gangku.be.dto.user.SignUpResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.UserService;
+import com.gangku.be.util.object.FileUrlResolver;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -25,15 +26,14 @@ public class UserController {
 
     private final UserService userService;
     private final GatheringService gatheringService;
-
-    @Value("${app.cdn.base-url")
-    private String cdnBaseUrl;
+    private final FileUrlResolver fileUrlResolver;
 
     @PostMapping
     public ResponseEntity<SignUpResponseDto> registerUser(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
 
         // 1) 회원가입 처리 후 저장된 유저 반환
         User newUser = userService.registerUser(signUpRequestDto);
+        String imageUrl = fileUrlResolver.toPublicUrl(signUpRequestDto.getProfileImageObjectKey());
 
         // 2) Location 헤더 설정을 위한 정보 저장
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -41,7 +41,7 @@ public class UserController {
                 .buildAndExpand(newUser.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(SignUpResponseDto.from(newUser, cdnBaseUrl));
+        return ResponseEntity.created(location).body(SignUpResponseDto.from(newUser, imageUrl));
     }
 
     /**
