@@ -19,6 +19,9 @@ public class HomeController {
 
     @GetMapping()
     public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings() {
+        /*
+        이거 홈화면 추천 모임 보내는거
+         */
         Map<String, GatheringListResponseDto> result = new HashMap<>();
 
         result.put("recommended", gatheringService.getGatheringList(null, 1, 3, "latest")); // Recommend 로직 이후에 추가 임시
