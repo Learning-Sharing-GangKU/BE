@@ -67,9 +67,11 @@ public class UserService {
                 signUpRequestDto.getProfileImageObjectKey()
         );
 
+        userRepository.save(newUser);
+
         assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
 
-        return userRepository.save(newUser);
+        return newUser;
     }
 
     /**

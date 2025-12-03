@@ -24,7 +24,7 @@ public class HomeController {
          */
         Map<String, GatheringListResponseDto> result = new HashMap<>();
 
-        result.put("recommended", gatheringService.getGatheringList(null, 1, 3, "latest")); // Recommend 로직 이후에 추가 임시
+        result.put("recommended", gatheringService.getGatheringList(null, 1, 3, "latest"));
         result.put("latest", gatheringService.getGatheringList(null, 1, 3, "latest"));
         result.put("popular", gatheringService.getGatheringList(null, 1, 3, "popular"));
 
