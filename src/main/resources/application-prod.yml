@@ -22,6 +22,4 @@ spring:
 app:
   s3:
     env-prefix: prod
-  cdn:
-    base-url: ${CDN_BASE_URL}
   base-url: ${APP_BASE_URL}

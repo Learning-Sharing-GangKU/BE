@@ -9,6 +9,7 @@ import com.gangku.be.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,9 @@ public class UserController {
     private final UserService userService;
     private final GatheringService gatheringService;
 
+    @Value("${app.cdn.base-url")
+    private String cdnBaseUrl;
+
     @PostMapping
     public ResponseEntity<SignUpResponseDto> registerUser(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
 
@@ -37,7 +41,7 @@ public class UserController {
                 .buildAndExpand(newUser.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(SignUpResponseDto.from(newUser));
+        return ResponseEntity.created(location).body(SignUpResponseDto.from(newUser, cdnBaseUrl));
     }
 
     /**

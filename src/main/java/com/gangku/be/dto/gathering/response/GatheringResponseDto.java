@@ -31,12 +31,17 @@ public class GatheringResponseDto {
     private LocalDateTime createdAt;
 
 
-    public static GatheringResponseDto from(Gathering gathering) {
+    public static GatheringResponseDto from(Gathering gathering, String cdnBaseUrl) {
+        String imageUrl = null;
+        String path = gathering.getGatheringImageObject();
+        if (path != null) {
+            imageUrl = cdnBaseUrl + "/" + path;
+        }
 
         return GatheringResponseDto.builder()
                 .id("gath_" + gathering.getId())
                 .title(gathering.getTitle())
-                .gatheringImageUrl(gathering.getGatheringImageObject())
+                .gatheringImageUrl(imageUrl)
                 .category(gathering.getCategory().getName())
                 .capacity(gathering.getCapacity())
                 .date(gathering.getDate())

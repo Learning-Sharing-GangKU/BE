@@ -59,6 +59,9 @@ public class GatheringService {
     @Value("${ai.server.base-url")
     private String aiServerBaseUrl;
 
+    @Value("${app.cdn.base-url}")
+    private String cdnBaseUrl;
+
     //모임 생성 메서드
     @Transactional
     public GatheringResponseDto createGathering(
@@ -92,7 +95,7 @@ public class GatheringService {
         participationRepository.save(participation);
 
         // 4. 응답 DTO 생성
-        return GatheringResponseDto.from(savedGathering);
+        return GatheringResponseDto.from(savedGathering, cdnBaseUrl);
     }
 
     // 모임 수정 메서드
@@ -114,7 +117,7 @@ public class GatheringService {
 
         Gathering updatedGathering = gatheringRepository.save(gathering);
 
-        return GatheringResponseDto.from(updatedGathering);
+        return GatheringResponseDto.from(updatedGathering, cdnBaseUrl);
     }
 
     // 모임 삭제 메서드
@@ -307,15 +310,15 @@ public class GatheringService {
         /**
          * 이거 나중에 수정해야 됨 null 값이 들어오면 기본이미지로 하게
          */
-        ImageObject imageObject = request.getGatheringImage();
-        if (imageObject != null) {
-            String bucket = request.getGatheringImage().bucket();
-            String key = request.getGatheringImage().key();
-            String imageUrl = bucket + "/" + key;
-            if (imageUrl != null && !isValidUrl(imageUrl)) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
+//        ImageObject imageObject = request.getGatheringImage();
+//        if (imageObject != null) {
+//            String bucket = request.getGatheringImage().bucket();
+//            String key = request.getGatheringImage().key();
+//            String imageUrl = bucket + "/" + key;
+//            if (imageUrl != null && !isValidUrl(imageUrl)) {
+//                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
+//            }
+//        }
 
         // category: DB에서 조회된 것 중 하나여야 함
         List<String> allowed = categoryRepository.findAll().stream()

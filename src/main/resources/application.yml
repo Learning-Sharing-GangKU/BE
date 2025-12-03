@@ -33,6 +33,8 @@ app:
     verification:
       token-ttl-minutes: 10
       session-ttl-minutes: 60
+  cdn:
+    base-url: ${CDN_BASE_URL}
 
 assets:
   categories:
