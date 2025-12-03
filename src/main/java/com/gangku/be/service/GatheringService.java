@@ -248,7 +248,7 @@ public class GatheringService {
             );
             /*
             위치가 정확한지는 모르겠지만 일단.
-            (POST)http://127.0.0.1:8000/api/ai/v1/recommendations
+            (POST)http://127.0.0.1:8000/api/ai/v2/recommendations
             request 로 com.gangku.be.dto.gathering.request.GatheringRecommendAiRequest 이거 넘겨주면 됨
             그럼 response 로 List<gatheringId> 가 return
              */
