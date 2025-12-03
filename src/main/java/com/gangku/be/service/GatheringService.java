@@ -65,6 +65,31 @@ public class GatheringService {
             GatheringCreateRequestDto gatheringCreateRequestDto,
             Long hostId
     ) {
+        /*
+        SOL A
+        총 두 번 보내야됨 -> title 모임 제목 한 번 / description 모임 소개문 한 번.
+        (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
+        request = {
+                scenario = "title"
+                text = gatheringUpdateRequestDto.getTitle()
+        }
+
+        request = {
+                scenario = "description"
+                text = gatheringCreateRequestDto.getDescription()
+        }
+        -> 근데 총 두 번 보내야돼서 좀 좃같을 수도 있음
+
+        SOL B
+        gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
+        문자열 concat
+        해서
+        request = {
+                scenario = "description"
+                text = gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
+        }
+        로 보내도 됨 -> 근데 title에서 지랄난건지 Description에서 지랄난건지 알기 힘듦
+         */
 
         //필드 유효성 검사 예외처리
         validateFields(gatheringCreateRequestDto);
@@ -105,6 +130,32 @@ public class GatheringService {
             Long userId,
             GatheringUpdateRequestDto gatheringUpdateRequestDto
     ) {
+        /*
+        SOL A
+        총 두 번 보내야됨 -> title 모임 제목 한 번 / description 모임 소개문 한 번.
+        (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
+        request = {
+                scenario = "title"
+                text = gatheringUpdateRequestDto.getTitle()
+        }
+
+        request = {
+                scenario = "description"
+                text = gatheringCreateRequestDto.getDescription()
+        }
+        -> 근데 총 두 번 보내야돼서 좀 좃같을 수도 있음
+
+        SOL B
+        gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
+        문자열 concat
+        해서
+        (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
+        request = {
+                scenario = "description"
+                text = gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
+        }
+        로 보내도 됨 -> 근데 title에서 지랄난건지 Description에서 지랄난건지 알기 힘듦
+         */
 
         // 필드 유효성 검사 예외처리
         validateFields(gatheringUpdateRequestDto);
@@ -178,6 +229,13 @@ public class GatheringService {
 
     public GatheringIntroResponseDto createGatheringIntro(GatheringIntroRequestDto gatheringIntroRequestDto) {
 
+        /*
+        AI 서버 내부에서 금칙어/비속어 구현해서 따로 뭐 할 건 없음
+        "/ai/v1/gatherings/intro"
+        일로 타고 들어와도 금칙어 구현 됨
+        -> AI에서 response로 뱉는 상태코드에 따라 어떤 상태인지는 노션 보고 다시 한 번 확인해야됨
+        2025 12/02 20:47분 기준
+         */
         validateKeywords(gatheringIntroRequestDto.getKeywords());
 
         return webClient.post()
@@ -218,6 +276,12 @@ public class GatheringService {
                     Sort.Order.desc("createdAt"),
                     Sort.Order.desc("id")
             );
+            /*
+            위치가 정확한지는 모르겠지만 일단.
+            (POST)http://127.0.0.1:8000/api/ai/v2/recommendations
+            request 로 com.gangku.be.dto.gathering.request.GatheringRecommendAiRequest 이거 넘겨주면 됨
+            그럼 response 로 List<gatheringId> 가 return
+             */
         };
 
         Pageable pageable = PageRequest.of(page - 1, size, springSort);
