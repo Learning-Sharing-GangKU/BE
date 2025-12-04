@@ -1,4 +1,4 @@
-package com.gangku.be.model;
+package com.gangku.be.model.common;
 
 import org.springframework.data.domain.Page;
 

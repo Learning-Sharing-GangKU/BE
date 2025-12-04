@@ -1,23 +1,23 @@
 package com.gangku.be.dto.gathering.response;
 
+import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.Participation;
-import com.gangku.be.model.HostSummary;
-import com.gangku.be.model.ParticipantsPreview;
+import com.gangku.be.model.gathering.HostSummary;
+import com.gangku.be.model.participation.ParticipantsPreview;
+import com.gangku.be.model.common.PrefixedId;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.data.domain.Page;
 
 @Getter
 @Builder
 @AllArgsConstructor
 public class GatheringDetailResponseDto {
 
-    private Long id;
+    private String id;
     private String title;
-    private String gatheringImage;
+    private String gatheringImageUrl;
     private String category;
     private int capacity;
     private LocalDateTime date;
@@ -31,26 +31,17 @@ public class GatheringDetailResponseDto {
 
     public static GatheringDetailResponseDto from(
             Gathering gathering,
-            Page<Participation> participationPage,
-            int page,
-            int size,
-            String sortedBy
+            ParticipantsPreview participantsPreview,
+            String gatheringImageUrl
     ) {
-
         HostSummary host = HostSummary.from(gathering.getHost());
 
-        ParticipantsPreview participantsPreview =
-                ParticipantsPreview.from(
-                        participationPage,
-                        page,
-                        size,
-                        sortedBy
-                );
+        String publicId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
 
         return GatheringDetailResponseDto.builder()
-                .id(gathering.getId())
+                .id(publicId)
                 .title(gathering.getTitle())
-                .gatheringImage(gathering.getGatheringImageObject())
+                .gatheringImageUrl(gatheringImageUrl)
                 .category(gathering.getCategory().getName())
                 .capacity(gathering.getCapacity())
                 .date(gathering.getDate())

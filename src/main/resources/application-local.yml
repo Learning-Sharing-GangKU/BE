@@ -25,6 +25,4 @@ spring:
 app:
   s3:
     env-prefix: dev
-  cdn:
-    base-url: ""
   base-url: "http://localhost:3000"

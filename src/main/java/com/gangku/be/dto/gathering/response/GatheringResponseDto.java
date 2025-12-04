@@ -1,6 +1,8 @@
 package com.gangku.be.dto.gathering.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gangku.be.constant.id.ResourceType;
+import com.gangku.be.model.common.PrefixedId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +17,7 @@ public class GatheringResponseDto {
 
     private String id;
     private String title;
-    private String imageUrl;
+    private String gatheringImageUrl;
     private String category;
     private int capacity;
 
@@ -31,18 +33,21 @@ public class GatheringResponseDto {
     private LocalDateTime createdAt;
 
 
-    public static GatheringResponseDto from(Gathering gathering) {
+    public static GatheringResponseDto from(Gathering gathering, String gatheringImageUrl) {
+        String publicGatheringId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
+        String publicUserId = PrefixedId.of(ResourceType.USER, gathering.getHost().getId()).toExternal();
 
         return GatheringResponseDto.builder()
-                .id("gath_" + gathering.getId())
+                .id(publicGatheringId)
                 .title(gathering.getTitle())
+                .gatheringImageUrl(gatheringImageUrl)
                 .category(gathering.getCategory().getName())
                 .capacity(gathering.getCapacity())
                 .date(gathering.getDate())
                 .location(gathering.getLocation())
                 .openChatUrl(gathering.getOpenChatUrl())
                 .description(gathering.getDescription())
-                .hostId("usr_" + gathering.getHost().getId())
+                .hostId(publicUserId)
                 .createdAt(gathering.getCreatedAt())
                 .build();
     }

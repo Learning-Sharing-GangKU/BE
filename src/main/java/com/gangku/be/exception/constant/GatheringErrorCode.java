@@ -7,7 +7,7 @@ public enum GatheringErrorCode implements ErrorCode {
 
     INVALID_FIELD_VALUE(
             "INVALID_FIELD_VALUE",
-            "수정하려는 필드의 형식이 올바르지 않습니다.",
+            "필드의 형식이 올바르지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
     UNAUTHORIZED(

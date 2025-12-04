@@ -6,9 +6,11 @@ import com.gangku.be.dto.user.SignUpResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.UserService;
+import com.gangku.be.util.object.FileUrlResolver;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,12 +26,14 @@ public class UserController {
 
     private final UserService userService;
     private final GatheringService gatheringService;
+    private final FileUrlResolver fileUrlResolver;
 
     @PostMapping
     public ResponseEntity<SignUpResponseDto> registerUser(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
 
         // 1) 회원가입 처리 후 저장된 유저 반환
         User newUser = userService.registerUser(signUpRequestDto);
+        String imageUrl = fileUrlResolver.toPublicUrl(signUpRequestDto.getProfileImageObjectKey());
 
         // 2) Location 헤더 설정을 위한 정보 저장
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -37,7 +41,7 @@ public class UserController {
                 .buildAndExpand(newUser.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(SignUpResponseDto.from(newUser));
+        return ResponseEntity.created(location).body(SignUpResponseDto.from(newUser, imageUrl));
     }
 
     /**
@@ -47,7 +51,7 @@ public class UserController {
      */
     @GetMapping("/gatherings")
     public ResponseEntity<GatheringListResponseDto> getUserGatherings(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal(expression = "id") Long userId,
             @RequestParam String role,
             @RequestParam int page,
             @RequestParam(defaultValue = "10") int size,

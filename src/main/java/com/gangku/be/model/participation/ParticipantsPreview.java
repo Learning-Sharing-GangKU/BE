@@ -1,7 +1,10 @@
-package com.gangku.be.model;
+package com.gangku.be.model.participation;
 
 import com.gangku.be.domain.Participation;
+import com.gangku.be.domain.User;
+import com.gangku.be.model.common.PageMeta;
 import java.util.List;
+import java.util.function.Function;
 import org.springframework.data.domain.Page;
 
 public record ParticipantsPreview(
@@ -12,10 +15,15 @@ public record ParticipantsPreview(
             Page<Participation> participationPage,
             int pageNumber,
             int size,
-            String sortedBy
+            String sortedBy,
+            Function<User, String> imageUrlResolver
     ) {
         List<ParticipantsPreviewItem> items = participationPage.getContent().stream()
-                .map(ParticipantsPreviewItem::from)
+                .map(p -> {
+                    User user = p.getUser();
+                    String profileImageUrl = imageUrlResolver.apply(user);
+                    return ParticipantsPreviewItem.from(p, profileImageUrl);
+                })
                 .toList();
 
         PageMeta meta = PageMeta.from(

@@ -1,7 +1,5 @@
 package com.gangku.be.dto.user;
 
-import com.gangku.be.model.ImageObject;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.List;
@@ -25,7 +23,7 @@ public class SignUpRequestDto {
     @Pattern(regexp = "^[가-힣a-zA-Z0-9]{2,20}$")
     private String nickname;
 
-    @NotBlank
+    @NotNull
     @Min(value = 14)
     @Max(value = 100)
     private Integer age;
@@ -34,11 +32,10 @@ public class SignUpRequestDto {
     @Pattern(regexp = "^(MALE|FEMALE)$")
     private String gender;
 
-    @NotBlank
+    @NotNull
     private Integer enrollNumber;
 
-    @Valid
-    private ImageObject profileImage;
+    private String profileImageObjectKey;
 
     @Size(max = 3)
     private List<String> preferredCategories;

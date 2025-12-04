@@ -1,6 +1,6 @@
 package com.gangku.be.dto.auth;
 
-import com.gangku.be.model.EmailVerificationConfirmResult;
+import com.gangku.be.model.auth.EmailVerificationConfirmResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -4,7 +4,7 @@ import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.constant.auth.EmailConstants;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
-import com.gangku.be.model.EmailVerificationSendResult;
+import com.gangku.be.model.auth.EmailVerificationSendResult;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
 import com.gangku.be.util.jwt.EmailVerificationJwt;

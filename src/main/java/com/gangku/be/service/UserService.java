@@ -44,6 +44,18 @@ public class UserService {
         // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
+        /*
+        여기서 회원가입 DB로 처리 하기 전에
+        request = {
+            scenario = "nickname"
+            text = signUpRequestDto.getNickname()
+        }
+        으로 (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
+
+        유저 프로필 수정 없다고 하셨으니깐(제가 잘 모르고 있는 걸 수도 있음)
+        따로 주석처리 안 할게요
+         */
+
         // 4) DB에 저장
         User newUser = User.create(
                 signUpRequestDto.getEmail(),
@@ -52,12 +64,14 @@ public class UserService {
                 signUpRequestDto.getAge(),
                 signUpRequestDto.getGender(),
                 signUpRequestDto.getEnrollNumber(),
-                signUpRequestDto.getProfileImage()
+                signUpRequestDto.getProfileImageObjectKey()
         );
+
+        userRepository.save(newUser);
 
         assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
 
-        return userRepository.save(newUser);
+        return newUser;
     }
 
     /**

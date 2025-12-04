@@ -1,4 +1,4 @@
-package com.gangku.be.model;
+package com.gangku.be.model.auth;
 
 public record EmailVerificationSendResult(
         String sessionId,

@@ -10,10 +10,11 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.model.ParticipantsPreview;
+import com.gangku.be.model.participation.ParticipantsPreview;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.util.object.FileUrlResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,7 @@ public class ParticipationService {
     private final ParticipationRepository participationRepository;
     private final GatheringRepository gatheringRepository;
     private final UserRepository userRepository;
+    private final FileUrlResolver fileUrlResolver;
 
     @Transactional
     public ParticipationResponseDto joinParticipation(Long gatheringId, Long userId) {
@@ -87,7 +89,14 @@ public class ParticipationService {
                 participationPage,
                 page,
                 size,
-                sortedBy
+                sortedBy,
+                user -> {
+                    String key = user.getProfileImageObjectKey();
+                    if (key == null || key.isBlank()) {
+                        return null;
+                    }
+                    return fileUrlResolver.toPublicUrl(key);
+                }
         );
 
         return ParticipantsPreviewResponseDto.from(participantsPreview);

@@ -1,23 +1,23 @@
-package com.gangku.be.model;
+package com.gangku.be.model.gathering;
 
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
 
 public record GatheringListItem(
         String id,
-        String gatheringImage,
+        String gatheringImageUrl,
         String category,
         String title,
         String hostName,
         int participantCount,
         int capacity
 ) {
-    public static GatheringListItem from(Gathering gathering) {
+    public static GatheringListItem from(Gathering gathering, String gatheringImageUrl) {
         User host = gathering.getHost();
 
         return new GatheringListItem(
                 String.valueOf(gathering.getId()),
-                gathering.getGatheringImageObject(),
+                gatheringImageUrl,
                 gathering.getCategory().getName(),
                 gathering.getTitle(),
                 host.getNickname(),

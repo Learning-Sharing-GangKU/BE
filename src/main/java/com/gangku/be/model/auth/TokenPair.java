@@ -1,3 +1,3 @@
-package com.gangku.be.model;
+package com.gangku.be.model.auth;
 
 public record TokenPair(String accessToken, String refreshToken) {}

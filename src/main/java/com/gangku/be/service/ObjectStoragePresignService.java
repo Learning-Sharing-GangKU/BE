@@ -6,6 +6,7 @@ import com.gangku.be.dto.object.PresignRequestDto;
 import com.gangku.be.dto.object.PresignResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.ObjectStorageErrorCode;
+import com.gangku.be.util.object.FileUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -26,6 +27,7 @@ public class ObjectStoragePresignService {
     private final S3Presigner s3Presigner;
     private final AwsAppProps awsAppProps;
     private final AssetPolicyProps assetPolicyProps;
+    private final FileUrlResolver fileUrlResolver;
 
     public PresignResponseDto presign(PresignRequestDto presignRequestDto) {
 
@@ -45,7 +47,7 @@ public class ObjectStoragePresignService {
         return new PresignResponseDto(
                 key,
                 presignedPutObjectRequest.url().toString(),
-                toPublicUrl(key),
+                fileUrlResolver.toPublicUrl(key),
                 awsAppProps.getS3().getTtlSeconds()
         );
     }
@@ -81,18 +83,6 @@ public class ObjectStoragePresignService {
                 .build();
 
         return s3Presigner.presignPutObject(putObjectPresignRequest);
-    }
-
-    private String toPublicUrl(String key) {
-        String cdn = awsAppProps.getCdn().getBaseUrl();
-        if (cdn != null && !cdn.isBlank()) {
-            return (cdn.endsWith("/") ? cdn : cdn + "/") + key;
-        }
-        return "https://"
-                + awsAppProps.getS3().getBucket()
-                + ".s3." + awsAppProps.getS3().getRegion()
-                + ".amazonaws.com/"
-                + key;
     }
 
     private String buildKey(String categoryPrefix, String fileName) {

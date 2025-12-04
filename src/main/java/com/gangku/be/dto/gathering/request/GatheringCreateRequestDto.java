@@ -1,6 +1,6 @@
 package com.gangku.be.dto.gathering.request;
 
-import com.gangku.be.model.ImageObject;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,8 +17,8 @@ public class GatheringCreateRequestDto {
     @Size(min = 1, max = 30, message = "제목은 1자 이상 30자 이하여야 합니다.")
     private String title;
 
-    @Size(max = 255)
-    private ImageObject gatheringImage;
+    @Valid
+    private String gatheringImageObjectKey;
 
     @NotBlank
     private String category;

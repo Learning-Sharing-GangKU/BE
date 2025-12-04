@@ -1,6 +1,6 @@
 package com.gangku.be.controller;
 
-import com.gangku.be.constant.gathering.GatheringSort;
+import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
@@ -8,6 +8,7 @@ import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
+import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -29,7 +28,7 @@ public class GatheringController {
     @PostMapping
     public ResponseEntity<GatheringResponseDto> createGathering(
             @RequestBody GatheringCreateRequestDto gatheringCreateRequestDto,
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
 
         // 모임 생성
@@ -49,34 +48,39 @@ public class GatheringController {
 
     @PatchMapping("/{gatheringId}")
     public ResponseEntity<GatheringResponseDto> updateGathering(
-            @PathVariable Long gatheringId,
-            @AuthenticationPrincipal Long userId,
+            @PathVariable String gatheringId,
+            @AuthenticationPrincipal(expression = "id") Long userId,
             @RequestBody GatheringUpdateRequestDto gatheringUpdateRequestDto
     ) {
+        Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
         GatheringResponseDto gatheringResponseDto =
-                gatheringService.updateGathering(gatheringId, userId, gatheringUpdateRequestDto);
+                gatheringService.updateGathering(internalGatheringId, userId, gatheringUpdateRequestDto);
         return ResponseEntity.ok(gatheringResponseDto);
     }
 
     @GetMapping("/{gatheringId}")
     public ResponseEntity<GatheringDetailResponseDto> getGatheringDetail(
-            @PathVariable Long gatheringId,
+            @PathVariable String gatheringId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "3") int size,
-            @RequestParam(defaultValue = "joinedAt.asc") String sort
+            @RequestParam(defaultValue = "joinedAt,asc") String sort
     ) {
+        Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
+
         GatheringDetailResponseDto gatheringDetailResponseDto =
-                gatheringService.getGatheringDetail(gatheringId, page, size, sort);
+                gatheringService.getGatheringDetail(internalGatheringId, page, size, sort);
         return ResponseEntity.ok(gatheringDetailResponseDto);
     }
 
     // 모임 삭제
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGathering(
-            @PathVariable Long gatheringId,
-            @AuthenticationPrincipal Long userId
+            @PathVariable String gatheringId,
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
-        gatheringService.deleteGathering(gatheringId, userId);
+        Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
+
+        gatheringService.deleteGathering(internalGatheringId, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -99,19 +103,8 @@ public class GatheringController {
             @RequestParam(defaultValue = "3") int size,
             @RequestParam(defaultValue = "latest") String sort
     ) {
-        GatheringListResponseDto gatheringListResponseDto = gatheringService.getGatheringList(category, page, size, sort);
+        GatheringListResponseDto gatheringListResponseDto =
+                gatheringService.getGatheringList(category, page, size, sort);
         return ResponseEntity.ok(gatheringListResponseDto);
-    }
-
-    // 홈 화면 모임 리스트 조회
-    @GetMapping("/api/v1/home")
-    public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings() {
-        Map<String, GatheringListResponseDto> result = new HashMap<>();
-
-        result.put("recommended", gatheringService.getGatheringList(null, 1, 3, "latest")); // Recommend 로직 이후에 추가 임시
-        result.put("latest", gatheringService.getGatheringList(null, 1, 3, "latest"));
-        result.put("popular", gatheringService.getGatheringList(null, 1, 3, "popular"));
-
-        return ResponseEntity.ok(result);
     }
 }

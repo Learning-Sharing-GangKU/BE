@@ -1,6 +1,5 @@
 package com.gangku.be.domain;
 
-import com.gangku.be.model.ImageObject;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -34,8 +33,8 @@ public class User {
 
     private Integer enrollNumber;
 
-    @Column(name = "profile_image_object", length = 255)
-    private String profileImageObject;
+    @Column(name = "profile_image_object_key", length = 255)
+    private String profileImageObjectKey;
 
     private Boolean emailVerified;
 
@@ -89,7 +88,7 @@ public class User {
             Integer age,
             String gender,
             Integer enrollNumber,
-            ImageObject profileImage
+            String profileImageObjectKey
     ) {
         return User.builder()
                 .email(email)
@@ -98,11 +97,7 @@ public class User {
                 .age(age)
                 .gender(gender)
                 .enrollNumber(enrollNumber)
-                .profileImageObject(
-                        profileImage.bucket() +
-                                "/" +
-                                profileImage.key()
-                )
+                .profileImageObjectKey(profileImageObjectKey)
                 .emailVerified(false)
                 .reviewsPublic(true)
                 .build();

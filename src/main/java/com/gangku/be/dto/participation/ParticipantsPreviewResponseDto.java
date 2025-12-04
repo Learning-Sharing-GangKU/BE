@@ -1,8 +1,8 @@
 package com.gangku.be.dto.participation;
 
-import com.gangku.be.model.PageMeta;
-import com.gangku.be.model.ParticipantsPreview;
-import com.gangku.be.model.ParticipantsPreviewItem;
+import com.gangku.be.model.common.PageMeta;
+import com.gangku.be.model.participation.ParticipantsPreview;
+import com.gangku.be.model.participation.ParticipantsPreviewItem;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

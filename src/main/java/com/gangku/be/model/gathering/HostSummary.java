@@ -1,4 +1,4 @@
-package com.gangku.be.model;
+package com.gangku.be.model.gathering;
 
 import com.gangku.be.domain.User;
 

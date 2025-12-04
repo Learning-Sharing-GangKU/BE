@@ -6,7 +6,7 @@ import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.model.TokenPair;
+import com.gangku.be.model.auth.TokenPair;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
 import com.gangku.be.util.jwt.EmailVerificationJwt;
