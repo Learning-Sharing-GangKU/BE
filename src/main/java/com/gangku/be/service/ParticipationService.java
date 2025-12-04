@@ -10,7 +10,7 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.model.ParticipantsPreview;
+import com.gangku.be.model.participation.ParticipantsPreview;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;

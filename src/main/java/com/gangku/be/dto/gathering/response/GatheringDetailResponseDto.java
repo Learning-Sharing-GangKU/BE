@@ -2,15 +2,13 @@ package com.gangku.be.dto.gathering.response;
 
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.Participation;
-import com.gangku.be.model.HostSummary;
-import com.gangku.be.model.ParticipantsPreview;
-import com.gangku.be.model.PrefixedId;
+import com.gangku.be.model.gathering.HostSummary;
+import com.gangku.be.model.participation.ParticipantsPreview;
+import com.gangku.be.model.common.PrefixedId;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.data.domain.Page;
 
 @Getter
 @Builder

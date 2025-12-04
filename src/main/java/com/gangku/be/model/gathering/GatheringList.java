@@ -1,6 +1,7 @@
-package com.gangku.be.model;
+package com.gangku.be.model.gathering;
 
 import com.gangku.be.domain.Gathering;
+import com.gangku.be.model.common.PageMeta;
 import java.util.List;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;

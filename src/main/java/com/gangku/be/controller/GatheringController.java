@@ -8,7 +8,7 @@ import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
-import com.gangku.be.model.PrefixedId;
+import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

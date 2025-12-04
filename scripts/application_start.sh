@@ -13,6 +13,7 @@ sudo docker run -d \
   --name be-app \
   -p "${SERVICE_PORT}:${SERVICE_PORT}" \
   -e SERVER_PORT="${SERVICE_PORT}" \
+  --env-file .env \
   -e SPRING_PROFILES_ACTIVE="prod" \
   -v /opt/be-app/logs:/app/logs \
   --restart unless-stopped \

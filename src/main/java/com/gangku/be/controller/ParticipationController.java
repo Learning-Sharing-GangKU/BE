@@ -3,7 +3,7 @@ package com.gangku.be.controller;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
-import com.gangku.be.model.PrefixedId;
+import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.ParticipationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

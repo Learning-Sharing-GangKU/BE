@@ -2,7 +2,7 @@ package com.gangku.be.dto.gathering.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gangku.be.constant.id.ResourceType;
-import com.gangku.be.model.PrefixedId;
+import com.gangku.be.model.common.PrefixedId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -2,7 +2,7 @@ package com.gangku.be.service.auth;
 
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
-import com.gangku.be.model.EmailVerificationConfirmResult;
+import com.gangku.be.model.auth.EmailVerificationConfirmResult;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
 import com.gangku.be.util.jwt.EmailVerificationJwt;

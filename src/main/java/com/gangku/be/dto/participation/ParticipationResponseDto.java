@@ -4,7 +4,7 @@ import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
-import com.gangku.be.model.PrefixedId;
+import com.gangku.be.model.common.PrefixedId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

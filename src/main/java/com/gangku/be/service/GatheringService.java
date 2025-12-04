@@ -3,9 +3,12 @@ package com.gangku.be.service;
 import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
+import com.gangku.be.domain.Gathering.Status;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.ai.AiRecommendRequestDto;
+import com.gangku.be.dto.ai.AiRecommendResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
@@ -18,18 +21,22 @@ import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.model.GatheringList;
-import com.gangku.be.model.ParticipantsPreview;
+import com.gangku.be.model.gathering.GatheringList;
+import com.gangku.be.model.participation.ParticipantsPreview;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -56,7 +63,7 @@ public class GatheringService {
     private final WebClient webClient;
     private final FileUrlResolver fileUrlResolver;
 
-    @Value("${ai.server.base-url")
+    @Value("${ai.server.base-url}")
     private String aiServerBaseUrl;
 
     //모임 생성 메서드
@@ -296,6 +303,84 @@ public class GatheringService {
                         ? "popularScore,desc,id,desc"
                         : "createdAt,desc,id,desc";
 
+        GatheringList gatheringList = GatheringList.from(
+                gatheringPage,
+                page,
+                size,
+                sortedByForMeta,
+                g -> {
+                    String key = g.getGatheringImageObjectKey();
+                    if (key == null || key.isBlank()) {
+                        return null;
+                    }
+                    return fileUrlResolver.toPublicUrl(key);
+                }
+        );
+
+        return GatheringListResponseDto.from(gatheringList);
+    }
+
+    @Transactional(readOnly = true)
+    public GatheringListResponseDto getRecommendedGatherings(Long userId, int page, int size) {
+
+        if (userId == null) {
+            return getGatheringList(null, page, size, "latest");
+        }
+
+        validateParamsFormat(page, size);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+
+        List<String> preferredCategories = user.getPreferredCategories().stream()
+                .map(pc -> pc.getCategory().getName())
+                .toList();
+
+        List<Gathering> candidates = gatheringRepository
+                .findTop50ByStatusOrderByCreatedAtDesc(Status.RECRUITING);
+
+        AiRecommendRequestDto aiRecommendRequestDto = AiRecommendRequestDto.from(
+                user,
+                preferredCategories,
+                candidates
+        );
+
+        AiRecommendResponseDto aiRecommendResponseDto = webClient.post()
+                .uri(aiServerBaseUrl + "/api/ai/v1/recommendations")
+                .bodyValue(aiRecommendRequestDto)
+                .retrieve()
+                .bodyToMono(AiRecommendResponseDto.class)
+                .block();
+
+        List<Long> recommendedIds = (aiRecommendResponseDto == null || aiRecommendResponseDto.getItems() == null)
+                ? List.of()
+                : aiRecommendResponseDto.getItems();
+
+        if (recommendedIds.isEmpty()) {
+            return getGatheringList(null, page, size, "latest");
+        }
+
+        List<Gathering> foundedGatherings = gatheringRepository.findByIdIn(recommendedIds);
+
+        Map<Long, Gathering> byId = foundedGatherings.stream()
+                .collect(Collectors.toMap(Gathering::getId, Function.identity()));
+
+        List<Gathering> ordered = recommendedIds.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull) // 혹시 삭제된 방이 있을 수도 있으니
+                .toList();
+
+        int totalElements = ordered.size();
+        int fromIndex = Math.min((page - 1) * size, totalElements);
+        int toIndex = Math.min(fromIndex + size, totalElements);
+        List<Gathering> content = ordered.subList(fromIndex, toIndex);
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Gathering> gatheringPage = new PageImpl<>(content, pageable, totalElements);
+
+        String sortedByForMeta = "aiRecommended,desc";
+
+        // 7) 기존 GatheringList / ResponseDto 변환 로직 재사용
         GatheringList gatheringList = GatheringList.from(
                 gatheringPage,
                 page,

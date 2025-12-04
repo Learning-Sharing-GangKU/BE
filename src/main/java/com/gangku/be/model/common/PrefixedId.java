@@ -1,4 +1,4 @@
-package com.gangku.be.model;
+package com.gangku.be.model.common;
 
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.exception.CustomException;

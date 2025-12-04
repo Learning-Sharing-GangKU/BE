@@ -2,6 +2,9 @@ package com.gangku.be.repository;
 
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
+import com.gangku.be.domain.Gathering.Status;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -66,4 +69,10 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
             @Param("hostId") Long hostId,
             Pageable pageable
     );
+
+    // AI 후보용: 모집중인 방 중 최신 50개
+    List<Gathering> findTop50ByStatusOrderByCreatedAtDesc(Status status);
+
+    // AI가 추천해준 ID 리스트로 조회
+    List<Gathering> findByIdIn(Collection<Long> ids);
 }

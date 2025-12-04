@@ -1,4 +1,4 @@
-package com.gangku.be.model;
+package com.gangku.be.model.participation;
 
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
