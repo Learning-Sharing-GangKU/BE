@@ -11,6 +11,7 @@ sudo docker rm -f be-app || true
 # 컨테이너 실행
 sudo docker run -d \
   --name be-app \
+  --network app-net \
   -p "${SERVICE_PORT}:${SERVICE_PORT}" \
   -e SERVER_PORT="${SERVICE_PORT}" \
   --env-file .env \
