@@ -224,7 +224,7 @@ public class GatheringService {
         String gatheringImageUrl = null;
         String gatheringKey = gathering.getGatheringImageObjectKey();
         if (gatheringKey == null || gatheringKey.isBlank()) {
-            gatheringImageUrl = gathering.getGatheringImageObjectKey();
+            gatheringImageUrl = fileUrlResolver.toPublicUrl(gatheringKey);
         }
 
         return GatheringDetailResponseDto.from(
