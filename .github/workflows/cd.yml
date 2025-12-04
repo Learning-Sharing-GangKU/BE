@@ -1,9 +1,8 @@
 name: BE CD Pipeline
 
 on:
-  workflow_run:
-    workflows: [ "BE CI Pipeline" ]
-    types: [ "completed" ]
+  push:
+    branches: [ main ]
 
 permissions:
   id-token: write
@@ -21,11 +20,6 @@ env:
 
 jobs:
   deploy:
-    if: >
-      ${{
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.head_branch == 'main'
-      }}
     runs-on: ubuntu-latest
     concurrency:
       group: cd-prod-be
@@ -34,13 +28,12 @@ jobs:
     steps:
       - name: Checkout main at the exact SHA
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Prepare tags
         id: prep
         run: |
-          SHORT_SHA="${GITHUB_SHA::7}"
+          FULL_SHA="${{ github.sha }}"
+          SHORT_SHA="${FULL_SHA:0:7}"
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
           echo "IMAGE_SHA_TAG=sha-$SHORT_SHA" >> $GITHUB_OUTPUT
 
@@ -72,7 +65,8 @@ jobs:
           cp scripts/*.sh bundle/scripts/
           chmod +x bundle/scripts/*.sh
 
-          echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" > bundle/.env
+          echo "${{ secrets.PROD_ENV_FILE }}" > bundle/.env
+          echo "APP_IMAGE=${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" >> bundle/.env
           echo "SERVICE_PORT=${{ env.SERVICE_PORT }}" >> bundle/.env
           echo "AWS_REGION=${{ env.AWS_REGION }}" >> bundle/.env
 

@@ -7,18 +7,12 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-  app:
-    s3:
-      env-prefix: prod
-    cdn:
-      base-url: ${CDN_BASE_URL}
   data:
     redis:
       host: ${REDIS_HOST}
       password: ${REDIS_PASSWORD}
       username: ${REDIS_USERNAME}
       timeout: 3s
-
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
@@ -26,4 +20,6 @@ spring:
     show-sql: false
 
 app:
+  s3:
+    env-prefix: prod
   base-url: ${APP_BASE_URL}

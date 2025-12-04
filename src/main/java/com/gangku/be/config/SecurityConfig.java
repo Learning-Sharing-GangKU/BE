@@ -1,8 +1,8 @@
 package com.gangku.be.config;
 
-import com.gangku.be.jwt.JwtTokenProvider;
+import com.gangku.be.util.jwt.JwtTokenProvider;
 import com.gangku.be.repository.UserRepository;
-import com.gangku.be.security.JwtAuthFilter;
+import com.gangku.be.util.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -31,12 +31,17 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll() 
-                        .requestMatchers(HttpMethod.POST, "/api/v1/categories").permitAll() 
-                        .requestMatchers("/api/v1/auth/**").permitAll() 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll() 
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/categories").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/objects/presigned-url/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/gatherings/*/join").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/gatherings").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/gatherings/*/participants").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/home").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable());

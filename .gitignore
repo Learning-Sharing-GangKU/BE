@@ -31,5 +31,5 @@ Thumbs.db
 *.env
 .env.*
 
-# Redis persistence
 redis-data/
+data/

@@ -3,7 +3,7 @@ cors:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL
+    url: jdbc:h2:file:./data/gangku
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -12,13 +12,11 @@ spring:
       host: localhost
       password:
       timeout: 2s
-
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
-
   h2:
     console:
       enabled: true
@@ -27,5 +25,4 @@ spring:
 app:
   s3:
     env-prefix: dev
-  cdn:
-    base-url: ""
+  base-url: "http://localhost:3000"

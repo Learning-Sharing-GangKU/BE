@@ -6,6 +6,13 @@ spring:
     multipart:
       max-file-size: 6MB
       max-request-size: 6MB
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.starttls.enable: true
 
 logging:
   level:
@@ -21,12 +28,19 @@ app:
     region: ${S3_REGION}
     base-prefix: ${S3_IMAGE_BASE_PREFIX}
     ttl-seconds: ${S3_TTL_SECONDS}
+  email:
+    from: ${MAIL_FROM}
+    verification:
+      token-ttl-minutes: 10
+      session-ttl-minutes: 60
+  cdn:
+    base-url: ${CDN_BASE_URL}
 
 assets:
   categories:
     - type: image
       prefix: image
-      allowed-content-types: [ image/jpeg, image/png, image/webp ]
+      allowed-content-types: [ image/jpeg, image/png, image/jpg ]
   data:
     redis:
       port: 6379
@@ -35,21 +49,7 @@ assets:
           max-active: 16
           max-idle: 8
           min-idle: 0
-  mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail.smtp.starttls.enable: true
 
-jwt:
-  secret: ${JWT_SECRET}
-  expMin: 60
-
-app:
-  email:
-    from: ${MAIL_FROM}
-    verification:
-      token-ttl-minutes: 10
-      session-ttl-minutes: 60
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL}

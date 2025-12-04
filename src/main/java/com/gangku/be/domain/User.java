@@ -1,5 +1,3 @@
-// src/main/java/com/gangku/BE/domain/User.java
-
 package com.gangku.be.domain;
 
 import jakarta.persistence.*;
@@ -7,6 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -34,8 +33,8 @@ public class User {
 
     private Integer enrollNumber;
 
-    @Column(nullable = false, length = 2000)
-    private String photoUrl;
+    @Column(name = "profile_image_object_key", length = 255)
+    private String profileImageObjectKey;
 
     private Boolean emailVerified;
 
@@ -51,7 +50,7 @@ public class User {
 
     private LocalDateTime updatedAt;
 
-    // ✅ @ElementCollection 제거하고 PreferredCategory로 대체
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
 
@@ -67,7 +66,40 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public String getProfileImageUrl() {
-        return this.photoUrl;
+    public void updateRefreshToken(String refreshToken, LocalDateTime refreshExpiry) {
+        this.refreshToken = refreshToken;
+        this.refreshExpiry = refreshExpiry;
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = null;
+        this.refreshExpiry = null;
+    }
+
+    public void addPreferredCategory(PreferredCategory preferredCategory) {
+        this.preferredCategories.add(preferredCategory);
+        preferredCategory.setUser(this);
+    }
+
+    public static User create(
+            String email,
+            String encodedPassword,
+            String nickname,
+            Integer age,
+            String gender,
+            Integer enrollNumber,
+            String profileImageObjectKey
+    ) {
+        return User.builder()
+                .email(email)
+                .password(encodedPassword)
+                .nickname(nickname)
+                .age(age)
+                .gender(gender)
+                .enrollNumber(enrollNumber)
+                .profileImageObjectKey(profileImageObjectKey)
+                .emailVerified(false)
+                .reviewsPublic(true)
+                .build();
     }
 }
