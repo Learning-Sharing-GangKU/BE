@@ -223,7 +223,7 @@ public class GatheringService {
 
         String gatheringImageUrl = null;
         String gatheringKey = gathering.getGatheringImageObjectKey();
-        if (gatheringKey == null || gatheringKey.isBlank()) {
+        if (gatheringKey != null && !gatheringKey.isBlank()) {
             gatheringImageUrl = fileUrlResolver.toPublicUrl(gatheringKey);
         }
 
