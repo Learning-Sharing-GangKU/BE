@@ -337,7 +337,7 @@ public class AuthService {
     }
 
     private void validateEmailFormat(String email) {
-        if (email == null || !email.toLowerCase().endsWith("@konkuk.ac.kr")) {
+        if (email == null || !email.toLowerCase().endsWith(EmailConstants.ALLOWED_EMAIL_DOMAIN)) {
             throw new CustomException(AuthErrorCode.INVALID_EMAIL_FORMAT);
         }
     }

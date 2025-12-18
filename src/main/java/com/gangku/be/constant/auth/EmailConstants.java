@@ -16,4 +16,6 @@ public class EmailConstants {
 
             (유효시간: %d분)
             """;
+
+    public static final String ALLOWED_EMAIL_DOMAIN = "@konkuk.ac.kr";
 }
