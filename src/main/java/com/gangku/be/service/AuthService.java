@@ -95,7 +95,7 @@ public class AuthService {
         String refreshToken = findRefreshTokenFromCookie(request);
 
         // 2) Refresh Token 기본 검증
-        validateRefreshToken(refreshToken);
+//        validateRefreshToken(refreshToken);
 
         // 3) Refresh Token으로부터 User 정보 가져오기
         User user = findUserFromRefreshToken(refreshToken);
@@ -302,7 +302,7 @@ public class AuthService {
 
     private User findUserFromRefreshToken(String refreshToken) {
 
-        String userId = jwtTokenProvider.getSubject(refreshToken);
+        String userId = jwtTokenProvider.extractUserId(refreshToken);
 
         return userRepository.findById(Long.valueOf(userId))
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
@@ -317,11 +317,11 @@ public class AuthService {
                 .orElseThrow(() -> new CustomException(AuthErrorCode.REFRESH_TOKEN_NOT_FOUND));
     }
 
-    private void validateRefreshToken(String refreshToken) {
-        if (!jwtTokenProvider.isRefreshToken(refreshToken)) {
-            throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-        }
-    }
+//    private void validateRefreshToken(String refreshToken) {
+//        if (!jwtTokenProvider.isRefreshToken(refreshToken)) {
+//            throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+//        }
+//    }
 
     private void verifyRefreshToken(User user, String refreshToken) {
         if (user.getRefreshToken() == null ||

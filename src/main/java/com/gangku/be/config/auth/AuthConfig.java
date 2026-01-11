@@ -1,4 +1,4 @@
-package com.gangku.be.config;
+package com.gangku.be.config.auth;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

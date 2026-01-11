@@ -4,8 +4,10 @@ import com.gangku.be.constant.auth.TokenProperty;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import io.jsonwebtoken.*;
-import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -18,13 +20,14 @@ public class JwtTokenProvider {
     private final Key signingKey;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret) {
-        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateAccessToken(String userId) {
         return Jwts.builder()
                 .setSubject(userId)
+                .claim("type", "access")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + TokenProperty.ACCESS_TOKEN.getExpirationInMillis()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
@@ -34,14 +37,30 @@ public class JwtTokenProvider {
     public String generateRefreshToken(String userId) {
         return Jwts.builder()
                 .setSubject(userId)
-                .setIssuedAt(new Date())
                 .claim("type", "refresh")
+                .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + TokenProperty.REFRESH_TOKEN.getExpirationInMillis()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public Claims parseClaims(String token) {
+    public Authentication getAuthentication(String token) {
+        Claims claims = parseClaims(token);
+
+        if (!"access".equals(claims.get("type"))) {
+            throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        Long userId = Long.parseLong(claims.getSubject());
+
+        return new UsernamePasswordAuthenticationToken(
+                userId,
+                null,
+                Collections.emptyList()
+        );
+    }
+
+    private Claims parseClaims(String token) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(signingKey)
@@ -53,43 +72,5 @@ public class JwtTokenProvider {
         } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
             throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
-    }
-
-    public String getSubject(String token) {
-        return parseClaims(token).getSubject();
-    }
-
-    public boolean isRefreshToken(String token) {
-        try {
-            Claims claims = parseClaims(token);
-            return "refresh".equals(claims.get("type", String.class));
-        } catch (CustomException e) {
-            return false;
-        }
-    }
-
-    // === JwtAuthFilter에서 기대하는 API 추가 ===
-
-    /**
-     * 토큰이 유효하면 true, 유효하지 않으면 false 반환.
-     * (내부적으로는 parseClaims를 호출해서 CustomException을 캐치)
-     */
-    public boolean validateToken(String token) {
-        try {
-            parseClaims(token);
-            return true;
-        } catch (CustomException e) {
-            // parseClaims에서 이미 AuthErrorCode로 매핑된 예외를 던지므로
-            // 여기서는 필터 쪽에서 false로만 처리하도록 숨김
-            return false;
-        }
-    }
-
-    /**
-     * JwtAuthFilter에서 사용하는 userId 추출용 메서드.
-     * 현재 구현에서는 subject를 userId로 사용하고 있으므로 그대로 반환.
-     */
-    public String getUserIdFromToken(String token) {
-        return getSubject(token);
     }
 }
