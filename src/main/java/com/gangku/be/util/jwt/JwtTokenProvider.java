@@ -26,6 +26,7 @@ public class JwtTokenProvider {
 
     public String generateAccessToken(String userId) {
         return Jwts.builder()
+                .setIssuer("gangku-api")
                 .setSubject(userId)
                 .claim("type", "access")
                 .setIssuedAt(new Date())
@@ -36,6 +37,7 @@ public class JwtTokenProvider {
 
     public String generateRefreshToken(String userId) {
         return Jwts.builder()
+                .setIssuer("gangku-api")
                 .setSubject(userId)
                 .claim("type", "refresh")
                 .setIssuedAt(new Date())
@@ -58,6 +60,17 @@ public class JwtTokenProvider {
                 null,
                 Collections.emptyList()
         );
+    }
+
+    public Long extractUserIdFromRefreshToken(String refreshToken) {
+        Claims claims = parseClaims(refreshToken);
+
+        String type = claims.get("type").toString();
+        if (!"refresh".equals(type)) {
+            throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        return Long.parseLong(claims.getSubject());
     }
 
     private Claims parseClaims(String token) {
