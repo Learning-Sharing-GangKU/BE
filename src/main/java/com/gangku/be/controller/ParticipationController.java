@@ -6,10 +6,12 @@ import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.ParticipationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/gatherings/{gatheringId}/participants")
@@ -20,7 +22,7 @@ public class ParticipationController {
     @PostMapping()
     public ResponseEntity<ParticipationResponseDto> joinParticipation(
             @PathVariable("gatheringId") String gatheringId,
-            @AuthenticationPrincipal(expression = "id") Long userId
+            @AuthenticationPrincipal Long userId
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
@@ -30,11 +32,13 @@ public class ParticipationController {
     @DeleteMapping()
     public ResponseEntity<Void> cancelParticipation(
             @PathVariable String gatheringId,
-            @AuthenticationPrincipal(expression = "id") Long userId // 실제 요청자 (토큰에서 추출)
+            @AuthenticationPrincipal Long userId
     ) {
+        log.info("[CANCEL_PARTICIPATION] [Controller] enter gatheringId={}, userId={}", gatheringId, userId);
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
         participationService.cancelParticipation(internalGatheringId, userId);
+        log.info("[CANCEL_PARTICIPATION][Controller] success gatheringId={}, userId={}", gatheringId, userId);
         return ResponseEntity.noContent().build(); // 204 No Content
     }
 

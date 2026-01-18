@@ -26,3 +26,7 @@ app:
   s3:
     env-prefix: dev
   base-url: "http://localhost:3000"
+
+logging:
+  level:
+    org.springframework.security: DEBUG

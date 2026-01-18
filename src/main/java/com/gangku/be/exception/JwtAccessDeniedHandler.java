@@ -14,6 +14,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
+// 현재로써는 Spring Security Role 기반 인가를 안 써서 쓸일이 없지만, 일단 나중을 위해
 @Component
 @RequiredArgsConstructor
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
@@ -27,7 +28,6 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
             AccessDeniedException accessDeniedException
     ) throws IOException, ServletException {
 
-        // 나중에 에러 코드 정리 다 하고 수정하자
         ErrorCode code = AuthErrorCode.TOKEN_MISMATCH;
 
         response.setStatus(code.getStatus());

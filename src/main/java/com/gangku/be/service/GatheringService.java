@@ -647,7 +647,7 @@ public class GatheringService {
         Category category = null;
         if (categoryName != null && !categoryName.isBlank()) {
             category = categoryRepository.findByName(categoryName)
-                    .orElseThrow(() -> new CustomException(GatheringErrorCode.CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new CustomException(CategoryErrorCode.CATEGORY_NOT_FOUND));
         }
         return category;
     }

@@ -16,11 +16,13 @@ public enum AuthErrorCode implements ErrorCode {
             "리프레시 토큰이 없습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
+    // 이거 Spring Security 리팩토링
     INVALID_REFRESH_TOKEN(
             "INVALID_REFRESH_TOKEN",
             "유효하지 않은 리프레시 토큰입니다.",
             HttpStatus.UNAUTHORIZED.value()
     ),
+    // 이거 Spring Security 리팩토링
     TOKEN_MISMATCH(
             "TOKEN_MISMATCH",
             "서버에 저장된 리프레시 토큰과 일치하지 않습니다.",
@@ -53,11 +55,6 @@ public enum AuthErrorCode implements ErrorCode {
             "해당 토큰에 해당하는 사용자를 찾을 수 없습니다.",
             HttpStatus.NOT_FOUND.value()
     ),
-    TOKEN_EXPIRED(
-            "TOKEN_EXPIRED",
-            "이메일 인증 토큰이 만료되었습니다.",
-            HttpStatus.GONE.value()
-    ),
     INVALID_SESSION(
             "INVALID_SESSION",
             "유효한 가입 세션이 없습니다.",
@@ -73,8 +70,9 @@ public enum AuthErrorCode implements ErrorCode {
             "세션의 이메일과 인증된 이메일이 일치하지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
+    // 이거 Spring Security 리팩토링
     TOKEN_EXPIRED_OR_USED(
-            "TOKEN_EXPRIED_OR_USED",
+            "TOKEN_EXPIRED_OR_USED",
             "인증 토큰이 만료되었거나 이미 사용되었습니다.",
             HttpStatus.GONE.value()
     );
