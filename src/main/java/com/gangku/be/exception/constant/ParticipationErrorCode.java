@@ -27,7 +27,7 @@ public enum ParticipationErrorCode implements ErrorCode {
     ),
     INVALID_PARAMETER_FORMAT(
             "INVALID_PARAMETER_FORMAT",
-                    "파라미터의 형식이 올바르지 않습니다.",
+            "파라미터의 형식이 올바르지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
     INVALID_ROLE(

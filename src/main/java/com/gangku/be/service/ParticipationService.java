@@ -35,8 +35,6 @@ public class ParticipationService {
     @Transactional
     public ParticipationResponseDto joinParticipation(Long gatheringId, Long userId) {
 
-        // 401 Unauthorized 는 JwtAuthFilter에서 처리
-
         Gathering gathering = findGatheringById(gatheringId);
         User user = findUserById(userId);
 

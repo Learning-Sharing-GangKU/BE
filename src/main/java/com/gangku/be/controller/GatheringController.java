@@ -28,7 +28,7 @@ public class GatheringController {
     @PostMapping
     public ResponseEntity<GatheringResponseDto> createGathering(
             @RequestBody GatheringCreateRequestDto gatheringCreateRequestDto,
-            @AuthenticationPrincipal(expression = "id") Long userId
+            @AuthenticationPrincipal Long userId
     ) {
 
         // 모임 생성
@@ -49,7 +49,7 @@ public class GatheringController {
     @PatchMapping("/{gatheringId}")
     public ResponseEntity<GatheringResponseDto> updateGathering(
             @PathVariable String gatheringId,
-            @AuthenticationPrincipal(expression = "id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestBody GatheringUpdateRequestDto gatheringUpdateRequestDto
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
@@ -76,7 +76,7 @@ public class GatheringController {
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGathering(
             @PathVariable String gatheringId,
-            @AuthenticationPrincipal(expression = "id") Long userId
+            @AuthenticationPrincipal Long userId
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 

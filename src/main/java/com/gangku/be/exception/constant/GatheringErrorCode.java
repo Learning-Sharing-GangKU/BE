@@ -10,6 +10,7 @@ public enum GatheringErrorCode implements ErrorCode {
             "필드의 형식이 올바르지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
+    // 이거 Spring Security 리팩토링
     UNAUTHORIZED(
             "UNAUTHORIZED",
             "인증이 필요합니다. 유효한 액세스 토큰을 제공해주세요.",
@@ -39,11 +40,6 @@ public enum GatheringErrorCode implements ErrorCode {
             "INVALID_PARAMETER_FORMAT",
             "파라미터의 형식이 올바르지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
-    ),
-    CATEGORY_NOT_FOUND(
-            "CATEGORY_NOT_FOUND",
-            "해당 카테고리를 찾을 수 없습니다.",
-            HttpStatus.NOT_FOUND.value()
     );
 
     private final String code;

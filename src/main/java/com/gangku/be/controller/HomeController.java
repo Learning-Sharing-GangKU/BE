@@ -20,7 +20,7 @@ public class HomeController {
 
     @GetMapping()
     public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings(
-            @AuthenticationPrincipal(expression = "id") Long userId
+            @AuthenticationPrincipal Long userId
     ) {
 
         Map<String, GatheringListResponseDto> result = new HashMap<>();
