@@ -81,7 +81,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new CustomException(AuthErrorCode.TOKEN_EXPIRED_OR_USED);
+            throw new CustomException(AuthErrorCode.TOKEN_EXPIRED);
         } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
             throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }

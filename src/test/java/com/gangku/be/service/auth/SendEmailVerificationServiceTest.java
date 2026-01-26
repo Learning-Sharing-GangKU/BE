@@ -4,6 +4,7 @@ import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.constant.auth.EmailConstants;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.auth.EmailVerificationSendResult;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
@@ -255,7 +256,7 @@ class SendEmailVerificationServiceTest {
                 () -> authService.sendEmailVerification(email));
 
         // then
-        assertEquals(AuthErrorCode.EMAIL_CONFLICT, ex.getErrorCode());
+        assertEquals(UserErrorCode.EMAIL_CONFLICT, ex.getErrorCode());
 
         verify(userRepository).findByEmail(email);
         verifyNoInteractions(emailVerificationJwt);

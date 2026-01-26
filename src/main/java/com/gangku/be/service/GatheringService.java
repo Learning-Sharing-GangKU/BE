@@ -98,9 +98,6 @@ public class GatheringService {
         로 보내도 됨 -> 근데 title에서 지랄난건지 Description에서 지랄난건지 알기 힘듦
          */
 
-        //필드 유효성 검사 예외처리
-        validateFields(gatheringCreateRequestDto);
-
         User host = findUserById(hostId);
 
         Category category = findCategoryByName(gatheringCreateRequestDto.getCategory());
@@ -164,9 +161,6 @@ public class GatheringService {
         로 보내도 됨 -> 근데 title에서 지랄난건지 Description에서 지랄난건지 알기 힘듦
          */
 
-        // 필드 유효성 검사 예외처리
-        validateFields(gatheringUpdateRequestDto);
-
         Gathering gathering = findGatheringById(gatheringId);
 
         validateGatheringHost(userId, gathering);
@@ -197,7 +191,8 @@ public class GatheringService {
 
         Gathering gathering = findGatheringById(gatheringId);
 
-        String dirStr = validateParamsFormatAndParseSortParam(page, size, sortParam);
+        String[] parts = sortParam.split(",");
+        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
 
         Sort.Direction direction = dirStr.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, "joinedAt").and(Sort.by(direction, "id"));
@@ -243,7 +238,6 @@ public class GatheringService {
         -> AI에서 response로 뱉는 상태코드에 따라 어떤 상태인지는 노션 보고 다시 한 번 확인해야됨
         2025 12/02 20:47분 기준
          */
-        validateKeywords(gatheringIntroRequestDto.getKeywords());
 
         return webClient.post()
                 .uri(aiServerBaseUrl + "/ai/v1/gatherings/intro")
@@ -267,8 +261,6 @@ public class GatheringService {
      */
     @Transactional(readOnly = true)
     public GatheringListResponseDto getGatheringList(String categoryName, int page, int size, String sort) {
-
-        validateParamsFormat(page, size);
 
         Category category = verifyCategoryName(categoryName);
 
@@ -326,8 +318,6 @@ public class GatheringService {
         if (userId == null) {
             return getGatheringList(null, page, size, "latest");
         }
-
-        validateParamsFormat(page, size);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
@@ -406,13 +396,6 @@ public class GatheringService {
     @Transactional(readOnly = true)
     public GatheringListResponseDto getUserGatherings(Long userId, String role, int page, int size, String sort) {
 
-        if (!role.equals("host") && !role.equals("guest")) {
-            throw new CustomException(ParticipationErrorCode.INVALID_ROLE);
-        }
-        if (size <= 0 || size > 50 || page <= 0) {
-            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
-        }
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
@@ -482,164 +465,6 @@ public class GatheringService {
     private void validateGatheringHost(Long userId, Gathering gathering) {
         if (!gathering.getHost().getId().equals(userId)) {
             throw new CustomException(GatheringErrorCode.FORBIDDEN);
-        }
-    }
-
-    private void validateFields(GatheringCreateRequestDto request) {
-        // title: 1~30자
-        String title = request.getTitle();
-        if (title == null || title.isEmpty() || title.length() > 30) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-        }
-
-        // imageUrl: URL 형식일 경우만 검사
-        String imageObjectKey = request.getGatheringImageObjectKey();
-        if (imageObjectKey != null) {
-            if (imageObjectKey.isBlank()) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-
-            if (!imageObjectKey.matches("^[a-zA-Z0-9/_.-]+$")) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // category: DB에서 조회된 것 중 하나여야 함
-        List<String> allowed = categoryRepository.findAll().stream()
-                .map(Category::getName)
-                .collect(Collectors.toList());
-        if (!allowed.contains(request.getCategory())) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-        }
-
-        // capacity: 1~100
-        int capacity = request.getCapacity();
-        if (capacity < 1 || capacity > 100) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-        }
-
-        // date: ISO 8601, 과거 불가
-        if (request.getDate() == null || request.getDate().isBefore(LocalDateTime.now())) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-        }
-
-        // location: 1~30자
-        String location = request.getLocation();
-        if (location == null || location.length() < 1 || location.length() > 30) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-        }
-
-        // openChatUrl: https로 시작
-        String chatUrl = request.getOpenChatUrl();
-        if (chatUrl == null || !chatUrl.startsWith("https://")) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-        }
-
-        // description: 최대 800자
-        String desc = request.getDescription();
-        if (desc == null || desc.length() > 800) {
-            throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-        }
-    }
-
-    // 모임 수정 필드 검증 메서드
-    private void validateFields(GatheringUpdateRequestDto request) {
-
-        // 1) title: 제공된 경우에만 검사
-        String title = request.getTitle();
-        if (title != null) { // <= 여기 중요
-            if (title.isEmpty() || title.length() > 30) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // 2) image: null 이면 검사 X, null 아닌 경우만 URL 형식 체크
-        String imageObjectKey = request.getGatheringImageObjectKey();
-        if (imageObjectKey != null) {
-            if (imageObjectKey.isBlank()) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-
-            if (!imageObjectKey.matches("^[a-zA-Z0-9/_.-]+$")) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // 3) category: 제공된 경우에만 “허용 목록” 검사
-        String category = request.getCategory();
-        if (category != null) {
-            List<String> allowed = categoryRepository.findAll().stream()
-                    .map(Category::getName)
-                    .collect(Collectors.toList());
-            if (!allowed.contains(category)) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // 4) capacity: 제공된 경우만 1~100 범위 검사
-        Integer capacity = request.getCapacity();
-        if (capacity != null) {
-            if (capacity < 1 || capacity > 100) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // 5) date: 제공된 경우만 미래 시점인지 검사
-        LocalDateTime date = request.getDate();
-        if (date != null) {
-            if (date.isBefore(LocalDateTime.now())) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // 6) location: 제공된 경우만 길이 검사
-        String location = request.getLocation();
-        if (location != null) {
-            if (location.length() < 1 || location.length() > 30) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // 7) openChatUrl: 제공된 경우만 https 검사
-        String chatUrl = request.getOpenChatUrl();
-        if (chatUrl != null) {
-            if (!chatUrl.startsWith("https://")) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-
-        // 8) description: 제공된 경우만 800자 제한
-        String desc = request.getDescription();
-        if (desc != null) {
-            if (desc.length() > 800) {
-                throw new CustomException(GatheringErrorCode.INVALID_FIELD_VALUE);
-            }
-        }
-    }
-
-    private  void validateKeywords(List<String> keywords) {
-        if (keywords == null || keywords.isEmpty()) {
-            throw new CustomException(GatheringErrorCode.INVALID_KEYWORD_FORMAT);
-        }
-    }
-
-    private String validateParamsFormatAndParseSortParam(int page, int size, String sortParam) {
-        validateParamsFormat(page, size);
-
-        String[] parts = sortParam.split(",");
-        String property = (parts.length > 0 && !parts[0].isBlank()) ? parts[0] : "joinedAt";
-        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
-
-        if (!property.equals("joinedAt")) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
-        }
-
-        return dirStr;
-    }
-
-    private void validateParamsFormat(int page, int size) {
-        if  (page < 1 || size < 1 || size > 12) {
-            throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
         }
     }
 

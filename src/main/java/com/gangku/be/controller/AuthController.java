@@ -13,14 +13,18 @@ import com.gangku.be.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Validated
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
@@ -83,7 +87,10 @@ public class AuthController {
 
     @GetMapping("/email/verification/start")
     public ResponseEntity<Void> startEmailVerification(
-            @RequestParam("token") String emailVerificationToken
+            @RequestParam("token")
+            @NotBlank
+            @Pattern(regexp = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")
+            String emailVerificationToken
     ) {
         authService.consumeEmailVerification(emailVerificationToken);
         return ResponseEntity.noContent().build();

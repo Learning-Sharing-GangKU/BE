@@ -5,14 +5,19 @@ import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.ParticipationService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/gatherings/{gatheringId}/participants")
 public class ParticipationController {
@@ -21,7 +26,7 @@ public class ParticipationController {
 
     @PostMapping()
     public ResponseEntity<ParticipationResponseDto> joinParticipation(
-            @PathVariable("gatheringId") String gatheringId,
+            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
             @AuthenticationPrincipal Long userId
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
@@ -31,23 +36,21 @@ public class ParticipationController {
 
     @DeleteMapping()
     public ResponseEntity<Void> cancelParticipation(
-            @PathVariable String gatheringId,
+            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
             @AuthenticationPrincipal Long userId
     ) {
-        log.info("[CANCEL_PARTICIPATION] [Controller] enter gatheringId={}, userId={}", gatheringId, userId);
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
         participationService.cancelParticipation(internalGatheringId, userId);
-        log.info("[CANCEL_PARTICIPATION][Controller] success gatheringId={}, userId={}", gatheringId, userId);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping()
     public ResponseEntity<ParticipantsPreviewResponseDto> getParticipants(
-            @PathVariable String gatheringId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "3") int size,
-            @RequestParam(defaultValue = "joinedAt,asc") String sort
+            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
+            @RequestParam(defaultValue = "1") @Min(value = 1) int page,
+            @RequestParam(defaultValue = "3") @Max(value = 10) int size,
+            @RequestParam(defaultValue = "joinedAt,asc") @Pattern(regexp = "^joinedAt.(asc|desc)$") String sort
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 

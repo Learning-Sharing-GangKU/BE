@@ -16,11 +16,12 @@ public class SignUpRequestDto {
     private String email;
 
     @NotBlank
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{8,}$")
     private String password;
 
     @NotBlank
     @Pattern(regexp = "^[가-힣a-zA-Z0-9]{2,20}$")
+    @Size(min = 2, max = 20)
     private String nickname;
 
     @NotNull
@@ -37,6 +38,7 @@ public class SignUpRequestDto {
 
     private String profileImageObjectKey;
 
+    @NotNull
     @Size(max = 3)
     private List<String> preferredCategories;
 }

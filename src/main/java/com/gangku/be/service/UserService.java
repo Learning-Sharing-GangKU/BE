@@ -27,16 +27,7 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private static final Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-    private static final Pattern PASSWORD_REGEX = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
-
     public User registerUser(SignUpRequestDto signUpRequestDto) {
-
-        // 이메일 형식 에러 예외처리
-        validateEmailFormat(signUpRequestDto.getEmail());
-
-        // 비밀번호 규칙 에러 예외처리
-        validatePasswordWeakness(signUpRequestDto.getPassword());
 
         // 중복된 이메일 예외처리
         validateEmailConflict(signUpRequestDto.getEmail());
@@ -77,18 +68,6 @@ public class UserService {
     /**
      * --- 검증 및 반환 헬퍼 메서드 ---
      */
-    
-    private void validateEmailFormat(String email) {
-        if (email != null && !EMAIL_REGEX.matcher(email).matches()) {
-            throw new CustomException(UserErrorCode.INVALID_EMAIL_FORMAT);
-        }
-    }
-
-    private void validatePasswordWeakness(String password) {
-        if (password != null && !PASSWORD_REGEX.matcher(password).matches()) {
-            throw new CustomException(UserErrorCode.PASSWORD_TOO_WEAK);
-        }
-    }
     
     private void validateEmailConflict(String email) {
         if(userRepository.existsByEmail(email)) {

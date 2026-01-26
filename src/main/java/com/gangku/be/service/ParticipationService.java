@@ -69,9 +69,10 @@ public class ParticipationService {
     @Transactional(readOnly = true)
     public ParticipantsPreviewResponseDto getParticipants(Long gatheringId, int page, int size, String sortParam) {
 
-        findGatheringById(gatheringId); // 404 찾기 위해 추가
+        findGatheringById(gatheringId);
 
-        String dirStr = validateParamsFormatAndParseSortParam(page, size, sortParam);
+        String[] parts = sortParam.split(",");
+        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
 
         Sort.Direction direction = dirStr.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, "joinedAt").and(Sort.by(direction, "id"));
@@ -129,21 +130,5 @@ public class ParticipationService {
     private Gathering findGatheringById(Long gatheringId) {
         return gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
-    }
-
-    private String validateParamsFormatAndParseSortParam(int page, int size, String sortParam) {
-        if  (page < 1 || size < 1 || size > 10) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
-        }
-
-        String[] parts = sortParam.split(",");
-        String property = (parts.length > 0 && !parts[0].isBlank()) ? parts[0] : "joinedAt";
-        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
-
-        if (!property.equals("joinedAt")) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
-        }
-
-        return dirStr;
     }
 }

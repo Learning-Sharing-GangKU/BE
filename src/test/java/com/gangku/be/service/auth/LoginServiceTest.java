@@ -5,6 +5,7 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.auth.LoginRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.auth.TokenPair;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
@@ -148,7 +149,7 @@ class LoginServiceTest {
                 () -> authService.login(request));
 
         // then
-        assertEquals(AuthErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
+        assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
 
         verify(userRepository, never()).save(any(User.class));
         verify(jwtTokenProvider, never()).generateAccessToken(anyString());
@@ -178,7 +179,7 @@ class LoginServiceTest {
                 () -> authService.login(request));
 
         // then
-        assertEquals(AuthErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
+        assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
 
         verify(userRepository, never()).save(any(User.class));
         verify(jwtTokenProvider, never()).generateAccessToken(anyString());
@@ -209,7 +210,7 @@ class LoginServiceTest {
                 () -> authService.login(request));
 
         // then
-        assertEquals(AuthErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
+        assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
 
         verify(userRepository, never()).save(any(User.class));
         verify(jwtTokenProvider, never()).generateAccessToken(anyString());
@@ -234,7 +235,7 @@ class LoginServiceTest {
                 () -> authService.login(request));
 
         // then
-        assertEquals(AuthErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
+        assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
 
         verify(userRepository, never()).save(any(User.class));
         verify(jwtTokenProvider, never()).generateAccessToken(anyString());

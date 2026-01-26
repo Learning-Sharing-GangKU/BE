@@ -134,8 +134,7 @@ public class AuthService {
 
     public EmailVerificationSendResult sendEmailVerification(String email) {
 
-        // 1) 이메일 검증
-        validateEmailFormat(email);
+        // 1) 이메일 중복 검증
         verifyEmailConflict(email);
 
         // 2) 이메일 인증용 JWT 생성
@@ -264,7 +263,7 @@ public class AuthService {
                 List.of(emailVerificationTokenKey(tokenId))
         );
         if (email == null) {
-            throw new CustomException(AuthErrorCode.USER_NOT_FOUND_BY_TOKEN);
+            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED_OR_USED);
         }
         return email;
     }
@@ -294,7 +293,7 @@ public class AuthService {
 
         return userRepository.findByEmail(email)
                 .filter(u -> passwordEncoder.matches(rawPassword, u.getPassword()))
-                .orElseThrow(() -> new CustomException(AuthErrorCode.INVALID_CREDENTIAL));
+                .orElseThrow(() -> new CustomException(UserErrorCode.INVALID_CREDENTIAL));
     }
 
     private User findUserFromRefreshToken(String refreshToken) {
@@ -323,13 +322,7 @@ public class AuthService {
 
     private void verifyEmailConflict(String email) {
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new CustomException(AuthErrorCode.EMAIL_CONFLICT);
-        }
-    }
-
-    private void validateEmailFormat(String email) {
-        if (email == null || !email.toLowerCase().endsWith(EmailConstants.ALLOWED_EMAIL_DOMAIN)) {
-            throw new CustomException(AuthErrorCode.INVALID_EMAIL_FORMAT);
+            throw new CustomException(UserErrorCode.EMAIL_CONFLICT);
         }
     }
 
@@ -362,7 +355,7 @@ public class AuthService {
         String verifiedEmailFlag = stringRedisTemplate.opsForValue().get(verifiedEmailKey(email));
 
         if (verifiedEmailFlag == null) {
-            throw new CustomException(AuthErrorCode.VERIFICATION_NOT_STARTED);
+            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED_OR_USED);
         }
     }
 
