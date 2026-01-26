@@ -293,11 +293,14 @@ public class GatheringService {
 
         Pageable pageable = PageRequest.of(page - 1, size, springSort);
 
-        Page<Gathering> gatheringPage =
-                (sortType == GatheringSort.POPULAR)
-                        ? gatheringRepository.findPopularGatherings(category, pageable)
-                        : gatheringRepository.findLatestGatherings(category, pageable);
-
+        Page<Gathering> gatheringPage = switch (sortType) {
+            case POPULAR -> (category == null)
+                    ? gatheringRepository.findPopularGatherings(pageable)                  // 있으면 같이 분리 추천
+                    : gatheringRepository.findPopularGatheringsByCategory(category, pageable);
+            case LATEST -> (category == null)
+                    ? gatheringRepository.findLatestGatherings(pageable)
+                    : gatheringRepository.findLatestGatheringsByCategory(category, pageable);
+        };
         String sortedByForMeta =
                 (sortType == GatheringSort.POPULAR)
                         ? "popularScore,desc,id,desc"
@@ -420,7 +423,7 @@ public class GatheringService {
         Page<Gathering> gatheringPage;
 
         if (role.equals("host")) {
-            gatheringPage = gatheringRepository.findByHostIdOrderByCreatedAtDesc(userId, pageable);
+            gatheringPage = gatheringRepository.findByHostIdOrderByCreatedAtDesc(user, pageable);
         } else {
             gatheringPage = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
         }
