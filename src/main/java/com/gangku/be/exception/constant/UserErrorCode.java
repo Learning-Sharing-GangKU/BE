@@ -11,14 +11,14 @@ public enum UserErrorCode implements ErrorCode {
             "사용자를 찾을 수 없습니다.",
             HttpStatus.NOT_FOUND.value()
     ),
-    INVALID_EMAIL_FORMAT(
-            "INVALID_EMAIL_FORMAT",
-            "이메일 형식이 올바르지 않습니다.",
-            HttpStatus.BAD_REQUEST.value()
+    EMAIL_CONFLICT(
+            "EMAIL_CONFLICT",
+            "이미 가입된 이메일이 있습니다.",
+            HttpStatus.CONFLICT.value()
     ),
-    PASSWORD_TOO_WEAK(
-            "PASSWORD_TOO_WEAK",
-            "비밀번호 규칙을 확인해주세요.",
+    INVALID_CREDENTIAL(
+            "INVALID_CREDENTIAL",
+            "이메일 또는 비밀번호가 올바르지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
     EMAIL_ALREADY_EXISTS(

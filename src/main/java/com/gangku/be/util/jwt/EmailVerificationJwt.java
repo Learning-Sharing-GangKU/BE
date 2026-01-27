@@ -8,7 +8,6 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Duration;
 import java.time.Instant;
@@ -50,7 +49,7 @@ public class EmailVerificationJwt {
                     .build()
                     .parseClaimsJws(jwt);
         } catch (ExpiredJwtException e) {
-            throw new CustomException(AuthErrorCode.TOKEN_EXPIRED_OR_USED);
+            throw new CustomException(AuthErrorCode.TOKEN_EXPIRED);
         } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
             throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }

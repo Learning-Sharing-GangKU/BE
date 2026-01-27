@@ -1,5 +1,6 @@
 package com.gangku.be.dto.gathering.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class GatheringIntroRequestDto {
 
     @NotBlank
-    @Size(min = 1, max = 30, message = "제목은 1자 이상 30자 이하여야 합니다.")
+    @Size(min = 1, max = 30)
     private String title;
 
     @Min(value = 1)
@@ -26,10 +27,11 @@ public class GatheringIntroRequestDto {
     private String category;
 
     @NotNull
+    @JsonFormat(shape =  JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssX", timezone = "Asia/Seoul")
     private LocalDateTime date;
 
     @NotBlank
-    @Size(min = 1, max = 30, message = "장소는 1자 이상 30자 이하여야 합니다.")
+    @Size(min = 1, max = 30)
     private String location;
 
     @NotEmpty

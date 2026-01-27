@@ -10,15 +10,21 @@ import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.GatheringService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@Validated
 @RequestMapping("/api/v1/gatherings")
 @RequiredArgsConstructor
 public class GatheringController {
@@ -27,7 +33,7 @@ public class GatheringController {
 
     @PostMapping
     public ResponseEntity<GatheringResponseDto> createGathering(
-            @RequestBody GatheringCreateRequestDto gatheringCreateRequestDto,
+            @RequestBody @Valid GatheringCreateRequestDto gatheringCreateRequestDto,
             @AuthenticationPrincipal Long userId
     ) {
 
@@ -48,9 +54,9 @@ public class GatheringController {
 
     @PatchMapping("/{gatheringId}")
     public ResponseEntity<GatheringResponseDto> updateGathering(
-            @PathVariable String gatheringId,
+            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
             @AuthenticationPrincipal Long userId,
-            @RequestBody GatheringUpdateRequestDto gatheringUpdateRequestDto
+            @RequestBody @Valid GatheringUpdateRequestDto gatheringUpdateRequestDto
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
         GatheringResponseDto gatheringResponseDto =
@@ -60,10 +66,10 @@ public class GatheringController {
 
     @GetMapping("/{gatheringId}")
     public ResponseEntity<GatheringDetailResponseDto> getGatheringDetail(
-            @PathVariable String gatheringId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "3") int size,
-            @RequestParam(defaultValue = "joinedAt,asc") String sort
+            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
+            @RequestParam(defaultValue = "1") @Min(value = 1) int page,
+            @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size,
+            @RequestParam(defaultValue = "joinedAt,asc") @Pattern(regexp = "^joinedAt.(asc|desc)$") String sort
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
@@ -75,7 +81,7 @@ public class GatheringController {
     // 모임 삭제
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGathering(
-            @PathVariable String gatheringId,
+            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
             @AuthenticationPrincipal Long userId
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
@@ -87,7 +93,7 @@ public class GatheringController {
     // AI 모임 정보 생성
     @PostMapping("/intro")
     public ResponseEntity<GatheringIntroResponseDto> createGatheringIntro(
-            @RequestBody GatheringIntroRequestDto gatheringIntroRequestDto
+            @RequestBody @Valid GatheringIntroRequestDto gatheringIntroRequestDto
     ) {
         GatheringIntroResponseDto gatheringIntroResponseDto =
                 gatheringService.createGatheringIntro(gatheringIntroRequestDto);
@@ -99,8 +105,8 @@ public class GatheringController {
     @GetMapping
     public ResponseEntity<GatheringListResponseDto> getGatheringList(
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(defaultValue = "1") @Min(value = 1) int page,
+            @RequestParam(defaultValue = "3") @Max(value = 12) int size,
             @RequestParam(defaultValue = "latest") String sort
     ) {
         GatheringListResponseDto gatheringListResponseDto =

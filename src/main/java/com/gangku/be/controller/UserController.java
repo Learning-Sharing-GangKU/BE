@@ -8,11 +8,14 @@ import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.UserService;
 import com.gangku.be.util.object.FileUrlResolver;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -20,6 +23,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
 @RestController
+@Validated
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
@@ -52,10 +56,23 @@ public class UserController {
     @GetMapping("/gatherings")
     public ResponseEntity<GatheringListResponseDto> getUserGatherings(
             @AuthenticationPrincipal Long userId,
-            @RequestParam String role,
-            @RequestParam int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String sort
+
+            @RequestParam
+            @Pattern(regexp = "^(host|guest)")
+            String role,
+
+            @RequestParam(defaultValue = "1")
+            @Min(value = 1)
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1)
+            @Max(value = 50)
+            int size,
+
+            @RequestParam(defaultValue = "createdAt,desc")
+            @Pattern(regexp = "^(createdAt|startAt),(asc|desc)$")
+            String sort
     ) {
         GatheringListResponseDto response = gatheringService.getUserGatherings(userId, role, page, size, sort);
         return ResponseEntity.ok()

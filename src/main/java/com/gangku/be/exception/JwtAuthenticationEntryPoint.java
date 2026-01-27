@@ -2,7 +2,7 @@ package com.gangku.be.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gangku.be.dto.common.ErrorResponseDto;
-import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.CommonErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,7 +26,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException
     ) throws IOException, ServletException {
-        ErrorCode code = AuthErrorCode.UNAUTHORIZED;
+        ErrorCode code = CommonErrorCode.UNAUTHORIZED;
 
         response.setStatus(code.getStatus());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
