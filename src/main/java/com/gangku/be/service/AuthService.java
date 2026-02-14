@@ -305,10 +305,16 @@ public class AuthService {
     }
 
     private String findRefreshTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
 
-        return Arrays.stream(request.getCookies())
+        if (cookies == null) {
+            throw new CustomException(AuthErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        }
+
+        return Arrays.stream(cookies)
                 .filter(c -> "refresh_token".equals(c.getName()))
                 .map(Cookie::getValue)
+                .filter(v -> v != null && !v.isBlank())
                 .findFirst()
                 .orElseThrow(() -> new CustomException(AuthErrorCode.REFRESH_TOKEN_NOT_FOUND));
     }
