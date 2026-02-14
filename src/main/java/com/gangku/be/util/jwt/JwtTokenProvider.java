@@ -47,10 +47,10 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = parseClaims(token);
+        Claims claims = parseClaims(token, AuthErrorCode.INVALID_ACCESS_TOKEN);
 
         if (!"access".equals(claims.get("type"))) {
-            throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+            throw new CustomException(AuthErrorCode.INVALID_ACCESS_TOKEN);
         }
 
         Long userId = Long.parseLong(claims.getSubject());
@@ -63,7 +63,7 @@ public class JwtTokenProvider {
     }
 
     public Long extractUserIdFromRefreshToken(String refreshToken) {
-        Claims claims = parseClaims(refreshToken);
+        Claims claims = parseClaims(refreshToken, AuthErrorCode.INVALID_REFRESH_TOKEN);
 
         String type = claims.get("type").toString();
         if (!"refresh".equals(type)) {
@@ -73,17 +73,15 @@ public class JwtTokenProvider {
         return Long.parseLong(claims.getSubject());
     }
 
-    private Claims parseClaims(String token) {
+    private Claims parseClaims(String token, AuthErrorCode invalidTokenErrorCode) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(signingKey)
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (ExpiredJwtException e) {
-            throw new CustomException(AuthErrorCode.TOKEN_EXPIRED);
-        } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
-            throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }catch (JwtException | IllegalArgumentException e) {
+            throw new CustomException(invalidTokenErrorCode);
         }
     }
 }
