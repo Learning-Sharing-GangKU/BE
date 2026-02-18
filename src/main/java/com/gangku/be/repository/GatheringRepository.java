@@ -5,6 +5,8 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Gathering.Status;
 import java.util.Collection;
 import java.util.List;
+
+import com.gangku.be.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,60 +15,91 @@ import org.springframework.data.repository.query.Param;
 
 public interface GatheringRepository extends JpaRepository<Gathering, Long> {
 
+    // 카테고리가 없는 최신순
     @Query(
             value = """
-            SELECT g
-            FROM Gathering g
-            JOIN FETCH g.host h
-            WHERE (:category IS NULL OR g.category = :category)
-            ORDER BY g.createdAt DESC, g.id DESC
-        """,
+        SELECT g
+        FROM Gathering g
+        JOIN FETCH g.host
+    """,
             countQuery = """
-            SELECT COUNT(g)
-            FROM Gathering g
-            WHERE (:category IS NULL OR g.category = :category)
-        """
+        SELECT COUNT(g)
+        FROM Gathering g
+    """
     )
-    Page<Gathering> findLatestGatherings(
+    Page<Gathering> findLatestGatherings(Pageable pageable);
+
+    // 카테고리가 있는 최신순
+    @Query(
+            value = """
+        SELECT g
+        FROM Gathering g
+        JOIN FETCH g.host
+        WHERE g.category = :category
+    """,
+            countQuery = """
+        SELECT COUNT(g)
+        FROM Gathering g
+        WHERE g.category = :category
+    """
+    )
+    Page<Gathering> findLatestGatheringsByCategory(
             @Param("category") Category category,
             Pageable pageable
     );
 
+
+
+    // 카테고리가 없는 인기순
     @Query(
             value = """
-            SELECT g
-            FROM Gathering g
-            JOIN FETCH g.host h
-            WHERE (:category IS NULL OR g.category = :category)
-            ORDER BY g.participantCount DESC, g.id DESC
-        """,
+    SELECT g
+    FROM Gathering g
+    JOIN FETCH g.host
+  """,
             countQuery = """
-            SELECT COUNT(g)
-            FROM Gathering g
-            WHERE (:category IS NULL OR g.category = :category)
-        """
+    SELECT COUNT(g) FROM Gathering g
+  """
     )
-    Page<Gathering> findPopularGatherings(
+    Page<Gathering> findPopularGatherings(Pageable pageable);
+
+    // 카테고리가 있는 인기순
+    @Query(
+            value = """
+    SELECT g
+    FROM Gathering g
+    JOIN FETCH g.host
+    WHERE g.category = :category
+  """,
+            countQuery = """
+    SELECT COUNT(g)
+    FROM Gathering g
+    WHERE g.category = :category
+  """
+    )
+    Page<Gathering> findPopularGatheringsByCategory(
             @Param("category") Category category,
             Pageable pageable
     );
 
+
     @Query(
             value = """
-            SELECT g
-            FROM Gathering g
-            JOIN FETCH g.host h
-            WHERE g.host.id = :hostId
-            ORDER BY g.createdAt DESC, g.id DESC
-        """,
+        SELECT g
+        FROM Gathering g
+        JOIN FETCH g.host
+        JOIN FETCH g.category
+        WHERE g.host = :host
+        ORDER BY g.createdAt DESC, g.id DESC
+    """,
             countQuery = """
-            SELECT COUNT(g)
-            FROM Gathering g
-            WHERE g.host.id = :hostId
-        """
+        SELECT COUNT(g)
+        FROM Gathering g
+        WHERE g.host = :host
+    """
     )
     Page<Gathering> findByHostIdOrderByCreatedAtDesc(
-            @Param("hostId") Long hostId,
+            @Param("host") User host,
             Pageable pageable
     );
 
