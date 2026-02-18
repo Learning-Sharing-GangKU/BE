@@ -4,14 +4,17 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import com.gangku.be.domain.User;
 import com.gangku.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +28,12 @@ public class UserService {
     private final CategoryRepository categoryRepository;
     private final PreferredCategoryRepository preferredCategoryRepository;
 
+    private final StringRedisTemplate stringRedisTemplate;
     private final PasswordEncoder passwordEncoder;
 
-    public User registerUser(SignUpRequestDto signUpRequestDto) {
+    public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
+
+        validateEmailVerification(sessionId, signUpRequestDto.getEmail());
 
         // 중복된 이메일 예외처리
         validateEmailConflict(signUpRequestDto.getEmail());
@@ -60,6 +66,8 @@ public class UserService {
 
         userRepository.save(newUser);
 
+        stringRedisTemplate.delete("auth:signup:session:" + sessionId);
+
         assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
 
         return newUser;
@@ -68,6 +76,26 @@ public class UserService {
     /**
      * --- 검증 및 반환 헬퍼 메서드 ---
      */
+
+    private void validateEmailVerification(String sessionId, String email) {
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        String sessionKey = "auth:signup:session:" + sessionId;
+        Map<Object, Object> sessionData = stringRedisTemplate.opsForHash().entries(sessionKey);
+
+        if (sessionData.isEmpty()) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        String verified = (String) sessionData.get("verified");
+        String sessionEmail = (String) sessionData.get("email");
+
+        if (!"1".equals(verified) || !email.equals(sessionEmail)) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+    }
     
     private void validateEmailConflict(String email) {
         if(userRepository.existsByEmail(email)) {

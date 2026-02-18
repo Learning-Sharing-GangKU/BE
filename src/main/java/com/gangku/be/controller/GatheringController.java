@@ -54,7 +54,7 @@ public class GatheringController {
 
     @PatchMapping("/{gatheringId}")
     public ResponseEntity<GatheringResponseDto> updateGathering(
-            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
+            @PathVariable String gatheringId,
             @AuthenticationPrincipal Long userId,
             @RequestBody @Valid GatheringUpdateRequestDto gatheringUpdateRequestDto
     ) {
@@ -66,7 +66,7 @@ public class GatheringController {
 
     @GetMapping("/{gatheringId}")
     public ResponseEntity<GatheringDetailResponseDto> getGatheringDetail(
-            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
+            @PathVariable String gatheringId,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
             @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size,
             @RequestParam(defaultValue = "joinedAt,asc") @Pattern(regexp = "^joinedAt.(asc|desc)$") String sort
@@ -81,7 +81,7 @@ public class GatheringController {
     // 모임 삭제
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGathering(
-            @PathVariable @Pattern(regexp = "^gath_\\d+$") String gatheringId,
+            @PathVariable String gatheringId,
             @AuthenticationPrincipal Long userId
     ) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);

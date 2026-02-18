@@ -49,7 +49,7 @@ public class EmailVerificationJwt {
                     .build()
                     .parseClaimsJws(jwt);
         } catch (ExpiredJwtException e) {
-            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED_OR_USED);
+            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED);
         } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
             throw new CustomException(AuthErrorCode.INVALID_EMAIL_VERIFICATION_TOKEN);
         }

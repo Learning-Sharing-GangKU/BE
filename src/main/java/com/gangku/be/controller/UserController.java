@@ -33,10 +33,13 @@ public class UserController {
     private final FileUrlResolver fileUrlResolver;
 
     @PostMapping
-    public ResponseEntity<SignUpResponseDto> registerUser(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
+    public ResponseEntity<SignUpResponseDto> registerUser(
+            @RequestBody @Valid SignUpRequestDto signUpRequestDto,
+            @CookieValue(value = "signup_session", required = false) String sessionId
+    ) {
 
         // 1) 회원가입 처리 후 저장된 유저 반환
-        User newUser = userService.registerUser(signUpRequestDto);
+        User newUser = userService.registerUser(signUpRequestDto, sessionId);
         String imageUrl = fileUrlResolver.toPublicUrl(signUpRequestDto.getProfileImageObjectKey());
 
         // 2) Location 헤더 설정을 위한 정보 저장

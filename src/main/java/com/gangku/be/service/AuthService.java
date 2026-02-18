@@ -263,7 +263,7 @@ public class AuthService {
                 List.of(emailVerificationTokenKey(tokenId))
         );
         if (email == null) {
-            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED_OR_USED);
+            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED);
         }
         return email;
     }
@@ -361,7 +361,7 @@ public class AuthService {
         String verifiedEmailFlag = stringRedisTemplate.opsForValue().get(verifiedEmailKey(email));
 
         if (verifiedEmailFlag == null) {
-            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED_OR_USED);
+            throw new CustomException(AuthErrorCode.EMAIL_TOKEN_USED);
         }
     }
 
