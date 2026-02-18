@@ -19,7 +19,7 @@ public enum UserErrorCode implements ErrorCode {
     INVALID_CREDENTIAL(
             "INVALID_CREDENTIAL",
             "이메일 또는 비밀번호가 올바르지 않습니다.",
-            HttpStatus.BAD_REQUEST.value()
+            HttpStatus.UNAUTHORIZED.value()
     ),
     EMAIL_ALREADY_EXISTS(
             "EMAIL_ALREADY_EXISTS",

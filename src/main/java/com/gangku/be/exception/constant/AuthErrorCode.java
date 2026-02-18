@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 public enum AuthErrorCode implements ErrorCode {
 
-    // --- 로그인 / 리프레시 토큰 재발급 / 로그아웃 ---
+    // --- 로그인 / 리프레시 토큰, 엑세스 토큰 재발급 / 로그아웃 ---
     REFRESH_TOKEN_NOT_FOUND(
             "REFRESH_TOKEN_NOT_FOUND",
             "리프레시 토큰이 없습니다.",
@@ -16,15 +16,15 @@ public enum AuthErrorCode implements ErrorCode {
             "유효하지 않은 리프레시 토큰입니다.",
             HttpStatus.UNAUTHORIZED.value()
     ),
+    INVALID_ACCESS_TOKEN(
+            "INVALID_ACCESS_TOKEN",
+            "유효하지 않은 엑세스 토큰입니다.",
+            HttpStatus.UNAUTHORIZED.value()
+    ),
     TOKEN_MISMATCH(
             "TOKEN_MISMATCH",
             "서버에 저장된 리프레시 토큰과 일치하지 않습니다.",
             HttpStatus.UNAUTHORIZED.value()
-    ),
-    TOKEN_EXPIRED(
-            "TOKEN_EXPIRED_OR_USED",
-            "토큰이 만료되었습니다.",
-            HttpStatus.GONE.value()
     ),
 
     // --- 이메일 인증 플로우 ---
@@ -42,6 +42,11 @@ public enum AuthErrorCode implements ErrorCode {
             "EMAIL_MISMATCH",
             "세션의 이메일과 인증된 이메일이 일치하지 않습니다.",
             HttpStatus.BAD_REQUEST.value()
+    ),
+    INVALID_EMAIL_VERIFICATION_TOKEN(
+            "INVALID_EMAIL_VERIFICATION_TOKEN",
+            "유효하지 않은 이메일 인증 토큰입니다.",
+            HttpStatus.UNAUTHORIZED.value()
     ),
     EMAIL_TOKEN_EXPIRED_OR_USED(
             "EMAIL_TOKEN_EXPIRED_OR_USED",
