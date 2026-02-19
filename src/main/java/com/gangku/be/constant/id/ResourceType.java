@@ -1,6 +1,7 @@
 package com.gangku.be.constant.id;
 
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
 
 public enum ResourceType {
@@ -24,6 +25,6 @@ public enum ResourceType {
                 return resourceType;
             }
         }
-        throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+        throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
     }
 }

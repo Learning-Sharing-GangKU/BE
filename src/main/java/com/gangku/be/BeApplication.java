@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-// @CreatedDate, @LastModifiedDate 등 자동 시간 필드를 인식
 @EnableJpaAuditing
 @SpringBootApplication
 @ConfigurationPropertiesScan

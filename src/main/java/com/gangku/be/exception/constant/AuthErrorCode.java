@@ -38,20 +38,25 @@ public enum AuthErrorCode implements ErrorCode {
             "인증 메일 발송 기록이 없습니다.",
             HttpStatus.BAD_REQUEST.value()
     ),
-    EMAIL_MISMATCH(
-            "EMAIL_MISMATCH",
-            "세션의 이메일과 인증된 이메일이 일치하지 않습니다.",
-            HttpStatus.BAD_REQUEST.value()
-    ),
     INVALID_EMAIL_VERIFICATION_TOKEN(
             "INVALID_EMAIL_VERIFICATION_TOKEN",
             "유효하지 않은 이메일 인증 토큰입니다.",
             HttpStatus.UNAUTHORIZED.value()
     ),
-    EMAIL_TOKEN_EXPIRED_OR_USED(
-            "EMAIL_TOKEN_EXPIRED_OR_USED",
-            "이메일 인증 토큰이 만료되었거나 이미 사용되었습니다.",
+    EMAIL_TOKEN_EXPIRED(
+            "EMAIL_TOKEN_EXPIRED",
+            "이메일 인증 토큰이 만료되었습니다.",
             HttpStatus.GONE.value()
+    ),
+    EMAIL_TOKEN_USED(
+            "EMAIL_TOKEN_USED",
+            "이메일 인증 토큰이 이미 사용되었습니다.",
+            HttpStatus.GONE.value()
+    ),
+    EMAIL_NOT_VERIFIED(
+            "EMAIL_NOT_VERIFIED",
+            "이메일 인증이 성공적으로 완료되지 않았습니다.",
+            HttpStatus.FORBIDDEN.value()
     );
 
     private final String code;

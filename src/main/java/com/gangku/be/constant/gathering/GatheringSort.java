@@ -1,6 +1,7 @@
 package com.gangku.be.constant.gathering;
 
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import lombok.Getter;
 
@@ -21,6 +22,6 @@ public enum GatheringSort {
                 return type;
             }
         }
-        throw new CustomException(GatheringErrorCode.INVALID_PARAMETER_FORMAT);
+        throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
     }
 }
