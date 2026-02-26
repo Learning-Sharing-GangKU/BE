@@ -51,13 +51,14 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("userId") String targetUserId, @AuthenticationPrincipal Long currentUserId) {
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable("userId") String targetUserId,
+            @AuthenticationPrincipal Long currentUserId) {
         Long internalUserId = PrefixedId.parse(targetUserId).require(ResourceType.USER);
 
         userService.deleteUser(internalUserId, currentUserId);
         return ResponseEntity.noContent().build();
     }
-
 
     /** 특정 사용자의 모임 목록 조회 - role=host → 내가 만든 모임 - role=guest → 내가 참여한 모임 */
     @GetMapping("/gatherings")

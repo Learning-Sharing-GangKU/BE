@@ -15,7 +15,10 @@ public enum UserErrorCode implements ErrorCode {
             "NICKNAME_ALREADY_EXISTS", "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT.value()),
 
     // --- 회원탈퇴 ---
-    NO_PERMISSION_TO_CANCEL_MEMBERSHIP("NO_PERMISSION_TO_CANCEL_MEMBERSHIP", "회원탈퇴를 할 권한이 없습니다.", HttpStatus.FORBIDDEN.value());
+    NO_PERMISSION_TO_CANCEL_MEMBERSHIP(
+            "NO_PERMISSION_TO_CANCEL_MEMBERSHIP",
+            "회원탈퇴를 할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value());
 
     private final String code;
     private final String message;
