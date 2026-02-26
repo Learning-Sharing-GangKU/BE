@@ -1,5 +1,8 @@
 package com.gangku.be.service.gathering;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
@@ -19,27 +22,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class DeleteGatheringServiceTest {
 
-    @Mock
-    private GatheringRepository gatheringRepository;
+    @Mock private GatheringRepository gatheringRepository;
 
-    @Mock
-    private CategoryRepository categoryRepository;
+    @Mock private CategoryRepository categoryRepository;
 
-    @Mock
-    private ParticipationRepository participationRepository;
+    @Mock private ParticipationRepository participationRepository;
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @InjectMocks
-    private GatheringService gatheringService;
+    @InjectMocks private GatheringService gatheringService;
 
     private Gathering createGatheringWithHost(Long hostId) {
         User host = new User();
@@ -64,13 +59,10 @@ class DeleteGatheringServiceTest {
 
         Gathering gathering = createGatheringWithHost(hostId);
 
-        when(gatheringRepository.findById(gatheringId))
-                .thenReturn(Optional.of(gathering));
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
         // when & then (예외 없어야 함)
-        assertDoesNotThrow(() ->
-                gatheringService.deleteGathering(gatheringId, hostId)
-        );
+        assertDoesNotThrow(() -> gatheringService.deleteGathering(gatheringId, hostId));
 
         verify(gatheringRepository, times(1)).delete(gathering);
     }
@@ -84,8 +76,7 @@ class DeleteGatheringServiceTest {
 
         Gathering gathering = createGatheringWithHost(hostId);
 
-        when(gatheringRepository.findById(gatheringId))
-                .thenReturn(Optional.of(gathering));
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
         // when
         gatheringService.deleteGathering(gatheringId, hostId);
@@ -106,12 +97,13 @@ class DeleteGatheringServiceTest {
         Long gatheringId = 999L;
         Long userId = 10L;
 
-        when(gatheringRepository.findById(gatheringId))
-                .thenReturn(Optional.empty());
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.deleteGathering(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.deleteGathering(gatheringId, userId));
 
         // then
         assertEquals(GatheringErrorCode.GATHERING_NOT_FOUND, ex.getErrorCode());
@@ -123,17 +115,18 @@ class DeleteGatheringServiceTest {
     void deleteGathering_withNonHostUser_throwsForbidden() {
         // given
         Long gatheringId = 1L;
-        Long hostId = 10L;      // 실제 호스트
+        Long hostId = 10L; // 실제 호스트
         Long otherUserId = 20L; // 삭제 요청 유저
 
         Gathering gathering = createGatheringWithHost(hostId);
 
-        when(gatheringRepository.findById(gatheringId))
-                .thenReturn(Optional.of(gathering));
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.deleteGathering(gatheringId, otherUserId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.deleteGathering(gatheringId, otherUserId));
 
         // then
         assertEquals(GatheringErrorCode.FORBIDDEN, ex.getErrorCode());
@@ -149,16 +142,16 @@ class DeleteGatheringServiceTest {
 
         Gathering gathering = createGatheringWithHost(hostId);
 
-        when(gatheringRepository.findById(gatheringId))
-                .thenReturn(Optional.of(gathering));
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
         // delete 호출 시 런타임 예외 발생하도록 설정
-        doThrow(new RuntimeException("DB error"))
-                .when(gatheringRepository).delete(gathering);
+        doThrow(new RuntimeException("DB error")).when(gatheringRepository).delete(gathering);
 
         // when & then
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> gatheringService.deleteGathering(gatheringId, hostId));
+        RuntimeException ex =
+                assertThrows(
+                        RuntimeException.class,
+                        () -> gatheringService.deleteGathering(gatheringId, hostId));
 
         assertEquals("DB error", ex.getMessage());
     }
@@ -174,12 +167,13 @@ class DeleteGatheringServiceTest {
         Long gatheringId = Long.MAX_VALUE;
         Long userId = 10L;
 
-        when(gatheringRepository.findById(gatheringId))
-                .thenReturn(Optional.empty());
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.deleteGathering(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.deleteGathering(gatheringId, userId));
 
         // then
         assertEquals(GatheringErrorCode.GATHERING_NOT_FOUND, ex.getErrorCode());
@@ -193,20 +187,22 @@ class DeleteGatheringServiceTest {
 
         // case 1: 0L
         Long zeroId = 0L;
-        when(gatheringRepository.findById(zeroId))
-                .thenReturn(Optional.empty());
+        when(gatheringRepository.findById(zeroId)).thenReturn(Optional.empty());
 
-        CustomException exZero = assertThrows(CustomException.class,
-                () -> gatheringService.deleteGathering(zeroId, userId));
+        CustomException exZero =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.deleteGathering(zeroId, userId));
         assertEquals(GatheringErrorCode.GATHERING_NOT_FOUND, exZero.getErrorCode());
 
         // case 2: -1L
         Long negativeId = -1L;
-        when(gatheringRepository.findById(negativeId))
-                .thenReturn(Optional.empty());
+        when(gatheringRepository.findById(negativeId)).thenReturn(Optional.empty());
 
-        CustomException exNegative = assertThrows(CustomException.class,
-                () -> gatheringService.deleteGathering(negativeId, userId));
+        CustomException exNegative =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.deleteGathering(negativeId, userId));
         assertEquals(GatheringErrorCode.GATHERING_NOT_FOUND, exNegative.getErrorCode());
 
         verify(gatheringRepository, never()).delete(any(Gathering.class));
@@ -221,13 +217,10 @@ class DeleteGatheringServiceTest {
 
         Gathering gathering = createGatheringWithHost(hostId);
 
-        when(gatheringRepository.findById(gatheringId))
-                .thenReturn(Optional.of(gathering));
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
         // when & then
-        assertDoesNotThrow(() ->
-                gatheringService.deleteGathering(gatheringId, hostId)
-        );
+        assertDoesNotThrow(() -> gatheringService.deleteGathering(gatheringId, hostId));
 
         verify(gatheringRepository, times(1)).delete(gathering);
     }

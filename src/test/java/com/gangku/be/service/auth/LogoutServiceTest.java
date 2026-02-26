@@ -1,5 +1,8 @@
 package com.gangku.be.service.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
@@ -9,6 +12,9 @@ import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
 import com.gangku.be.util.jwt.EmailVerificationJwt;
 import com.gangku.be.util.jwt.JwtTokenProvider;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,40 +24,25 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class LogoutServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    @Mock private JwtTokenProvider jwtTokenProvider;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
     // --- 이메일 인증 관련 의존성 (logout에서는 직접 안 쓰이지만 생성자 주입을 위해 필요) ---
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
+    @Mock private StringRedisTemplate stringRedisTemplate;
 
-    @Mock
-    private EmailVerificationJwt emailVerificationJwt;
+    @Mock private EmailVerificationJwt emailVerificationJwt;
 
-    @Mock
-    private EmailVerificationProps emailVerificationProps;
+    @Mock private EmailVerificationProps emailVerificationProps;
 
-    @Mock
-    private JavaMailSender javaMailSender;
+    @Mock private JavaMailSender javaMailSender;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
     // ============================================================
     // 1) 정상: 유효한 refresh_token 쿠키 → DB의 refreshToken 제거
@@ -63,7 +54,7 @@ class LogoutServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", refreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", refreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.getSubject(refreshToken)).thenReturn(String.valueOf(userId));
@@ -91,12 +82,11 @@ class LogoutServiceTest {
     void logout_whenRefreshTokenCookieMissing_throwsRefreshTokenNotFound() {
         // given
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("JSESSIONID", "abc") }; // refresh_token 없음
+        Cookie[] cookies = {new Cookie("JSESSIONID", "abc")}; // refresh_token 없음
         when(request.getCookies()).thenReturn(cookies);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.logout(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.logout(request));
 
         // then
         assertEquals(AuthErrorCode.REFRESH_TOKEN_NOT_FOUND, ex.getErrorCode());
@@ -115,15 +105,14 @@ class LogoutServiceTest {
         Long userId = 99L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", refreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", refreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.getSubject(refreshToken)).thenReturn(String.valueOf(userId));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.logout(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.logout(request));
 
         // then
         assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
@@ -144,7 +133,7 @@ class LogoutServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", refreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", refreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.getSubject(refreshToken)).thenReturn(String.valueOf(userId));
@@ -154,8 +143,7 @@ class LogoutServiceTest {
         when(user.getRefreshToken()).thenReturn(null);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.logout(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.logout(request));
 
         // then
         assertEquals(AuthErrorCode.TOKEN_MISMATCH, ex.getErrorCode());
@@ -179,7 +167,7 @@ class LogoutServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", cookieToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", cookieToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.getSubject(cookieToken)).thenReturn(String.valueOf(userId));
@@ -189,8 +177,7 @@ class LogoutServiceTest {
         when(user.getRefreshToken()).thenReturn(dbToken);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.logout(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.logout(request));
 
         // then
         assertEquals(AuthErrorCode.TOKEN_MISMATCH, ex.getErrorCode());
@@ -213,9 +200,9 @@ class LogoutServiceTest {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         Cookie[] cookies = {
-                new Cookie("JSESSIONID", "abc"),
-                new Cookie("refresh_token", refreshToken),
-                new Cookie("theme", "dark")
+            new Cookie("JSESSIONID", "abc"),
+            new Cookie("refresh_token", refreshToken),
+            new Cookie("theme", "dark")
         };
         when(request.getCookies()).thenReturn(cookies);
 
@@ -247,7 +234,7 @@ class LogoutServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", refreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", refreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.getSubject(refreshToken)).thenReturn(String.valueOf(userId));
@@ -258,8 +245,7 @@ class LogoutServiceTest {
         when(user.getRefreshToken()).thenReturn(null);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.logout(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.logout(request));
 
         // then
         assertEquals(AuthErrorCode.TOKEN_MISMATCH, ex.getErrorCode());

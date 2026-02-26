@@ -25,8 +25,8 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(
             HttpServletRequest request,
             HttpServletResponse response,
-            AccessDeniedException accessDeniedException
-    ) throws IOException, ServletException {
+            AccessDeniedException accessDeniedException)
+            throws IOException, ServletException {
 
         ErrorCode code = AuthErrorCode.TOKEN_MISMATCH;
 

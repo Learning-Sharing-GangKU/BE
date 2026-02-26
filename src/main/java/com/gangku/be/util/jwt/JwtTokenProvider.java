@@ -4,15 +4,15 @@ import com.gangku.be.constant.auth.TokenProperty;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import java.util.Collections;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import java.security.Key;
-import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
@@ -30,7 +30,10 @@ public class JwtTokenProvider {
                 .setSubject(userId)
                 .claim("type", "access")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + TokenProperty.ACCESS_TOKEN.getExpirationInMillis()))
+                .setExpiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + TokenProperty.ACCESS_TOKEN.getExpirationInMillis()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -41,7 +44,10 @@ public class JwtTokenProvider {
                 .setSubject(userId)
                 .claim("type", "refresh")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + TokenProperty.REFRESH_TOKEN.getExpirationInMillis()))
+                .setExpiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + TokenProperty.REFRESH_TOKEN.getExpirationInMillis()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -55,11 +61,7 @@ public class JwtTokenProvider {
 
         Long userId = Long.parseLong(claims.getSubject());
 
-        return new UsernamePasswordAuthenticationToken(
-                userId,
-                null,
-                Collections.emptyList()
-        );
+        return new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
     }
 
     public Long extractUserIdFromRefreshToken(String refreshToken) {
@@ -80,7 +82,7 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-        }catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             throw new CustomException(invalidTokenErrorCode);
         }
     }

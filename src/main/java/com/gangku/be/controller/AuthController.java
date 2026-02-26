@@ -33,9 +33,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
-            @RequestBody @Valid LoginRequestDto loginRequestDto,
-            HttpServletResponse response
-    ) {
+            @RequestBody @Valid LoginRequestDto loginRequestDto, HttpServletResponse response) {
 
         // 1) 토큰 발급
         TokenPair tokenPair = authService.login(loginRequestDto);
@@ -48,7 +46,8 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<LoginResponseDto> reIssue(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDto> reIssue(
+            HttpServletRequest request, HttpServletResponse response) {
 
         // 1) 새 토큰 발급
         TokenPair tokenPair = authService.reIssue(request);
@@ -75,31 +74,28 @@ public class AuthController {
     @PostMapping("/email/verification")
     public ResponseEntity<Map<String, String>> sendEmailVerification(
             @RequestBody @Valid EmailVerificationRequestDto emailVerificationRequestDto,
-            HttpServletResponse response
-    ) {
+            HttpServletResponse response) {
         EmailVerificationSendResult emailVerificationSendResult =
                 authService.sendEmailVerification(emailVerificationRequestDto.getEmail());
 
         setSignUpSessionCookie(response, emailVerificationSendResult);
 
-        return ResponseEntity.ok(Map.of("message","인증 이메일이 성공적으로 발송되었습니다."));
+        return ResponseEntity.ok(Map.of("message", "인증 이메일이 성공적으로 발송되었습니다."));
     }
 
     @GetMapping("/email/verification/start")
     public ResponseEntity<Void> startEmailVerification(
             @RequestParam("token")
-            @NotBlank
-            @Pattern(regexp = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")
-            String emailVerificationToken
-    ) {
+                    @NotBlank
+                    @Pattern(regexp = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")
+                    String emailVerificationToken) {
         authService.consumeEmailVerification(emailVerificationToken);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/email/verification/confirm")
     public ResponseEntity<EmailVerificationResponseDto> confirmEmailVerification(
-            @CookieValue(value = "signup_session", required = false) String signupSessionId
-    ) {
+            @CookieValue(value = "signup_session", required = false) String signupSessionId) {
 
         EmailVerificationConfirmResult confirmResult =
                 authService.confirmEmailVerification(signupSessionId);
@@ -117,34 +113,29 @@ public class AuthController {
 
     private void clearRefreshTokenCookie(HttpServletResponse response) {
         buildAndSetCookie(
-                response,
-                CookieProperty.REFRESH_TOKEN_COOKIE_NAME.getCookieName(),
-                "",
-                0L
-        );
+                response, CookieProperty.REFRESH_TOKEN_COOKIE_NAME.getCookieName(), "", 0L);
     }
 
     private void setSignUpSessionCookie(
-            HttpServletResponse response,
-            EmailVerificationSendResult emailVerificationSendResult
-    ) {
+            HttpServletResponse response, EmailVerificationSendResult emailVerificationSendResult) {
         buildAndSetCookie(
                 response,
                 CookieProperty.SIGNUP_SESSION_COOKIE_NAME.getCookieName(),
                 emailVerificationSendResult.sessionId(),
-                emailVerificationSendResult.sessionTtlMinutes() * 60
-        );
+                emailVerificationSendResult.sessionTtlMinutes() * 60);
     }
 
-    private void buildAndSetCookie(HttpServletResponse response, String cookieName, String value, long maxAge) {
+    private void buildAndSetCookie(
+            HttpServletResponse response, String cookieName, String value, long maxAge) {
 
-        ResponseCookie cookie = ResponseCookie.from(cookieName, value)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(maxAge)
-                .build();
+        ResponseCookie cookie =
+                ResponseCookie.from(cookieName, value)
+                        .httpOnly(true)
+                        .secure(true)
+                        .sameSite("Strict")
+                        .path("/")
+                        .maxAge(maxAge)
+                        .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

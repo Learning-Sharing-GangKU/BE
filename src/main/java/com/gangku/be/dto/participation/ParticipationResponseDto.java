@@ -5,11 +5,10 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
 import com.gangku.be.model.common.PrefixedId;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -23,10 +22,14 @@ public class ParticipationResponseDto {
     private int capacity;
     private LocalDateTime joinedAt;
 
-    public static ParticipationResponseDto from(Participation participation, Gathering gathering, User user) {
-        String publicParticipationId = PrefixedId.of(ResourceType.PARTICIPATION, participation.getId()).toExternal();
-        String publicGatheringId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
-        String publicUserId = PrefixedId.of(ResourceType.USER, gathering.getHost().getId()).toExternal();
+    public static ParticipationResponseDto from(
+            Participation participation, Gathering gathering, User user) {
+        String publicParticipationId =
+                PrefixedId.of(ResourceType.PARTICIPATION, participation.getId()).toExternal();
+        String publicGatheringId =
+                PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
+        String publicUserId =
+                PrefixedId.of(ResourceType.USER, gathering.getHost().getId()).toExternal();
 
         return ParticipationResponseDto.builder()
                 .participantId(publicParticipationId)

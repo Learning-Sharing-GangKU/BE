@@ -4,7 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum TokenProperty {
-
     ACCESS_TOKEN(1000L * 60 * 30),
     REFRESH_TOKEN(1000L * 60 * 60 * 24 * 14);
 

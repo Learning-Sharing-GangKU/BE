@@ -1,5 +1,9 @@
 package com.gangku.be.service.object;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.config.aws.AssetPolicyProps;
 import com.gangku.be.config.aws.AwsAppProps;
 import com.gangku.be.dto.object.PresignRequestDto;
@@ -24,49 +28,34 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class PresignServiceTest {
 
-    @Mock
-    private S3Presigner s3Presigner;
+    @Mock private S3Presigner s3Presigner;
 
-    @Mock
-    private AwsAppProps awsAppProps;
+    @Mock private AwsAppProps awsAppProps;
 
-    @Mock
-    private AwsAppProps.S3Props s3Props;
+    @Mock private AwsAppProps.S3Props s3Props;
 
-    @Mock
-    private AwsAppProps.CdnProps cdnProps;
+    @Mock private AwsAppProps.CdnProps cdnProps;
 
-    @Mock
-    private AssetPolicyProps assetPolicyProps;
+    @Mock private AssetPolicyProps assetPolicyProps;
 
-    @Mock
-    private AssetPolicyProps.Category imageCategory;
+    @Mock private AssetPolicyProps.Category imageCategory;
 
-    @Mock
-    private AssetPolicyProps.Category videoCategory;
+    @Mock private AssetPolicyProps.Category videoCategory;
 
-    @Mock
-    private AssetPolicyProps.Category fileCategory;
+    @Mock private AssetPolicyProps.Category fileCategory;
 
-    @Mock
-    private PresignRequestDto presignRequestDto;
+    @Mock private PresignRequestDto presignRequestDto;
 
-    @Mock
-    private PresignedPutObjectRequest presignedPutObjectRequest;
+    @Mock private PresignedPutObjectRequest presignedPutObjectRequest;
 
-    @InjectMocks
-    private ObjectStoragePresignService presignService;
+    @InjectMocks private ObjectStoragePresignService presignService;
 
     @BeforeEach
     void setUp() {
@@ -109,10 +98,8 @@ class PresignServiceTest {
         stubPresignerUrl("https://s3-presigned-url");
 
         YearMonth ym = YearMonth.now(ZoneId.of("Asia/Seoul"));
-        String expectedPrefix = String.format(
-                "statics/image/dev/%04d/%02d/",
-                ym.getYear(), ym.getMonthValue()
-        );
+        String expectedPrefix =
+                String.format("statics/image/dev/%04d/%02d/", ym.getYear(), ym.getMonthValue());
 
         // when
         PresignResponseDto response = presignService.presign(presignRequestDto);
@@ -146,7 +133,8 @@ class PresignServiceTest {
 
         // then
         assertNotNull(response);
-        assertTrue(response.getObjectKey().contains("/video/"),
+        assertTrue(
+                response.getObjectKey().contains("/video/"),
                 "video 카테고리이면 key에 /video/ 세그먼트가 포함되어야 한다.");
     }
 
@@ -169,8 +157,7 @@ class PresignServiceTest {
 
         // then
         assertNotNull(response);
-        assertTrue(response.getObjectKey().contains("/file/"),
-                "기타 타입은 file 카테고리로 매핑되어야 한다.");
+        assertTrue(response.getObjectKey().contains("/file/"), "기타 타입은 file 카테고리로 매핑되어야 한다.");
     }
 
     // =========================================================
@@ -186,12 +173,12 @@ class PresignServiceTest {
 
         when(assetPolicyProps.getCategories()).thenReturn(List.of(imageCategory));
         when(imageCategory.getType()).thenReturn("image");
-        when(imageCategory.getAllowedContentTypes())
-                .thenReturn(List.of("image/jpeg", "image/png"));
+        when(imageCategory.getAllowedContentTypes()).thenReturn(List.of("image/jpeg", "image/png"));
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> presignService.presign(presignRequestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class, () -> presignService.presign(presignRequestDto));
 
         // then
         assertEquals(ObjectStorageErrorCode.INVALID_FILE_TYPE, ex.getErrorCode());
@@ -212,8 +199,9 @@ class PresignServiceTest {
         when(videoCategory.getAllowedContentTypes()).thenReturn(List.of("video/mp4"));
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> presignService.presign(presignRequestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class, () -> presignService.presign(presignRequestDto));
 
         // then
         assertEquals(ObjectStorageErrorCode.INVALID_FILE_TYPE, ex.getErrorCode());
@@ -229,8 +217,9 @@ class PresignServiceTest {
         when(assetPolicyProps.getCategories()).thenReturn(List.of()); // 빈 리스트
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> presignService.presign(presignRequestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class, () -> presignService.presign(presignRequestDto));
 
         // then
         assertEquals(ObjectStorageErrorCode.INVALID_FILE_TYPE, ex.getErrorCode());
@@ -258,7 +247,8 @@ class PresignServiceTest {
         PresignResponseDto response = presignService.presign(presignRequestDto);
 
         // then
-        assertTrue(response.getObjectKey().toLowerCase(Locale.ROOT).endsWith(".bin"),
+        assertTrue(
+                response.getObjectKey().toLowerCase(Locale.ROOT).endsWith(".bin"),
                 "확장자가 없으면 .bin 으로 끝나야 한다: " + response.getObjectKey());
     }
 
@@ -280,7 +270,8 @@ class PresignServiceTest {
         PresignResponseDto response = presignService.presign(presignRequestDto);
 
         // then
-        assertTrue(response.getObjectKey().endsWith(".jpg"),
+        assertTrue(
+                response.getObjectKey().endsWith(".jpg"),
                 "확장자는 소문자 .jpg 로 변환되어야 한다: " + response.getObjectKey());
     }
 
@@ -304,7 +295,8 @@ class PresignServiceTest {
 
         // then
         String expectedPrefix = "https://test-bucket.s3.ap-northeast-2.amazonaws.com/";
-        assertTrue(response.getFileUrl().startsWith(expectedPrefix),
+        assertTrue(
+                response.getFileUrl().startsWith(expectedPrefix),
                 "CDN이 비어있으면 publicUrl은 S3 URL 로 fallback 해야 한다.");
     }
 
@@ -354,7 +346,9 @@ class PresignServiceTest {
         // then
         verify(s3Presigner).presignPutObject(captor.capture());
         PutObjectPresignRequest captured = captor.getValue();
-        assertEquals(Duration.ofSeconds(ttlSeconds), captured.signatureDuration(),
+        assertEquals(
+                Duration.ofSeconds(ttlSeconds),
+                captured.signatureDuration(),
                 "signatureDuration 이 ttlSeconds 설정과 일치해야 한다.");
     }
 }

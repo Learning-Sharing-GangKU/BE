@@ -1,5 +1,9 @@
 package com.gangku.be.service.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.constant.auth.EmailConstants;
 import com.gangku.be.exception.CustomException;
@@ -11,6 +15,9 @@ import com.gangku.be.service.AuthService;
 import com.gangku.be.util.jwt.EmailVerificationJwt;
 import com.gangku.be.util.jwt.EmailVerificationJwt.EmailVerificationToken;
 import com.gangku.be.util.jwt.JwtTokenProvider;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,46 +33,28 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class SendEmailVerificationServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    @Mock private JwtTokenProvider jwtTokenProvider;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
+    @Mock private StringRedisTemplate stringRedisTemplate;
 
-    @Mock
-    private EmailVerificationJwt emailVerificationJwt;
+    @Mock private EmailVerificationJwt emailVerificationJwt;
 
-    @Mock
-    private EmailVerificationProps emailVerificationProps;
+    @Mock private EmailVerificationProps emailVerificationProps;
 
-    @Mock
-    private JavaMailSender javaMailSender;
+    @Mock private JavaMailSender javaMailSender;
 
-    @Mock
-    private ValueOperations<String, String> valueOperations;
+    @Mock private ValueOperations<String, String> valueOperations;
 
-    @Mock
-    private HashOperations<String, Object, Object> hashOperations;
+    @Mock private HashOperations<String, Object, Object> hashOperations;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
     @BeforeEach
     void setUp() {
@@ -82,7 +71,8 @@ class SendEmailVerificationServiceTest {
         when(stringRedisTemplate.opsForHash()).thenReturn(hashOperations);
     }
 
-    private EmailVerificationToken stubEmailVerificationToken(String token, String tokenId, Instant expiresAt) {
+    private EmailVerificationToken stubEmailVerificationToken(
+            String token, String tokenId, Instant expiresAt) {
         EmailVerificationToken tokenMock = mock(EmailVerificationToken.class);
         when(tokenMock.token()).thenReturn(token);
         when(tokenMock.tokenId()).thenReturn(tokenId);
@@ -148,7 +138,8 @@ class SendEmailVerificationServiceTest {
         verify(valueOperations).set(emailKeyCaptor.capture(), eq(email), ttlCaptor.capture());
 
         String emailKey = emailKeyCaptor.getValue();
-        assertTrue(emailKey.startsWith("auth:signup:email-verification-token:"),
+        assertTrue(
+                emailKey.startsWith("auth:signup:email-verification-token:"),
                 "emailVerificationTokenKey prefix mismatch");
 
         Duration ttl = ttlCaptor.getValue();
@@ -159,7 +150,8 @@ class SendEmailVerificationServiceTest {
 
         verify(hashOperations).put(sessionKeyCaptor.capture(), eq("email"), eq(email));
         String sessionKey = sessionKeyCaptor.getValue();
-        assertTrue(sessionKey.startsWith("auth:signup:session:"), "signupSessionKey prefix mismatch");
+        assertTrue(
+                sessionKey.startsWith("auth:signup:session:"), "signupSessionKey prefix mismatch");
 
         verify(hashOperations).put(eq(sessionKey), eq("verified"), eq("0"));
         verify(stringRedisTemplate).expire(eq(sessionKey), any(Duration.class));
@@ -185,13 +177,14 @@ class SendEmailVerificationServiceTest {
         authService.sendEmailVerification(email);
 
         // then
-        ArgumentCaptor<SimpleMailMessage> mailCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        ArgumentCaptor<SimpleMailMessage> mailCaptor =
+                ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(javaMailSender).send(mailCaptor.capture());
 
         SimpleMailMessage mail = mailCaptor.getValue();
         assertNotNull(mail);
 
-        assertArrayEquals(new String[]{email}, mail.getTo());
+        assertArrayEquals(new String[] {email}, mail.getTo());
         assertEquals(EmailConstants.VERIFICATION_SUBJECT, mail.getSubject());
 
         String body = mail.getText();
@@ -209,8 +202,8 @@ class SendEmailVerificationServiceTest {
         String email = null;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.sendEmailVerification(email));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.sendEmailVerification(email));
 
         // then
         assertEquals(AuthErrorCode.INVALID_EMAIL_FORMAT, ex.getErrorCode());
@@ -229,8 +222,8 @@ class SendEmailVerificationServiceTest {
         String email = "user@gmail.com";
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.sendEmailVerification(email));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.sendEmailVerification(email));
 
         // then
         assertEquals(AuthErrorCode.INVALID_EMAIL_FORMAT, ex.getErrorCode());
@@ -252,8 +245,8 @@ class SendEmailVerificationServiceTest {
                 .thenReturn(Optional.of(mock(com.gangku.be.domain.User.class)));
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.sendEmailVerification(email));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.sendEmailVerification(email));
 
         // then
         assertEquals(UserErrorCode.EMAIL_CONFLICT, ex.getErrorCode());
@@ -346,7 +339,8 @@ class SendEmailVerificationServiceTest {
         authService.sendEmailVerification(email);
 
         // then
-        ArgumentCaptor<SimpleMailMessage> mailCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        ArgumentCaptor<SimpleMailMessage> mailCaptor =
+                ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(javaMailSender).send(mailCaptor.capture());
 
         SimpleMailMessage mail = mailCaptor.getValue();
@@ -356,9 +350,10 @@ class SendEmailVerificationServiceTest {
         assertNotNull(body);
 
         String expectedUrlPrefix = "https://example.com" + EmailConstants.VERIFICATION_PATH;
-        assertTrue(body.contains(expectedUrlPrefix),
+        assertTrue(
+                body.contains(expectedUrlPrefix),
                 "mail body should contain verification URL prefix");
-        assertTrue(body.contains("jwt-token"),
-                "mail body should contain the token at the end of URL");
+        assertTrue(
+                body.contains("jwt-token"), "mail body should contain the token at the end of URL");
     }
 }

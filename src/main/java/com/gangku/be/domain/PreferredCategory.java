@@ -5,14 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * 사용자 선호 카테고리를 나타내는 엔티티
- * 사용자(User)와 카테고리(Category)의 다대다(N:M) 관계를 매핑
- */
+/** 사용자 선호 카테고리를 나타내는 엔티티 사용자(User)와 카테고리(Category)의 다대다(N:M) 관계를 매핑 */
 @Entity
-@Table(name = "preferred_categories", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "category_id"})
-})
+@Table(
+        name = "preferred_categories",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "category_id"})})
 @Getter
 @Setter
 @NoArgsConstructor

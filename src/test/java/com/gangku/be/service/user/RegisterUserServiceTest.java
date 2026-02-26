@@ -1,32 +1,32 @@
-//package com.gangku.be.service.user;
+// package com.gangku.be.service.user;
 //
-//import com.gangku.be.domain.Category;
-//import com.gangku.be.domain.PreferredCategory;
-//import com.gangku.be.domain.User;
-//import com.gangku.be.dto.user.SignUpRequestDto;
-//import com.gangku.be.exception.CustomException;
-//import com.gangku.be.exception.constant.UserErrorCode;
-//import com.gangku.be.repository.CategoryRepository;
-//import com.gangku.be.repository.PreferredCategoryRepository;
-//import com.gangku.be.repository.UserRepository;
-//import com.gangku.be.service.UserService;
-//import java.util.Arrays;
-//import java.util.Collections;
-//import java.util.List;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.security.crypto.password.PasswordEncoder;
+// import com.gangku.be.domain.Category;
+// import com.gangku.be.domain.PreferredCategory;
+// import com.gangku.be.domain.User;
+// import com.gangku.be.dto.user.SignUpRequestDto;
+// import com.gangku.be.exception.CustomException;
+// import com.gangku.be.exception.constant.UserErrorCode;
+// import com.gangku.be.repository.CategoryRepository;
+// import com.gangku.be.repository.PreferredCategoryRepository;
+// import com.gangku.be.repository.UserRepository;
+// import com.gangku.be.service.UserService;
+// import java.util.Arrays;
+// import java.util.Collections;
+// import java.util.List;
+// import org.junit.jupiter.api.DisplayName;
+// import org.junit.jupiter.api.Test;
+// import org.junit.jupiter.api.extension.ExtendWith;
+// import org.mockito.InjectMocks;
+// import org.mockito.Mock;
+// import org.mockito.junit.jupiter.MockitoExtension;
+// import org.springframework.security.crypto.password.PasswordEncoder;
 //
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.ArgumentMatchers.*;
-//import static org.mockito.Mockito.*;
+// import static org.junit.jupiter.api.Assertions.*;
+// import static org.mockito.ArgumentMatchers.*;
+// import static org.mockito.Mockito.*;
 //
-//@ExtendWith(MockitoExtension.class)
-//class RegisterUserServiceTest {
+// @ExtendWith(MockitoExtension.class)
+// class RegisterUserServiceTest {
 //
 //    @Mock
 //    private UserRepository userRepository;
@@ -327,7 +327,8 @@
 //
 //        // then
 ////        assertEquals(UserErrorCode.INVALID_EMAIL_FORMAT, ex.getErrorCode());
-//        verifyNoInteractions(userRepository, categoryRepository, preferredCategoryRepository, passwordEncoder);
+//        verifyNoInteractions(userRepository, categoryRepository, preferredCategoryRepository,
+// passwordEncoder);
 //    }
 //
 //    @Test
@@ -404,4 +405,4 @@
 //
 //        verify(preferredCategoryRepository, never()).saveAll(anyList());
 //    }
-//}
+// }

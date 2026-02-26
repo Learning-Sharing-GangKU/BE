@@ -1,5 +1,8 @@
 package com.gangku.be.service.gathering;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
@@ -28,30 +31,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CreateGatheringServiceTest {
 
-    @Mock
-    private GatheringRepository gatheringRepository;
+    @Mock private GatheringRepository gatheringRepository;
 
-    @Mock
-    private CategoryRepository categoryRepository;
+    @Mock private CategoryRepository categoryRepository;
 
-    @Mock
-    private ParticipationRepository participationRepository;
+    @Mock private ParticipationRepository participationRepository;
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private GatheringCreateRequestDto requestDto;
+    @Mock private GatheringCreateRequestDto requestDto;
 
-    @InjectMocks
-    private GatheringService gatheringService;
+    @InjectMocks private GatheringService gatheringService;
 
     // ===== 공통 유효 요청 스텁 =====
     private void stubCommonValidRequest() {
@@ -149,7 +143,8 @@ class CreateGatheringServiceTest {
         stubValidCategorySetup();
         stubHostUser(hostId);
 
-        when(gatheringRepository.save(any(Gathering.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gatheringRepository.save(any(Gathering.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);
@@ -170,7 +165,8 @@ class CreateGatheringServiceTest {
         stubValidCategorySetup();
         stubHostUser(hostId);
 
-        when(gatheringRepository.save(any(Gathering.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gatheringRepository.save(any(Gathering.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);
@@ -195,8 +191,10 @@ class CreateGatheringServiceTest {
         when(userRepository.findById(hostId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
@@ -216,8 +214,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L; // userRepository는 호출되기 전에 터지므로 스텁 불필요
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -239,8 +239,10 @@ class CreateGatheringServiceTest {
         stubHostUser(hostId);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(CategoryErrorCode.CATEGORY_NOT_FOUND, ex.getErrorCode());
@@ -258,8 +260,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -277,8 +281,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -289,7 +295,8 @@ class CreateGatheringServiceTest {
     void createGathering_withInvalidImageUrl_throwsInvalidFieldValue() {
         // given
         when(requestDto.getTitle()).thenReturn("축구");
-        when(requestDto.getImageUrl()).thenReturn("htp://not-valid-url"); // UrlValidator 에서 invalid 로 볼 형식
+        when(requestDto.getImageUrl())
+                .thenReturn("htp://not-valid-url"); // UrlValidator 에서 invalid 로 볼 형식
         when(requestDto.getCategory()).thenReturn("운동");
         when(requestDto.getCapacity()).thenReturn(10);
         when(requestDto.getDate()).thenReturn(LocalDateTime.now().plusDays(1));
@@ -298,8 +305,10 @@ class CreateGatheringServiceTest {
         when(requestDto.getDescription()).thenReturn("설명");
 
         // imageUrl 검증에서 예외 발생
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, 1L));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, 1L));
 
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
         verifyNoInteractions(userRepository, gatheringRepository, participationRepository);
@@ -319,8 +328,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -340,8 +351,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -361,8 +374,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -382,8 +397,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -403,8 +420,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -424,8 +443,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -445,8 +466,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -466,8 +489,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -487,8 +512,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -508,8 +535,10 @@ class CreateGatheringServiceTest {
         Long hostId = 1L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.createGathering(requestDto, hostId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.createGathering(requestDto, hostId));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -530,7 +559,8 @@ class CreateGatheringServiceTest {
         stubValidCategorySetup();
         stubHostUser(hostId);
 
-        when(gatheringRepository.save(any(Gathering.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gatheringRepository.save(any(Gathering.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);
@@ -550,7 +580,8 @@ class CreateGatheringServiceTest {
         stubValidCategorySetup();
         stubHostUser(hostId);
 
-        when(gatheringRepository.save(any(Gathering.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gatheringRepository.save(any(Gathering.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);
@@ -570,7 +601,8 @@ class CreateGatheringServiceTest {
         stubValidCategorySetup();
         stubHostUser(hostId);
 
-        when(gatheringRepository.save(any(Gathering.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gatheringRepository.save(any(Gathering.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);
@@ -590,7 +622,8 @@ class CreateGatheringServiceTest {
         stubValidCategorySetup();
         stubHostUser(hostId);
 
-        when(gatheringRepository.save(any(Gathering.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gatheringRepository.save(any(Gathering.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);
@@ -610,7 +643,8 @@ class CreateGatheringServiceTest {
         stubValidCategorySetup();
         stubHostUser(hostId);
 
-        when(gatheringRepository.save(any(Gathering.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gatheringRepository.save(any(Gathering.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);

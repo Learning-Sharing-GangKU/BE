@@ -2,19 +2,19 @@ package com.gangku.be.constant.gathering;
 
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
-import com.gangku.be.exception.constant.GatheringErrorCode;
 import lombok.Getter;
 
 @Getter
 public enum GatheringSort {
-
     LATEST("latest"),
     POPULAR("popular");
-//    RECOMMENDED("recommended")
+    //    RECOMMENDED("recommended")
 
     private final String sort;
 
-    GatheringSort(String sort) { this.sort = sort; }
+    GatheringSort(String sort) {
+        this.sort = sort;
+    }
 
     public static GatheringSort from(String value) {
         for (GatheringSort type : values()) {

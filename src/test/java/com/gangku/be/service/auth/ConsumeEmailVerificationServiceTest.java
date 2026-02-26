@@ -1,5 +1,9 @@
 package com.gangku.be.service.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
@@ -10,6 +14,8 @@ import com.gangku.be.util.jwt.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
+import java.time.Duration;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,42 +28,26 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.Duration;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class ConsumeEmailVerificationServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    @Mock private JwtTokenProvider jwtTokenProvider;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
+    @Mock private StringRedisTemplate stringRedisTemplate;
 
-    @Mock
-    private EmailVerificationJwt emailVerificationJwt;
+    @Mock private EmailVerificationJwt emailVerificationJwt;
 
-    @Mock
-    private EmailVerificationProps emailVerificationProps;
+    @Mock private EmailVerificationProps emailVerificationProps;
 
-    @Mock
-    private JavaMailSender javaMailSender;
+    @Mock private JavaMailSender javaMailSender;
 
-    @Mock
-    private ValueOperations<String, String> valueOperations;
+    @Mock private ValueOperations<String, String> valueOperations;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
     // ----------------------------------------------------
     // Helper: JWT 파싱 결과 mock 생성
@@ -102,13 +92,15 @@ class ConsumeEmailVerificationServiceTest {
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Duration> ttlCaptor = ArgumentCaptor.forClass(Duration.class);
 
-        verify(valueOperations).set(keyCaptor.capture(), valueCaptor.capture(), ttlCaptor.capture());
+        verify(valueOperations)
+                .set(keyCaptor.capture(), valueCaptor.capture(), ttlCaptor.capture());
 
         String key = keyCaptor.getValue();
         String value = valueCaptor.getValue();
         Duration ttl = ttlCaptor.getValue();
 
-        assertTrue(key.startsWith("auth:signup:verified-email:"), "verifiedEmailKey prefix mismatch");
+        assertTrue(
+                key.startsWith("auth:signup:verified-email:"), "verifiedEmailKey prefix mismatch");
         assertTrue(key.endsWith(email), "verifiedEmailKey should contain email");
         assertEquals("1", value);
         assertNotNull(ttl);
@@ -167,8 +159,10 @@ class ConsumeEmailVerificationServiceTest {
                 .thenReturn(null);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.consumeEmailVerification(tokenString));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> authService.consumeEmailVerification(tokenString));
 
         // then
         assertEquals(AuthErrorCode.USER_NOT_FOUND_BY_TOKEN, ex.getErrorCode());
@@ -190,8 +184,7 @@ class ConsumeEmailVerificationServiceTest {
                 .thenThrow(new JwtException("invalid jwt"));
 
         // when & then
-        assertThrows(JwtException.class,
-                () -> authService.consumeEmailVerification(invalidToken));
+        assertThrows(JwtException.class, () -> authService.consumeEmailVerification(invalidToken));
 
         verifyNoInteractions(stringRedisTemplate);
     }
@@ -208,8 +201,7 @@ class ConsumeEmailVerificationServiceTest {
                 .thenThrow(new JwtException("expired jwt"));
 
         // when & then
-        assertThrows(JwtException.class,
-                () -> authService.consumeEmailVerification(expiredToken));
+        assertThrows(JwtException.class, () -> authService.consumeEmailVerification(expiredToken));
 
         verifyNoInteractions(stringRedisTemplate);
     }
@@ -224,8 +216,8 @@ class ConsumeEmailVerificationServiceTest {
                 .thenThrow(new IllegalArgumentException("token is null"));
 
         // when & then
-        assertThrows(IllegalArgumentException.class,
-                () -> authService.consumeEmailVerification(null));
+        assertThrows(
+                IllegalArgumentException.class, () -> authService.consumeEmailVerification(null));
 
         verifyNoInteractions(stringRedisTemplate);
     }
@@ -242,8 +234,7 @@ class ConsumeEmailVerificationServiceTest {
                 .thenThrow(new JwtException("empty token"));
 
         // when & then
-        assertThrows(JwtException.class,
-                () -> authService.consumeEmailVerification(emptyToken));
+        assertThrows(JwtException.class, () -> authService.consumeEmailVerification(emptyToken));
 
         verifyNoInteractions(stringRedisTemplate);
     }

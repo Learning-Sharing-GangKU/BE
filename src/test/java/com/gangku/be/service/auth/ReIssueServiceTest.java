@@ -1,5 +1,8 @@
 package com.gangku.be.service.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.constant.auth.TokenProperty;
 import com.gangku.be.domain.User;
@@ -13,6 +16,8 @@ import com.gangku.be.util.jwt.EmailVerificationJwt;
 import com.gangku.be.util.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,39 +28,25 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class ReIssueServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    @Mock private JwtTokenProvider jwtTokenProvider;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
     // ---- 생성자 주입을 위해 필요하지만 reIssue()에서는 직접 안 쓰는 의존성들 ----
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
+    @Mock private StringRedisTemplate stringRedisTemplate;
 
-    @Mock
-    private EmailVerificationJwt emailVerificationJwt;
+    @Mock private EmailVerificationJwt emailVerificationJwt;
 
-    @Mock
-    private EmailVerificationProps emailVerificationProps;
+    @Mock private EmailVerificationProps emailVerificationProps;
 
-    @Mock
-    private JavaMailSender javaMailSender;
+    @Mock private JavaMailSender javaMailSender;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
     // ============================================================
     // 1) 정상: 유효한 refresh_token 쿠키 → 토큰 회전
@@ -69,7 +60,7 @@ class ReIssueServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", oldRefreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", oldRefreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.isRefreshToken(oldRefreshToken)).thenReturn(true);
@@ -108,12 +99,12 @@ class ReIssueServiceTest {
     void reIssue_whenRefreshTokenCookieMissing_throwsRefreshTokenNotFound() {
         // given
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("other", "value") };
+        Cookie[] cookies = {new Cookie("other", "value")};
         when(request.getCookies()).thenReturn(cookies);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.reIssue(request));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.reIssue(request));
 
         // then
         assertEquals(AuthErrorCode.REFRESH_TOKEN_NOT_FOUND, ex.getErrorCode());
@@ -131,14 +122,14 @@ class ReIssueServiceTest {
         String badToken = "bad-token";
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", badToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", badToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.isRefreshToken(badToken)).thenReturn(false);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.reIssue(request));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.reIssue(request));
 
         // then
         assertEquals(AuthErrorCode.INVALID_REFRESH_TOKEN, ex.getErrorCode());
@@ -158,7 +149,7 @@ class ReIssueServiceTest {
         Long userId = 99L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", refreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", refreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.isRefreshToken(refreshToken)).thenReturn(true);
@@ -167,8 +158,8 @@ class ReIssueServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.reIssue(request));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.reIssue(request));
 
         // then
         assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
@@ -192,7 +183,7 @@ class ReIssueServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", refreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", refreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.isRefreshToken(refreshToken)).thenReturn(true);
@@ -203,8 +194,8 @@ class ReIssueServiceTest {
         when(user.getRefreshToken()).thenReturn(null);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.reIssue(request));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.reIssue(request));
 
         // then
         assertEquals(AuthErrorCode.TOKEN_MISMATCH, ex.getErrorCode());
@@ -226,7 +217,7 @@ class ReIssueServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", cookieToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", cookieToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.isRefreshToken(cookieToken)).thenReturn(true);
@@ -237,8 +228,8 @@ class ReIssueServiceTest {
         when(user.getRefreshToken()).thenReturn(dbToken);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.reIssue(request));
+        CustomException ex =
+                assertThrows(CustomException.class, () -> authService.reIssue(request));
 
         // then
         assertEquals(AuthErrorCode.TOKEN_MISMATCH, ex.getErrorCode());
@@ -261,9 +252,9 @@ class ReIssueServiceTest {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         Cookie[] cookies = {
-                new Cookie("JSESSIONID", "abc"),
-                new Cookie("refresh_token", oldRefreshToken),
-                new Cookie("theme", "dark")
+            new Cookie("JSESSIONID", "abc"),
+            new Cookie("refresh_token", oldRefreshToken),
+            new Cookie("theme", "dark")
         };
         when(request.getCookies()).thenReturn(cookies);
 
@@ -307,7 +298,7 @@ class ReIssueServiceTest {
         Long userId = 1L;
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        Cookie[] cookies = { new Cookie("refresh_token", oldRefreshToken) };
+        Cookie[] cookies = {new Cookie("refresh_token", oldRefreshToken)};
         when(request.getCookies()).thenReturn(cookies);
 
         when(jwtTokenProvider.isRefreshToken(oldRefreshToken)).thenReturn(true);
@@ -341,9 +332,11 @@ class ReIssueServiceTest {
         LocalDateTime lowerBound = before.plusDays(expirationDays);
         LocalDateTime upperBound = after.plusDays(expirationDays);
 
-        assertTrue(!expiry.isBefore(lowerBound),
+        assertTrue(
+                !expiry.isBefore(lowerBound),
                 () -> "expiry should be on/after lowerBound: " + expiry + " vs " + lowerBound);
-        assertTrue(!expiry.isAfter(upperBound),
+        assertTrue(
+                !expiry.isAfter(upperBound),
                 () -> "expiry should be on/before upperBound: " + expiry + " vs " + upperBound);
 
         verify(userRepository).save(user);

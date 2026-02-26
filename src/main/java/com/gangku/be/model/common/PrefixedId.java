@@ -3,12 +3,8 @@ package com.gangku.be.model.common;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
-import com.gangku.be.exception.constant.ParticipationErrorCode;
 
-public record PrefixedId(
-        ResourceType resourceType,
-        Long value
-) {
+public record PrefixedId(ResourceType resourceType, Long value) {
 
     public String toExternal() {
         return resourceType.prefix() + value;

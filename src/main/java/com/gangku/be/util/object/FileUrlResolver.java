@@ -17,7 +17,8 @@ public class FileUrlResolver {
         }
         return "https://"
                 + awsAppProps.getS3().getBucket()
-                + ".s3." + awsAppProps.getS3().getRegion()
+                + ".s3."
+                + awsAppProps.getS3().getRegion()
                 + ".amazonaws.com/"
                 + key;
     }

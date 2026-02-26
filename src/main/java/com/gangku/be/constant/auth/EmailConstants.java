@@ -8,7 +8,8 @@ public class EmailConstants {
 
     public static final String VERIFICATION_SUBJECT = "[GangKU] 이메일 인증을 완료해주세요.";
 
-    public static final String VERIFICATION_BODY_TEMPLATE = """
+    public static final String VERIFICATION_BODY_TEMPLATE =
+            """
             안녕하세요, GangKU 입니다.
             아래 링크를 클릭하면 이메일 인증이 완료됩니다.
 

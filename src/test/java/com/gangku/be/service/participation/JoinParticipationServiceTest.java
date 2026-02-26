@@ -1,5 +1,8 @@
 package com.gangku.be.service.participation;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
@@ -22,24 +25,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class JoinParticipationServiceTest {
 
-    @Mock
-    private ParticipationRepository participationRepository;
+    @Mock private ParticipationRepository participationRepository;
 
-    @Mock
-    private GatheringRepository gatheringRepository;
+    @Mock private GatheringRepository gatheringRepository;
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @InjectMocks
-    private ParticipationService participationService;
+    @InjectMocks private ParticipationService participationService;
 
     // =========================
     // 1. 정상 케이스
@@ -65,7 +61,8 @@ class JoinParticipationServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ParticipationResponseDto response = participationService.joinParticipation(gatheringId, userId);
+        ParticipationResponseDto response =
+                participationService.joinParticipation(gatheringId, userId);
 
         // then
         assertNotNull(response, "응답 DTO는 null 이면 안 된다.");
@@ -93,7 +90,8 @@ class JoinParticipationServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ParticipationResponseDto response = participationService.joinParticipation(gatheringId, userId);
+        ParticipationResponseDto response =
+                participationService.joinParticipation(gatheringId, userId);
 
         // then
         assertNotNull(response);
@@ -121,7 +119,8 @@ class JoinParticipationServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ParticipationResponseDto response = participationService.joinParticipation(gatheringId, userId);
+        ParticipationResponseDto response =
+                participationService.joinParticipation(gatheringId, userId);
 
         // then
         assertNotNull(response);
@@ -142,8 +141,10 @@ class JoinParticipationServiceTest {
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> participationService.joinParticipation(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.joinParticipation(gatheringId, userId));
 
         // then
         assertEquals(GatheringErrorCode.GATHERING_NOT_FOUND, ex.getErrorCode());
@@ -163,8 +164,10 @@ class JoinParticipationServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> participationService.joinParticipation(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.joinParticipation(gatheringId, userId));
 
         // then
         assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
@@ -187,8 +190,10 @@ class JoinParticipationServiceTest {
         when(participationRepository.existsByUserAndGathering(user, gathering)).thenReturn(true);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> participationService.joinParticipation(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.joinParticipation(gatheringId, userId));
 
         // then
         assertEquals(ParticipationErrorCode.ALREADY_JOINED, ex.getErrorCode());
@@ -213,8 +218,10 @@ class JoinParticipationServiceTest {
         when(gathering.getCapacity()).thenReturn(10);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> participationService.joinParticipation(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.joinParticipation(gatheringId, userId));
 
         // then
         assertEquals(ParticipationErrorCode.CAPACITY_FULL, ex.getErrorCode());
@@ -245,7 +252,8 @@ class JoinParticipationServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ParticipationResponseDto response = participationService.joinParticipation(gatheringId, userId);
+        ParticipationResponseDto response =
+                participationService.joinParticipation(gatheringId, userId);
 
         // then
         assertNotNull(response);
@@ -269,8 +277,10 @@ class JoinParticipationServiceTest {
         when(gathering.getCapacity()).thenReturn(5);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> participationService.joinParticipation(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.joinParticipation(gatheringId, userId));
 
         // then
         assertEquals(ParticipationErrorCode.CAPACITY_FULL, ex.getErrorCode());
@@ -293,8 +303,10 @@ class JoinParticipationServiceTest {
         when(gathering.getCapacity()).thenReturn(0);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> participationService.joinParticipation(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.joinParticipation(gatheringId, userId));
 
         // then
         assertEquals(ParticipationErrorCode.CAPACITY_FULL, ex.getErrorCode());
@@ -324,12 +336,15 @@ class JoinParticipationServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when 1: 첫 번째 호출 → 정상 참여
-        ParticipationResponseDto first = participationService.joinParticipation(gatheringId, userId);
+        ParticipationResponseDto first =
+                participationService.joinParticipation(gatheringId, userId);
         assertNotNull(first);
 
         // when 2: 두 번째 호출 → 이미 참여 예외
-        CustomException ex = assertThrows(CustomException.class,
-                () -> participationService.joinParticipation(gatheringId, userId));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.joinParticipation(gatheringId, userId));
 
         // then
         assertEquals(ParticipationErrorCode.ALREADY_JOINED, ex.getErrorCode());

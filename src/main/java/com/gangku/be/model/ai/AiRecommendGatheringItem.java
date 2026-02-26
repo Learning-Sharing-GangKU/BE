@@ -2,7 +2,6 @@ package com.gangku.be.model.ai;
 
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
-
 import java.time.LocalDateTime;
 
 public record AiRecommendGatheringItem(
@@ -11,8 +10,7 @@ public record AiRecommendGatheringItem(
         Integer hostAge,
         Integer capacity,
         Integer participantCount,
-        LocalDateTime createdAt
-) {
+        LocalDateTime createdAt) {
 
     public static AiRecommendGatheringItem from(Gathering gathering) {
         User host = gathering.getHost();
@@ -23,7 +21,6 @@ public record AiRecommendGatheringItem(
                 host.getAge(),
                 gathering.getCapacity(),
                 gathering.getParticipantCount(),
-                gathering.getCreatedAt()
-        );
+                gathering.getCreatedAt());
     }
 }

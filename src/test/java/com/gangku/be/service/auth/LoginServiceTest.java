@@ -1,17 +1,21 @@
 package com.gangku.be.service.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.config.auth.EmailVerificationProps;
+import com.gangku.be.constant.auth.TokenProperty;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.auth.LoginRequestDto;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.auth.TokenPair;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.AuthService;
 import com.gangku.be.util.jwt.EmailVerificationJwt;
 import com.gangku.be.util.jwt.JwtTokenProvider;
-import com.gangku.be.constant.auth.TokenProperty;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,39 +26,25 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    @Mock private JwtTokenProvider jwtTokenProvider;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
     // --- 로그인에서 직접 쓰진 않지만, 생성자 주입을 위해 필요 ---
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
+    @Mock private StringRedisTemplate stringRedisTemplate;
 
-    @Mock
-    private EmailVerificationJwt emailVerificationJwt;
+    @Mock private EmailVerificationJwt emailVerificationJwt;
 
-    @Mock
-    private EmailVerificationProps emailVerificationProps;
+    @Mock private EmailVerificationProps emailVerificationProps;
 
-    @Mock
-    private JavaMailSender javaMailSender;
+    @Mock private JavaMailSender javaMailSender;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
     // ============================================================
     // 1) 정상: 올바른 자격 증명 → TokenPair 반환
@@ -145,8 +135,7 @@ class LoginServiceTest {
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.login(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.login(request));
 
         // then
         assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
@@ -175,8 +164,7 @@ class LoginServiceTest {
         when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(false);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.login(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.login(request));
 
         // then
         assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
@@ -206,8 +194,7 @@ class LoginServiceTest {
         when(passwordEncoder.matches(null, encodedPassword)).thenReturn(false);
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.login(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.login(request));
 
         // then
         assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
@@ -231,8 +218,7 @@ class LoginServiceTest {
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> authService.login(request));
+        CustomException ex = assertThrows(CustomException.class, () -> authService.login(request));
 
         // then
         assertEquals(UserErrorCode.INVALID_CREDENTIAL, ex.getErrorCode());
@@ -282,12 +268,14 @@ class LoginServiceTest {
         assertNotNull(expiry);
 
         // expiry 는 nowBefore 이후여야 하고,
-        assertTrue(expiry.isAfter(nowBefore.minusSeconds(1)),
+        assertTrue(
+                expiry.isAfter(nowBefore.minusSeconds(1)),
                 () -> "expiry should be after nowBefore: " + expiry + " vs " + nowBefore);
 
         // nowAfter + expirationDays + 약간의 여유 범위 이전이어야 한다(대략적인 범위 체크)
         LocalDateTime upperBound = nowAfter.plusDays(expirationDays + 1);
-        assertTrue(expiry.isBefore(upperBound),
+        assertTrue(
+                expiry.isBefore(upperBound),
                 () -> "expiry should be before upperBound: " + expiry + " vs " + upperBound);
 
         verify(userRepository).save(user);

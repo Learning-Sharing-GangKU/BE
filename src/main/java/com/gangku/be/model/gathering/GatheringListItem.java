@@ -10,8 +10,7 @@ public record GatheringListItem(
         String title,
         String hostName,
         int participantCount,
-        int capacity
-) {
+        int capacity) {
     public static GatheringListItem from(Gathering gathering, String gatheringImageUrl) {
         User host = gathering.getHost();
 
@@ -22,7 +21,6 @@ public record GatheringListItem(
                 gathering.getTitle(),
                 host.getNickname(),
                 gathering.getParticipantCount(),
-                gathering.getCapacity()
-        );
+                gathering.getCapacity());
     }
 }

@@ -1,12 +1,11 @@
 package com.gangku.be.domain;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "categories")
@@ -35,5 +34,4 @@ public class Category {
     @Column(name = "updated_at", nullable = false)
     // 레코드 수정 시 자동으로 현재 시간 갱신
     private LocalDateTime updatedAt;
-
 }

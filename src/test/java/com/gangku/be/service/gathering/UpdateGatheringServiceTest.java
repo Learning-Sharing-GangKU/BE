@@ -1,10 +1,13 @@
 package com.gangku.be.service.gathering;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
+import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
@@ -26,30 +29,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UpdateGatheringServiceTest {
 
-    @Mock
-    private GatheringRepository gatheringRepository;
+    @Mock private GatheringRepository gatheringRepository;
 
-    @Mock
-    private CategoryRepository categoryRepository;
+    @Mock private CategoryRepository categoryRepository;
 
-    @Mock
-    private ParticipationRepository participationRepository;
+    @Mock private ParticipationRepository participationRepository;
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private GatheringUpdateRequestDto requestDto;
+    @Mock private GatheringUpdateRequestDto requestDto;
 
-    @InjectMocks
-    private GatheringService gatheringService;
+    @InjectMocks private GatheringService gatheringService;
 
     // ======== 공통 헬퍼들 ========
 
@@ -122,7 +116,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -164,7 +159,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -191,7 +187,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -218,7 +215,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -245,7 +243,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -272,7 +271,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -299,7 +299,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -326,7 +327,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -353,7 +355,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -378,8 +381,10 @@ class UpdateGatheringServiceTest {
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         // 실제로는 validateFields에서 먼저 터질 수도 있는데, 스펙 기준으로는 GATHERING_NOT_FOUND를 기대
@@ -405,8 +410,10 @@ class UpdateGatheringServiceTest {
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, nonHostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, nonHostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.FORBIDDEN, ex.getErrorCode());
@@ -423,8 +430,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -449,8 +458,10 @@ class UpdateGatheringServiceTest {
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(CategoryErrorCode.CATEGORY_NOT_FOUND, ex.getErrorCode());
@@ -475,8 +486,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -501,8 +514,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -528,8 +543,10 @@ class UpdateGatheringServiceTest {
 
         // 현재 서비스 코드의 imageUrl 검증(if (imageUrl != null && isValidUrl(imageUrl)))는 버그라서,
         // 이 테스트는 서비스 코드 수정 후에 통과해야 한다.
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
     }
@@ -547,8 +564,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -567,8 +586,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -587,8 +608,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -607,8 +630,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -627,8 +652,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -647,8 +674,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -667,8 +696,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -687,8 +718,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -707,8 +740,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -727,8 +762,10 @@ class UpdateGatheringServiceTest {
         Long hostId = 10L;
 
         // when
-        CustomException ex = assertThrows(CustomException.class,
-                () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> gatheringService.updateGathering(gatheringId, hostId, requestDto));
 
         // then
         assertEquals(GatheringErrorCode.INVALID_FIELD_VALUE, ex.getErrorCode());
@@ -768,7 +805,8 @@ class UpdateGatheringServiceTest {
         String beforeLocation = gathering.getLocation();
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);
@@ -805,7 +843,8 @@ class UpdateGatheringServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        GatheringResponseDto response = gatheringService.updateGathering(gatheringId, hostId, requestDto);
+        GatheringResponseDto response =
+                gatheringService.updateGathering(gatheringId, hostId, requestDto);
 
         // then
         assertNotNull(response);

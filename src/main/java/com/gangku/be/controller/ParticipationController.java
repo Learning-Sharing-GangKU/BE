@@ -26,19 +26,16 @@ public class ParticipationController {
 
     @PostMapping()
     public ResponseEntity<ParticipationResponseDto> joinParticipation(
-            @PathVariable String gatheringId,
-            @AuthenticationPrincipal Long userId
-    ) {
+            @PathVariable String gatheringId, @AuthenticationPrincipal Long userId) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
-        return ResponseEntity.ok(participationService.joinParticipation(internalGatheringId, userId));
+        return ResponseEntity.ok(
+                participationService.joinParticipation(internalGatheringId, userId));
     }
 
     @DeleteMapping()
     public ResponseEntity<Void> cancelParticipation(
-            @PathVariable String gatheringId,
-            @AuthenticationPrincipal Long userId
-    ) {
+            @PathVariable String gatheringId, @AuthenticationPrincipal Long userId) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
         participationService.cancelParticipation(internalGatheringId, userId);
@@ -50,8 +47,8 @@ public class ParticipationController {
             @PathVariable String gatheringId,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
             @RequestParam(defaultValue = "3") @Max(value = 10) int size,
-            @RequestParam(defaultValue = "joinedAt,asc") @Pattern(regexp = "^joinedAt.(asc|desc)$") String sort
-    ) {
+            @RequestParam(defaultValue = "joinedAt,asc") @Pattern(regexp = "^joinedAt.(asc|desc)$")
+                    String sort) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
         ParticipantsPreviewResponseDto participantsPreviewResponseDto =

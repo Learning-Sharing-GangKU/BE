@@ -2,17 +2,16 @@ package com.gangku.be.service;
 
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.PreferredCategory;
+import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
+import com.gangku.be.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-import com.gangku.be.domain.User;
-import com.gangku.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,15 +53,15 @@ public class UserService {
          */
 
         // 4) DB에 저장
-        User newUser = User.create(
-                signUpRequestDto.getEmail(),
-                passwordEncoder.encode(signUpRequestDto.getPassword()),
-                signUpRequestDto.getNickname(),
-                signUpRequestDto.getAge(),
-                signUpRequestDto.getGender(),
-                signUpRequestDto.getEnrollNumber(),
-                signUpRequestDto.getProfileImageObjectKey()
-        );
+        User newUser =
+                User.create(
+                        signUpRequestDto.getEmail(),
+                        passwordEncoder.encode(signUpRequestDto.getPassword()),
+                        signUpRequestDto.getNickname(),
+                        signUpRequestDto.getAge(),
+                        signUpRequestDto.getGender(),
+                        signUpRequestDto.getEnrollNumber(),
+                        signUpRequestDto.getProfileImageObjectKey());
 
         userRepository.save(newUser);
 
@@ -73,10 +72,7 @@ public class UserService {
         return newUser;
     }
 
-    /**
-     * --- 검증 및 반환 헬퍼 메서드 ---
-     */
-
+    /** --- 검증 및 반환 헬퍼 메서드 --- */
     private void validateEmailVerification(String sessionId, String email) {
         if (sessionId == null || sessionId.isBlank()) {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
@@ -96,9 +92,9 @@ public class UserService {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
         }
     }
-    
+
     private void validateEmailConflict(String email) {
-        if(userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             throw new CustomException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }
     }
@@ -119,16 +115,18 @@ public class UserService {
 
         List<Category> categories = categoryRepository.findByNameIn(distinctCategories);
 
-        List<PreferredCategory> preferredCategoryList = categories.stream()
-                .map(category -> {
-                    PreferredCategory preferredCategory = new PreferredCategory();
-                    preferredCategory.setCategory(category);
+        List<PreferredCategory> preferredCategoryList =
+                categories.stream()
+                        .map(
+                                category -> {
+                                    PreferredCategory preferredCategory = new PreferredCategory();
+                                    preferredCategory.setCategory(category);
 
-                    newUser.addPreferredCategory(preferredCategory);
+                                    newUser.addPreferredCategory(preferredCategory);
 
-                    return preferredCategory;
-                })
-                .toList();
+                                    return preferredCategory;
+                                })
+                        .toList();
 
         preferredCategoryRepository.saveAll(preferredCategoryList);
     }

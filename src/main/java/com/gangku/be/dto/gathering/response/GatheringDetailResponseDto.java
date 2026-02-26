@@ -2,9 +2,9 @@ package com.gangku.be.dto.gathering.response;
 
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
+import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.model.gathering.HostSummary;
 import com.gangku.be.model.participation.ParticipantsPreview;
-import com.gangku.be.model.common.PrefixedId;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,8 +32,7 @@ public class GatheringDetailResponseDto {
     public static GatheringDetailResponseDto from(
             Gathering gathering,
             ParticipantsPreview participantsPreview,
-            String gatheringImageUrl
-    ) {
+            String gatheringImageUrl) {
         HostSummary host = HostSummary.from(gathering.getHost());
 
         String publicId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();

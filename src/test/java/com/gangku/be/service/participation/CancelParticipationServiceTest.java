@@ -1,5 +1,8 @@
 package com.gangku.be.service.participation;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
@@ -19,23 +22,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class CancelParticipationServiceTest {
 
-    @Mock
-    private ParticipationRepository participationRepository;
+    @Mock private ParticipationRepository participationRepository;
 
-    @Mock
-    private GatheringRepository gatheringRepository;
+    @Mock private GatheringRepository gatheringRepository;
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @InjectMocks
-    private ParticipationService participationService;
+    @InjectMocks private ParticipationService participationService;
 
     // =========================================================
     // 1. 정상 케이스
@@ -85,10 +81,10 @@ class CancelParticipationServiceTest {
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> participationService.cancelParticipation(gatheringId, userId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.cancelParticipation(gatheringId, userId));
 
         // then
         assertEquals(GatheringErrorCode.GATHERING_NOT_FOUND, ex.getErrorCode());
@@ -107,10 +103,10 @@ class CancelParticipationServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> participationService.cancelParticipation(gatheringId, userId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.cancelParticipation(gatheringId, userId));
 
         // then
         assertEquals(UserErrorCode.USER_NOT_FOUND, ex.getErrorCode());
@@ -134,10 +130,10 @@ class CancelParticipationServiceTest {
                 .thenReturn(Optional.empty()); // 이미 나간 상태
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> participationService.cancelParticipation(gatheringId, userId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.cancelParticipation(gatheringId, userId));
 
         // then
         assertEquals(ParticipationErrorCode.ALREADY_LEFT, ex.getErrorCode());
@@ -167,10 +163,10 @@ class CancelParticipationServiceTest {
         when(host.getId()).thenReturn(hostId);
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> participationService.cancelParticipation(gatheringId, hostId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.cancelParticipation(gatheringId, hostId));
 
         // then
         assertEquals(ParticipationErrorCode.HOST_CANNOT_LEAVE, ex.getErrorCode());
@@ -204,23 +200,21 @@ class CancelParticipationServiceTest {
 
         // 첫 번째 호출: 존재, 두 번째 호출: 존재하지 않음
         when(participationRepository.findByUserAndGathering(user, gathering))
-                .thenReturn(Optional.of(participation))   // 1st
-                .thenReturn(Optional.empty());           // 2nd
+                .thenReturn(Optional.of(participation)) // 1st
+                .thenReturn(Optional.empty()); // 2nd
 
         // 1) first call: success
-        assertDoesNotThrow(() ->
-                participationService.cancelParticipation(gatheringId, userId)
-        );
+        assertDoesNotThrow(() -> participationService.cancelParticipation(gatheringId, userId));
 
         // then: delete 1회 호출
         verify(participationRepository, times(1)).delete(participation);
         verify(gathering, times(1)).removeParticipation(participation);
 
         // 2) second call: already left
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> participationService.cancelParticipation(gatheringId, userId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> participationService.cancelParticipation(gatheringId, userId));
         assertEquals(ParticipationErrorCode.ALREADY_LEFT, ex.getErrorCode());
 
         // 삭제는 여전히 1회만 호출
@@ -251,9 +245,7 @@ class CancelParticipationServiceTest {
         when(user.getId()).thenReturn(userId);
 
         // when
-        assertDoesNotThrow(() ->
-                participationService.cancelParticipation(gatheringId, userId)
-        );
+        assertDoesNotThrow(() -> participationService.cancelParticipation(gatheringId, userId));
 
         // then
         verify(gathering, times(1)).removeParticipation(participation);

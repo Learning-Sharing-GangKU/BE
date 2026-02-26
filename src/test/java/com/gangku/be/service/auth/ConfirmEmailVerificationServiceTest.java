@@ -1,5 +1,10 @@
 package com.gangku.be.service.auth;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
+import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.model.auth.EmailVerificationConfirmResult;
@@ -20,47 +25,29 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.gangku.be.config.auth.EmailVerificationProps;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
-/**
- * Unit tests for AuthService.confirmEmailVerification()
- */
+/** Unit tests for AuthService.confirmEmailVerification() */
 @ExtendWith(MockitoExtension.class)
 class ConfirmEmailVerificationServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    @Mock private JwtTokenProvider jwtTokenProvider;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
+    @Mock private StringRedisTemplate stringRedisTemplate;
 
-    @Mock
-    private EmailVerificationJwt emailVerificationJwt;
+    @Mock private EmailVerificationJwt emailVerificationJwt;
 
-    @Mock
-    private EmailVerificationProps emailVerificationProps;
+    @Mock private EmailVerificationProps emailVerificationProps;
 
-    @Mock
-    private JavaMailSender javaMailSender;
+    @Mock private JavaMailSender javaMailSender;
 
-    @Mock
-    private HashOperations<String, Object, Object> hashOperations;
+    @Mock private HashOperations<String, Object, Object> hashOperations;
 
-    @Mock
-    private ValueOperations<String, String> valueOperations;
+    @Mock private ValueOperations<String, String> valueOperations;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
     private static String sessionKey(String sessionId) {
         return "auth:signup:session:" + sessionId;
@@ -151,10 +138,9 @@ class ConfirmEmailVerificationServiceTest {
     @DisplayName("예외: sessionId가 null이면 INVALID_SESSION 예외")
     void confirmEmailVerification_withNullSessionId_throwsInvalidSession() {
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> authService.confirmEmailVerification(null)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class, () -> authService.confirmEmailVerification(null));
 
         // then
         assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_SESSION);
@@ -165,10 +151,9 @@ class ConfirmEmailVerificationServiceTest {
     @DisplayName("예외: sessionId가 공백이면 INVALID_SESSION 예외")
     void confirmEmailVerification_withBlankSessionId_throwsInvalidSession() {
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> authService.confirmEmailVerification("   ")
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class, () -> authService.confirmEmailVerification("   "));
 
         // then
         assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_SESSION);
@@ -185,10 +170,10 @@ class ConfirmEmailVerificationServiceTest {
         when(stringRedisTemplate.hasKey(sessionKey)).thenReturn(false);
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> authService.confirmEmailVerification(sessionId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> authService.confirmEmailVerification(sessionId));
 
         // then
         assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_SESSION);
@@ -206,10 +191,10 @@ class ConfirmEmailVerificationServiceTest {
         when(stringRedisTemplate.hasKey(sessionKey)).thenReturn(null);
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> authService.confirmEmailVerification(sessionId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> authService.confirmEmailVerification(sessionId));
 
         // then
         assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_SESSION);
@@ -229,10 +214,10 @@ class ConfirmEmailVerificationServiceTest {
         when(hashOperations.get(sessionKey, "email")).thenReturn(null);
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> authService.confirmEmailVerification(sessionId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> authService.confirmEmailVerification(sessionId));
 
         // then
         assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.INVALID_SESSION);
@@ -256,10 +241,10 @@ class ConfirmEmailVerificationServiceTest {
         when(valueOperations.get(verifiedKey)).thenReturn(null);
 
         // when
-        CustomException ex = assertThrows(
-                CustomException.class,
-                () -> authService.confirmEmailVerification(sessionId)
-        );
+        CustomException ex =
+                assertThrows(
+                        CustomException.class,
+                        () -> authService.confirmEmailVerification(sessionId));
 
         // then
         assertThat(ex.getErrorCode()).isEqualTo(AuthErrorCode.VERIFICATION_NOT_STARTED);

@@ -1,5 +1,8 @@
 package com.gangku.be.service.category;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.gangku.be.domain.Category;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.service.CategoryService;
@@ -11,17 +14,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class GetAllCategoriesServiceTest {
 
-    @Mock
-    private CategoryRepository categoryRepository;
+    @Mock private CategoryRepository categoryRepository;
 
-    @InjectMocks
-    private CategoryService categoryService;
+    @InjectMocks private CategoryService categoryService;
 
     private Category mockCategory(String name) {
         Category category = mock(Category.class);
@@ -59,8 +57,7 @@ class GetAllCategoriesServiceTest {
         // given
         Category backend = mockCategory("Backend");
 
-        when(categoryRepository.findAllByOrderByNameAsc())
-                .thenReturn(List.of(backend));
+        when(categoryRepository.findAllByOrderByNameAsc()).thenReturn(List.of(backend));
 
         // when
         List<String> result = categoryService.getAllCategories();
@@ -79,8 +76,7 @@ class GetAllCategoriesServiceTest {
     @DisplayName("카테고리가 하나도 없을 때 → 빈 리스트 반환")
     void getAllCategories_withNoCategory_returnsEmptyList() {
         // given
-        when(categoryRepository.findAllByOrderByNameAsc())
-                .thenReturn(List.of());
+        when(categoryRepository.findAllByOrderByNameAsc()).thenReturn(List.of());
 
         // when
         List<String> result = categoryService.getAllCategories();
@@ -122,8 +118,8 @@ class GetAllCategoriesServiceTest {
                 .thenThrow(new RuntimeException("DB error"));
 
         // when & then
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> categoryService.getAllCategories());
+        RuntimeException ex =
+                assertThrows(RuntimeException.class, () -> categoryService.getAllCategories());
 
         assertEquals("DB error", ex.getMessage());
     }
