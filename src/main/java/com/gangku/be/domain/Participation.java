@@ -1,9 +1,8 @@
 package com.gangku.be.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Getter
 @Entity

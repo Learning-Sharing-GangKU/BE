@@ -12,9 +12,6 @@ public class LoginResponseDto {
     private String tokenType;
 
     public static LoginResponseDto from(String accessToken) {
-        return LoginResponseDto.builder()
-                .accessToken(accessToken)
-                .tokenType("Bearer")
-                .build();
+        return LoginResponseDto.builder().accessToken(accessToken).tokenType("Bearer").build();
     }
 }

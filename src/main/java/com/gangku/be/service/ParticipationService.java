@@ -15,13 +15,13 @@ import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.util.object.FileUrlResolver;
+import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class ParticipationService {
         gathering.addParticipation(participation);
         participationRepository.save(participation);
         // 이거 테스트 해보고 지울 수 있으면 지우자
-//        gatheringRepository.save(gathering);
+        //        gatheringRepository.save(gathering);
 
         return ParticipationResponseDto.from(participation, gathering, user);
     }
@@ -67,7 +67,8 @@ public class ParticipationService {
     }
 
     @Transactional(readOnly = true)
-    public ParticipantsPreviewResponseDto getParticipants(Long gatheringId, int page, int size, String sortParam) {
+    public ParticipantsPreviewResponseDto getParticipants(
+            Long gatheringId, int page, int size, String sortParam) {
 
         findGatheringById(gatheringId);
 
@@ -84,27 +85,29 @@ public class ParticipationService {
 
         String sortedBy = "joinedAt," + dirStr + ",id," + dirStr;
 
-        ParticipantsPreview participantsPreview = ParticipantsPreview.from(
-                participationPage,
-                page,
-                size,
-                sortedBy,
-                user -> {
-                    String key = user.getProfileImageObjectKey();
-                    if (key == null || key.isBlank()) {
-                        return null;
-                    }
-                    return fileUrlResolver.toPublicUrl(key);
-                }
-        );
+        ParticipantsPreview participantsPreview =
+                ParticipantsPreview.from(
+                        participationPage,
+                        page,
+                        size,
+                        sortedBy,
+                        user -> {
+                            String key = user.getProfileImageObjectKey();
+                            if (key == null || key.isBlank()) {
+                                return null;
+                            }
+                            return fileUrlResolver.toPublicUrl(key);
+                        });
 
         return ParticipantsPreviewResponseDto.from(participantsPreview);
     }
 
     private Participation verifyUserInParticipation(User user, Gathering gathering) {
-        Participation participation = participationRepository
-                .findByUserAndGathering(user, gathering)
-                .orElseThrow(() -> new CustomException(ParticipationErrorCode.ALREADY_LEFT));
+        Participation participation =
+                participationRepository
+                        .findByUserAndGathering(user, gathering)
+                        .orElseThrow(
+                                () -> new CustomException(ParticipationErrorCode.ALREADY_LEFT));
 
         if (gathering.getHost().getId().equals(user.getId())) {
             throw new CustomException(ParticipationErrorCode.HOST_CANNOT_LEAVE);
@@ -123,12 +126,14 @@ public class ParticipationService {
     }
 
     private User findUserById(Long userId) {
-        return userRepository.findById(userId)
+        return userRepository
+                .findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private Gathering findGatheringById(Long gatheringId) {
-        return gatheringRepository.findById(gatheringId)
+        return gatheringRepository
+                .findById(gatheringId)
                 .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
     }
 }

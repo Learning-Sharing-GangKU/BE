@@ -9,14 +9,8 @@ public record PageMeta(
         int totalPages,
         String sortedBy,
         boolean hasPrev,
-        boolean hasNext
-) {
-    public static PageMeta from(
-            Page<?> pageResult,
-            int pageNumber,
-            int size,
-            String sortedBy
-    ) {
+        boolean hasNext) {
+    public static PageMeta from(Page<?> pageResult, int pageNumber, int size, String sortedBy) {
         return new PageMeta(
                 pageNumber,
                 size,
@@ -24,7 +18,6 @@ public record PageMeta(
                 pageResult.getTotalPages(),
                 sortedBy,
                 pageResult.hasPrevious(),
-                pageResult.hasNext()
-        );
+                pageResult.hasNext());
     }
 }

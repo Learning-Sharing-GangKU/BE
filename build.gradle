@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.6'
 	id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '6.25.0'
 }
 
 group = 'com.gangku'
@@ -20,9 +21,21 @@ configurations {
 	}
 }
 
-
 repositories {
 	mavenCentral()
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+
+        googleJavaFormat().aosp()
+
+        importOrder()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 dependencies {
@@ -52,6 +65,9 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
 }
 
-tasks.named('test') {
+test {
 	useJUnitPlatform()
+    filter {
+        setFailOnNoMatchingTests(false)
+    }
 }

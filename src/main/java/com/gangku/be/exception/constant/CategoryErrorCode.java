@@ -4,12 +4,7 @@ import com.gangku.be.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum CategoryErrorCode implements ErrorCode {
-
-    CATEGORY_NOT_FOUND(
-            "CATEGORY_NOT_FOUND",
-            "유효하지 않은 카테고리입니다.",
-            HttpStatus.NOT_FOUND.value()
-    );
+    CATEGORY_NOT_FOUND("CATEGORY_NOT_FOUND", "유효하지 않은 카테고리입니다.", HttpStatus.NOT_FOUND.value());
 
     private final String code;
     private final String message;

@@ -6,13 +6,10 @@ import com.gangku.be.exception.annotation.ValidEnum;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
@@ -32,7 +29,10 @@ public class GatheringUpdateRequestDto {
     private Integer capacity;
 
     @Future
-    @JsonFormat(shape =  JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssX", timezone = "Asia/Seoul")
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ssX",
+            timezone = "Asia/Seoul")
     private LocalDateTime date;
 
     @Size(min = 1, max = 30)

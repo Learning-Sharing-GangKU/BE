@@ -2,7 +2,6 @@ package com.gangku.be.constant.id;
 
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
-import com.gangku.be.exception.constant.ParticipationErrorCode;
 
 public enum ResourceType {
     USER("usr_"),

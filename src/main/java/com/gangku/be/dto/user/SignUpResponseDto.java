@@ -3,12 +3,11 @@ package com.gangku.be.dto.user;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
 import com.gangku.be.model.common.PrefixedId;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Builder
 @Getter
@@ -26,9 +25,10 @@ public class SignUpResponseDto {
     private final LocalDateTime createdAt;
 
     public static SignUpResponseDto from(User user, String profileImageUrl) {
-        List<String> preferredCategoryNames = user.getPreferredCategories().stream()
-                .map(preferredCategory -> preferredCategory.getCategory().getName())
-                .toList();
+        List<String> preferredCategoryNames =
+                user.getPreferredCategories().stream()
+                        .map(preferredCategory -> preferredCategory.getCategory().getName())
+                        .toList();
 
         String publicUserId = PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
 

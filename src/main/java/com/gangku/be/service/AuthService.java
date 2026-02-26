@@ -8,13 +8,13 @@ import com.gangku.be.dto.auth.LoginRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.model.auth.EmailVerificationSendResult;
 import com.gangku.be.model.auth.EmailVerificationConfirmResult;
+import com.gangku.be.model.auth.EmailVerificationSendResult;
+import com.gangku.be.model.auth.TokenPair;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.util.jwt.EmailVerificationJwt;
 import com.gangku.be.util.jwt.EmailVerificationJwt.EmailVerificationToken;
 import com.gangku.be.util.jwt.JwtTokenProvider;
-import com.gangku.be.model.auth.TokenPair;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import jakarta.servlet.http.Cookie;
@@ -60,7 +60,8 @@ public class AuthService {
     // --- 메일 발송 ---
     private final JavaMailSender javaMailSender;
 
-    private static final String REDIS_CONSUME_EMAIL_BY_TOKEN_SCRIPT = """
+    private static final String REDIS_CONSUME_EMAIL_BY_TOKEN_SCRIPT =
+            """
       local key = KEYS[1]
       local value = redis.call('GET', key)
       if value then
@@ -78,13 +79,16 @@ public class AuthService {
     public TokenPair login(LoginRequestDto loginRequestDto) {
 
         // 1) 이메일 / 비밀번호 검증 및 유저 반환
-        User user = findUserByEmailAndPassword(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+        User user =
+                findUserByEmailAndPassword(
+                        loginRequestDto.getEmail(), loginRequestDto.getPassword());
 
         // 2) Token 생성
         TokenPair tokenPair = generateToken(user.getId());
 
         // 3) Refresh Token DB에 갱신
-        updateRefreshToken(user, tokenPair.refreshToken(), TokenProperty.REFRESH_TOKEN.getExpirationInDays());
+        updateRefreshToken(
+                user, tokenPair.refreshToken(), TokenProperty.REFRESH_TOKEN.getExpirationInDays());
 
         return tokenPair;
     }
@@ -104,7 +108,8 @@ public class AuthService {
         TokenPair tokenPair = generateToken(user.getId());
 
         // 5) DB에 발급한 새 Refresh Token 저장
-        updateRefreshToken(user, tokenPair.refreshToken(), TokenProperty.REFRESH_TOKEN.getExpirationInDays());
+        updateRefreshToken(
+                user, tokenPair.refreshToken(), TokenProperty.REFRESH_TOKEN.getExpirationInDays());
 
         return tokenPair;
     }
@@ -124,7 +129,6 @@ public class AuthService {
         updateRefreshToken(user, refreshToken, 0L);
     }
 
-
     // ======================================================
     // 2. 이메일 인증(회원가입) 플로우
     //    - STEP1: 인증 메일 발송 (sendEmailVerification)
@@ -139,8 +143,8 @@ public class AuthService {
 
         // 2) 이메일 인증용 JWT 생성
         EmailVerificationToken emailVerificationToken =
-                emailVerificationJwt.generateToken(email,
-                        Duration.ofMinutes(emailVerificationProps.getTokenTtlMinutes()));
+                emailVerificationJwt.generateToken(
+                        email, Duration.ofMinutes(emailVerificationProps.getTokenTtlMinutes()));
 
         // 3) 세션 정보 저장 + Redis에 JTI 화이트리스트 등록
         String sessionId = createSignUpSessionAndWhiteListJti(email, emailVerificationToken);
@@ -151,8 +155,7 @@ public class AuthService {
         return new EmailVerificationSendResult(
                 sessionId,
                 emailVerificationToken.token(),
-                emailVerificationProps.getSessionTtlMinutes()
-        );
+                emailVerificationProps.getSessionTtlMinutes());
     }
 
     public void consumeEmailVerification(String emailVerificationTokenString) {
@@ -187,10 +190,7 @@ public class AuthService {
         return new EmailVerificationConfirmResult(true, sessionEmail);
     }
 
-    /**
-     * --- 비즈니스 로직 헬퍼 메서드 ---
-     */
-
+    /** --- 비즈니스 로직 헬퍼 메서드 --- */
     private TokenPair generateToken(Long userId) {
 
         String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
@@ -203,40 +203,39 @@ public class AuthService {
 
         if (plusDays <= 0) {
             user.clearRefreshToken();
-        }
-        else {
+        } else {
             user.updateRefreshToken(refreshToken, LocalDateTime.now().plusDays(plusDays));
         }
         userRepository.save(user);
     }
 
-    private String createSignUpSessionAndWhiteListJti(String email, EmailVerificationToken emailVerificationToken) {
+    private String createSignUpSessionAndWhiteListJti(
+            String email, EmailVerificationToken emailVerificationToken) {
         Duration timeToLive = Duration.between(Instant.now(), emailVerificationToken.expiresAt());
-        stringRedisTemplate.opsForValue().set(
-                emailVerificationTokenKey(emailVerificationToken.tokenId()),
-                email,
-                timeToLive
-        );
+        stringRedisTemplate
+                .opsForValue()
+                .set(
+                        emailVerificationTokenKey(emailVerificationToken.tokenId()),
+                        email,
+                        timeToLive);
 
         String sessionId = UUID.randomUUID().toString();
         String sessionKey = signupSessionKey(sessionId);
         stringRedisTemplate.opsForHash().put(sessionKey, "email", email);
         stringRedisTemplate.opsForHash().put(sessionKey, "verified", "0");
         stringRedisTemplate.expire(
-                sessionKey,
-                Duration.ofMinutes(emailVerificationProps.getSessionTtlMinutes())
-        );
+                sessionKey, Duration.ofMinutes(emailVerificationProps.getSessionTtlMinutes()));
         return sessionId;
     }
 
     private void sendEmail(String email, EmailVerificationToken emailVerificationToken) {
 
-        String verificationUrl = baseUrl + EmailConstants.VERIFICATION_PATH + emailVerificationToken.token();
+        String verificationUrl =
+                baseUrl + EmailConstants.VERIFICATION_PATH + emailVerificationToken.token();
 
-        String emailBody = EmailConstants.VERIFICATION_BODY_TEMPLATE.formatted(
-                verificationUrl,
-                emailVerificationProps.getSessionTtlMinutes()
-        );
+        String emailBody =
+                EmailConstants.VERIFICATION_BODY_TEMPLATE.formatted(
+                        verificationUrl, emailVerificationProps.getSessionTtlMinutes());
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setFrom(fromEmailAddress);
@@ -249,19 +248,15 @@ public class AuthService {
 
     private void markEmailAsVerified(String email) {
         Duration timeToLive = Duration.ofMinutes(emailVerificationProps.getTokenTtlMinutes());
-        stringRedisTemplate
-                .opsForValue()
-                .set(verifiedEmailKey(email), "1", timeToLive);
+        stringRedisTemplate.opsForValue().set(verifiedEmailKey(email), "1", timeToLive);
     }
 
     private String consumeEmailByTokenId(String tokenId) {
         DefaultRedisScript<String> script =
                 new DefaultRedisScript<>(REDIS_CONSUME_EMAIL_BY_TOKEN_SCRIPT, String.class);
 
-        String email = stringRedisTemplate.execute(
-                script,
-                List.of(emailVerificationTokenKey(tokenId))
-        );
+        String email =
+                stringRedisTemplate.execute(script, List.of(emailVerificationTokenKey(tokenId)));
         if (email == null) {
             throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED);
         }
@@ -285,13 +280,11 @@ public class AuthService {
         return "auth:signup:verified-email:" + email;
     }
 
-    /**
-     * --- 검증 및 반환 헬퍼 메서드 ---
-     */
-
+    /** --- 검증 및 반환 헬퍼 메서드 --- */
     private User findUserByEmailAndPassword(String email, String rawPassword) {
 
-        return userRepository.findByEmail(email)
+        return userRepository
+                .findByEmail(email)
                 .filter(u -> passwordEncoder.matches(rawPassword, u.getPassword()))
                 .orElseThrow(() -> new CustomException(UserErrorCode.INVALID_CREDENTIAL));
     }
@@ -300,7 +293,8 @@ public class AuthService {
 
         Long userId = jwtTokenProvider.extractUserIdFromRefreshToken(refreshToken);
 
-        return userRepository.findById(userId)
+        return userRepository
+                .findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
@@ -320,8 +314,7 @@ public class AuthService {
     }
 
     private void verifyRefreshToken(User user, String refreshToken) {
-        if (user.getRefreshToken() == null ||
-                !user.getRefreshToken().equals(refreshToken)) {
+        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
             throw new CustomException(AuthErrorCode.TOKEN_MISMATCH);
         }
     }
@@ -347,8 +340,7 @@ public class AuthService {
     }
 
     private String resolveEmailFromSession(String sessionKey) {
-        Object emailValue = stringRedisTemplate
-                .opsForHash().get(sessionKey, "email");
+        Object emailValue = stringRedisTemplate.opsForHash().get(sessionKey, "email");
 
         if (emailValue == null) {
             throw new CustomException(AuthErrorCode.INVALID_SESSION);

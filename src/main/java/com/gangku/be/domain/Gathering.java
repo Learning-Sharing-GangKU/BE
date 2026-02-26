@@ -1,10 +1,10 @@
 package com.gangku.be.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
 @Table(name = "gatherings")
@@ -57,7 +57,9 @@ public class Gathering {
     private Status status;
 
     public enum Status {
-        RECRUITING, FULL, FINISHED
+        RECRUITING,
+        FULL,
+        FINISHED
     }
 
     @Column(name = "created_at", nullable = false)
@@ -114,8 +116,7 @@ public class Gathering {
             Integer capacity,
             LocalDateTime date,
             String location,
-            String openChatUrl
-    ) {
+            String openChatUrl) {
         return Gathering.builder()
                 .host(host)
                 .category(category)
