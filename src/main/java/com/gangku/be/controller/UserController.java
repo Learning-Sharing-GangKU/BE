@@ -1,9 +1,11 @@
 package com.gangku.be.controller;
 
+import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.SignUpResponseDto;
+import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.UserService;
 import com.gangku.be.util.object.FileUrlResolver;
@@ -47,6 +49,15 @@ public class UserController {
 
         return ResponseEntity.created(location).body(SignUpResponseDto.from(newUser, imageUrl));
     }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable("userId") String targetUserId, @AuthenticationPrincipal Long currentUserId) {
+        Long internalUserId = PrefixedId.parse(targetUserId).require(ResourceType.USER);
+
+        userService.deleteUser(internalUserId, currentUserId);
+        return ResponseEntity.noContent().build();
+    }
+
 
     /** 특정 사용자의 모임 목록 조회 - role=host → 내가 만든 모임 - role=guest → 내가 참여한 모임 */
     @GetMapping("/gatherings")
