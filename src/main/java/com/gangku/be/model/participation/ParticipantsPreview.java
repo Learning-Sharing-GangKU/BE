@@ -13,9 +13,7 @@ public record ParticipantsPreview(
 ) {
     public static ParticipantsPreview from(
             Page<Participation> participationPage,
-            int pageNumber,
-            int size,
-            String sortedBy,
+            String sortedByForSpec,
             Function<User, String> imageUrlResolver
     ) {
         List<ParticipantsPreviewItem> items = participationPage.getContent().stream()
@@ -26,12 +24,7 @@ public record ParticipantsPreview(
                 })
                 .toList();
 
-        PageMeta meta = PageMeta.from(
-                participationPage,
-                pageNumber,
-                size,
-                sortedBy
-        );
+        PageMeta meta = PageMeta.from(participationPage,sortedByForSpec);
 
         return new ParticipantsPreview(items, meta);
     }
