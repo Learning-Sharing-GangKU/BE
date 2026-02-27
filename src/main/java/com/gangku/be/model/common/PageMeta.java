@@ -1,9 +1,12 @@
 package com.gangku.be.model.common;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+
+import java.util.stream.Collectors;
 
 public record PageMeta(
-        int page,
+        int page,       // 1-base
         int size,
         long totalElements,
         int totalPages,
@@ -11,20 +14,16 @@ public record PageMeta(
         boolean hasPrev,
         boolean hasNext
 ) {
-    public static PageMeta from(
-            Page<?> pageResult,
-            int pageNumber,
-            int size,
-            String sortedBy
-    ) {
+    public static PageMeta from(Page<?> pageResult, String sortedByForSpec) {
         return new PageMeta(
-                pageNumber,
-                size,
+                pageResult.getNumber() + 1, // 0-base -> 1-base
+                pageResult.getSize(),
                 pageResult.getTotalElements(),
                 pageResult.getTotalPages(),
-                sortedBy,
+                sortedByForSpec == null ? "" : sortedByForSpec,
                 pageResult.hasPrevious(),
                 pageResult.hasNext()
         );
     }
+
 }
