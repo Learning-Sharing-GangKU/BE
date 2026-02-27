@@ -33,5 +33,4 @@ ORDER BY p.joinedAt DESC, g.id DESC
     );
 
 
-
 }

@@ -82,23 +82,23 @@ public class ParticipationService {
         Page<Participation> participationPage =
                 participationRepository.findByGatheringId(gatheringId, pageable);
 
-        String sortedBy = "joinedAt," + dirStr + ",id," + dirStr;
+        String sortedByForSpec = "joinedAt," + dirStr + ",id," + dirStr;
 
         ParticipantsPreview participantsPreview = ParticipantsPreview.from(
                 participationPage,
-                page,
-                size,
-                sortedBy,
-                user -> {
-                    String key = user.getProfileImageObjectKey();
-                    if (key == null || key.isBlank()) {
-                        return null;
-                    }
-                    return fileUrlResolver.toPublicUrl(key);
-                }
+                sortedByForSpec,
+                this::resolveProfileImageUrl
         );
 
         return ParticipantsPreviewResponseDto.from(participantsPreview);
+    }
+
+    private String resolveProfileImageUrl(User user) {
+        String key = user.getProfileImageObjectKey();
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        return fileUrlResolver.toPublicUrl(key);
     }
 
     private Participation verifyUserInParticipation(User user, Gathering gathering) {
