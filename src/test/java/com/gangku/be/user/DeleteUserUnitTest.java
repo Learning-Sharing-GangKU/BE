@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-public class UserServiceUnitTest {
+public class DeleteUserUnitTest {
 
     @Mock private UserRepository userRepository;
 
