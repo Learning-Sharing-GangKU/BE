@@ -54,12 +54,13 @@ public class DeleteUserUnitTest {
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.empty());
 
-        // when & then
+        // when
         assertThatThrownBy(() -> userService.deleteUser(targetUserId, currentUserId))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
+        // then
         verify(userRepository, times(1)).findById(targetUserId);
         verify(userRepository, never()).delete(any());
         verifyNoMoreInteractions(userRepository);
@@ -76,12 +77,13 @@ public class DeleteUserUnitTest {
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
 
-        // when & then
+        // when
         assertThatThrownBy(() -> userService.deleteUser(targetUserId, currentUserId))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_CANCEL_MEMBERSHIP);
 
+        // then
         verify(userRepository, times(1)).findById(targetUserId);
         verify(userRepository, never()).delete(any());
         verifyNoMoreInteractions(userRepository);
