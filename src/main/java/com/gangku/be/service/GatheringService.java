@@ -9,6 +9,8 @@ import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.AiRecommendRequestDto;
 import com.gangku.be.dto.ai.AiRecommendResponseDto;
+import com.gangku.be.external.ai.AiIntroClient;
+import com.gangku.be.external.ai.AiRecommendationWebClient;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
@@ -18,8 +20,8 @@ import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.*;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
+import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
-import com.gangku.be.exception.constant.ParticipationErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.gathering.GatheringList;
 import com.gangku.be.model.participation.ParticipantsPreview;
@@ -45,7 +47,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 
-import java.time.LocalDateTime;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -62,6 +63,8 @@ public class GatheringService {
 
     private final WebClient webClient;
     private final FileUrlResolver fileUrlResolver;
+    private final AiRecommendationWebClient aiRecommendationWebClient;
+    private final AiIntroClient aiIntroClient;
 
     @Value("${ai.server.base-url}")
     private String aiServerBaseUrl;
@@ -202,18 +205,11 @@ public class GatheringService {
         Page<Participation> participationPage =
                 participationRepository.findByGatheringId(gatheringId, pageable);
 
+        String sortedByForSpec = "joinedAt," + dirStr + ",id," + dirStr;
         ParticipantsPreview participantsPreview = ParticipantsPreview.from(
                 participationPage,
-                page,
-                size,
-                "joinedAt,asc",
-                user -> {
-                    String key = user.getProfileImageObjectKey();
-                    if (key == null || key.isBlank()) {
-                        return null;
-                    }
-                    return fileUrlResolver.toPublicUrl(key);
-                }
+                sortedByForSpec,
+                this::resolveProfileImageUrl
         );
 
         String gatheringImageUrl = null;
@@ -229,27 +225,9 @@ public class GatheringService {
         );
     }
 
+    // 외부 AI 호출만 -> Client로 위임
     public GatheringIntroResponseDto createGatheringIntro(GatheringIntroRequestDto gatheringIntroRequestDto) {
-
-        /*
-        AI 서버 내부에서 금칙어/비속어 구현해서 따로 뭐 할 건 없음
-        "/ai/v1/gatherings/intro"
-        일로 타고 들어와도 금칙어 구현 됨
-        -> AI에서 response로 뱉는 상태코드에 따라 어떤 상태인지는 노션 보고 다시 한 번 확인해야됨
-        2025 12/02 20:47분 기준
-         */
-
-        return webClient.post()
-                .uri(aiServerBaseUrl + "/ai/v1/gatherings/intro")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(gatheringIntroRequestDto)
-                .retrieve()
-                .onStatus(
-                        HttpStatusCode::is5xxServerError,
-                        response -> Mono.error(new CustomException(GatheringErrorCode.AI_SERVICE_UNAVAILABLE))
-                )
-                .bodyToMono(GatheringIntroResponseDto.class)
-                .block();
+        return aiIntroClient.createIntro(gatheringIntroRequestDto);
     }
 
     /**
@@ -290,24 +268,14 @@ public class GatheringService {
                         ? gatheringRepository.findPopularGatherings(category, pageable)
                         : gatheringRepository.findLatestGatherings(category, pageable);
 
-        String sortedByForMeta =
-                (sortType == GatheringSort.POPULAR)
-                        ? "popularScore,desc,id,desc"
-                        : "createdAt,desc,id,desc";
+        String sortedByForSpec = (sortType == GatheringSort.POPULAR)
+                ? "participantCount,desc,id,desc"
+                : "createdAt,desc,id,desc";
 
         GatheringList gatheringList = GatheringList.from(
                 gatheringPage,
-                page,
-                size,
-                sortedByForMeta,
-                g -> {
-                    String key = g.getGatheringImageObjectKey();
-                    if (key == null || key.isBlank()) {
-                        return null;
-                    }
-                    return fileUrlResolver.toPublicUrl(key);
-                }
-        );
+                sortedByForSpec,
+                this::resolveGatheringImageUrl);
 
         return GatheringListResponseDto.from(gatheringList);
     }
@@ -319,8 +287,7 @@ public class GatheringService {
             return getGatheringList(null, page, size, "latest");
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
 
         List<String> preferredCategories = user.getPreferredCategories().stream()
                 .map(pc -> pc.getCategory().getName())
@@ -334,57 +301,19 @@ public class GatheringService {
                 preferredCategories,
                 candidates
         );
+        List<Long> recommendedIds = aiRecommendationWebClient.recommend(aiRecommendRequestDto);
 
-        AiRecommendResponseDto aiRecommendResponseDto = webClient.post()
-                .uri(aiServerBaseUrl + "/api/ai/v1/recommendations")
-                .bodyValue(aiRecommendRequestDto)
-                .retrieve()
-                .bodyToMono(AiRecommendResponseDto.class)
-                .block();
-
-        List<Long> recommendedIds = (aiRecommendResponseDto == null || aiRecommendResponseDto.getItems() == null)
-                ? List.of()
-                : aiRecommendResponseDto.getItems();
-
-        if (recommendedIds.isEmpty()) {
+        if (recommendedIds == null || recommendedIds.isEmpty()) {
             return getGatheringList(null, page, size, "latest");
         }
 
-        List<Gathering> foundedGatherings = gatheringRepository.findByIdIn(recommendedIds);
+        Page<Gathering> gatheringPage = buildRecommendedPage(recommendedIds, page, size);
 
-        Map<Long, Gathering> byId = foundedGatherings.stream()
-                .collect(Collectors.toMap(Gathering::getId, Function.identity()));
-
-        List<Gathering> ordered = recommendedIds.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull) // 혹시 삭제된 방이 있을 수도 있으니
-                .toList();
-
-        int totalElements = ordered.size();
-        int fromIndex = Math.min((page - 1) * size, totalElements);
-        int toIndex = Math.min(fromIndex + size, totalElements);
-        List<Gathering> content = ordered.subList(fromIndex, toIndex);
-
-        Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Gathering> gatheringPage = new PageImpl<>(content, pageable, totalElements);
-
-        String sortedByForMeta = "aiRecommended,desc";
-
-        // 7) 기존 GatheringList / ResponseDto 변환 로직 재사용
+        String sortedByForSpec = "aiRecommended,desc";
         GatheringList gatheringList = GatheringList.from(
                 gatheringPage,
-                page,
-                size,
-                sortedByForMeta,
-                g -> {
-                    String key = g.getGatheringImageObjectKey();
-                    if (key == null || key.isBlank()) {
-                        return null;
-                    }
-                    return fileUrlResolver.toPublicUrl(key);
-                }
-        );
-
+                sortedByForSpec,
+                this::resolveGatheringImageUrl);
         return GatheringListResponseDto.from(gatheringList);
     }
 
@@ -401,33 +330,76 @@ public class GatheringService {
 
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<Gathering> gatheringPage;
+        String sortedByForSpec;
 
-        if (role.equals("host")) {
+        if ("host".equals(role)) {
             gatheringPage = gatheringRepository.findByHostIdOrderByCreatedAtDesc(userId, pageable);
-        } else {
+            sortedByForSpec = "createdAt,desc,id,desc";
+        } else if ("guest".equals(role)) {
             gatheringPage = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
+            sortedByForSpec = "joinedAt,desc,userId,desc";
+        }else {
+            // role 값이 잘못 들어온 케이스
+            throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER); // 너희 프로젝트 파라미터 에러코드로 교체
         }
 
-        String sortedByForMeta =
-                role.equals("host")
-                        ? "createdAt,desc,id,desc"
-                        : "joinedAt,desc,id,desc";
+
 
         GatheringList gatheringList = GatheringList.from(
                 gatheringPage,
-                page,
-                size,
-                sortedByForMeta,
-                g -> {
-                    String key = g.getGatheringImageObjectKey();
-                    if (key ==null || key.isBlank()) {
-                        return null;
-                    }
-                    return fileUrlResolver.toPublicUrl(key);
-                }
+                sortedByForSpec,
+                this::resolveGatheringImageUrl
         );
 
         return GatheringListResponseDto.from(gatheringList);
+    }
+
+
+    /**
+     * recommendedIds 순서를 그대로 유지하면서, DB에서 Gathering을 조회해 Page로 만든다.
+     * - 삭제된 gatheringId가 섞여 있어도 null은 제거
+     * - page/size에 맞춰 slice 후 PageImpl 생성
+     */
+    private Page<Gathering> buildRecommendedPage(List<Long> recommendedIds, int page, int size) {
+
+        // 1) DB 조회
+        List<Gathering> found = gatheringRepository.findByIdIn(recommendedIds);
+
+        // 2) id -> entity map
+        Map<Long, Gathering> byId = found.stream()
+                .collect(Collectors.toMap(Gathering::getId, Function.identity()));
+
+        // 3) AI가 준 순서대로 재정렬 (삭제된 건 제외)
+        List<Gathering> ordered = recommendedIds.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        // 4) 페이지 슬라이스
+        int totalElements = ordered.size();
+        int fromIndex = Math.min((page - 1) * size, totalElements);
+        int toIndex = Math.min(fromIndex + size, totalElements);
+        List<Gathering> content = ordered.subList(fromIndex, toIndex);
+
+        // 5) Page로 래핑
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return new PageImpl<>(content, pageable, totalElements);
+    }
+
+
+    private String resolveGatheringImageUrl(Gathering g) {
+        return resolveImageUrl(g.getGatheringImageObjectKey());
+    }
+
+    private String resolveProfileImageUrl(User user) {
+        return resolveImageUrl(user.getProfileImageObjectKey());
+    }
+
+    private String resolveImageUrl(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        return fileUrlResolver.toPublicUrl(key);
     }
 
 
