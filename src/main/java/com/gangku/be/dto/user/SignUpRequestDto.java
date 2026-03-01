@@ -1,8 +1,8 @@
 package com.gangku.be.dto.user;
 
 import jakarta.validation.constraints.*;
-import lombok.*;
 import java.util.List;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
@@ -33,8 +33,7 @@ public class SignUpRequestDto {
     @Pattern(regexp = "^(MALE|FEMALE)$")
     private String gender;
 
-    @NotNull
-    private Integer enrollNumber;
+    @NotNull private Integer enrollNumber;
 
     private String profileImageObjectKey;
 

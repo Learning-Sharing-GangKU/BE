@@ -13,9 +13,12 @@ import java.lang.annotation.Target;
 public @interface ValidEnum {
 
     String message() default "올바른 항목이 아닙니다.";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 
     Class<? extends Enum<?>> enumClass();
+
     boolean ignoreCase() default false;
 }

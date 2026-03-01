@@ -12,12 +12,12 @@ import com.gangku.be.dto.ai.AiRecommendResponseDto;
 import com.gangku.be.external.ai.AiIntroClient;
 import com.gangku.be.external.ai.AiRecommendationWebClient;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
-import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
-import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.*;
+import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
+import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.CommonErrorCode;
@@ -45,12 +45,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-
-
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
 
 @Service
 @RequiredArgsConstructor
@@ -69,12 +66,10 @@ public class GatheringService {
     @Value("${ai.server.base-url}")
     private String aiServerBaseUrl;
 
-    //모임 생성 메서드
+    // 모임 생성 메서드
     @Transactional
     public GatheringResponseDto createGathering(
-            GatheringCreateRequestDto gatheringCreateRequestDto,
-            Long hostId
-    ) {
+            GatheringCreateRequestDto gatheringCreateRequestDto, Long hostId) {
         /*
         SOL A
         총 두 번 보내야됨 -> title 모임 제목 한 번 / description 모임 소개문 한 번.
@@ -106,17 +101,17 @@ public class GatheringService {
         Category category = findCategoryByName(gatheringCreateRequestDto.getCategory());
 
         // 엔티티 생성
-        Gathering gathering = Gathering.create(
-                host,
-                category,
-                gatheringCreateRequestDto.getTitle(),
-                gatheringCreateRequestDto.getDescription(),
-                gatheringCreateRequestDto.getGatheringImageObjectKey(),
-                gatheringCreateRequestDto.getCapacity(),
-                gatheringCreateRequestDto.getDate(),
-                gatheringCreateRequestDto.getLocation(),
-                gatheringCreateRequestDto.getOpenChatUrl()
-        );
+        Gathering gathering =
+                Gathering.create(
+                        host,
+                        category,
+                        gatheringCreateRequestDto.getTitle(),
+                        gatheringCreateRequestDto.getDescription(),
+                        gatheringCreateRequestDto.getGatheringImageObjectKey(),
+                        gatheringCreateRequestDto.getCapacity(),
+                        gatheringCreateRequestDto.getDate(),
+                        gatheringCreateRequestDto.getLocation(),
+                        gatheringCreateRequestDto.getOpenChatUrl());
         Gathering savedGathering = gatheringRepository.save(gathering);
 
         // 호스트도 참여자로 추가
@@ -126,17 +121,13 @@ public class GatheringService {
         // 4. 응답 DTO 생성
         return GatheringResponseDto.from(
                 savedGathering,
-                fileUrlResolver.toPublicUrl(gathering.getGatheringImageObjectKey())
-        );
+                fileUrlResolver.toPublicUrl(gathering.getGatheringImageObjectKey()));
     }
 
     // 모임 수정 메서드
     @Transactional
     public GatheringResponseDto updateGathering(
-            Long gatheringId,
-            Long userId,
-            GatheringUpdateRequestDto gatheringUpdateRequestDto
-    ) {
+            Long gatheringId, Long userId, GatheringUpdateRequestDto gatheringUpdateRequestDto) {
         /*
         SOL A
         총 두 번 보내야됨 -> title 모임 제목 한 번 / description 모임 소개문 한 번.
@@ -174,8 +165,7 @@ public class GatheringService {
 
         return GatheringResponseDto.from(
                 updatedGathering,
-                fileUrlResolver.toPublicUrl(updatedGathering.getGatheringImageObjectKey())
-        );
+                fileUrlResolver.toPublicUrl(updatedGathering.getGatheringImageObjectKey()));
     }
 
     // 모임 삭제 메서드
@@ -190,7 +180,8 @@ public class GatheringService {
     }
 
     @Transactional
-    public GatheringDetailResponseDto getGatheringDetail(Long gatheringId, int page, int size, String sortParam) {
+    public GatheringDetailResponseDto getGatheringDetail(
+            Long gatheringId, int page, int size, String sortParam) {
 
         Gathering gathering = findGatheringById(gatheringId);
 
@@ -218,11 +209,7 @@ public class GatheringService {
             gatheringImageUrl = fileUrlResolver.toPublicUrl(gatheringKey);
         }
 
-        return GatheringDetailResponseDto.from(
-                gathering,
-                participantsPreview,
-                gatheringImageUrl
-        );
+        return GatheringDetailResponseDto.from(gathering, participantsPreview, gatheringImageUrl);
     }
 
     // 외부 AI 호출만 -> Client로 위임
@@ -231,35 +218,29 @@ public class GatheringService {
     }
 
     /**
-     *   모임 목록 조회
-     * - 홈 화면 및 카테고리 페이지에서 사용
-     * - category, sort, size에 따라 정렬 및 필터링
-     *   - sort = latest → createdAt DESC
-     *   - sort = popular → participantCount DESC
+     * 모임 목록 조회 - 홈 화면 및 카테고리 페이지에서 사용 - category, sort, size에 따라 정렬 및 필터링 - sort = latest →
+     * createdAt DESC - sort = popular → participantCount DESC
      */
     @Transactional(readOnly = true)
-    public GatheringListResponseDto getGatheringList(String categoryName, int page, int size, String sort) {
+    public GatheringListResponseDto getGatheringList(
+            String categoryName, int page, int size, String sort) {
 
         Category category = verifyCategoryName(categoryName);
 
         GatheringSort sortType = GatheringSort.from(sort);
 
-        Sort springSort = switch (sortType) {
-            case POPULAR -> Sort.by(
-                    Sort.Order.desc("participantCount"),
-                    Sort.Order.desc("id")
-            );
-            case LATEST -> Sort.by(
-                    Sort.Order.desc("createdAt"),
-                    Sort.Order.desc("id")
-            );
-            /*
-            위치가 정확한지는 모르겠지만 일단.
-            (POST)http://127.0.0.1:8000/api/ai/v2/recommendations
-            request 로 com.gangku.be.dto.gathering.request.GatheringRecommendAiRequest 이거 넘겨주면 됨
-            그럼 response 로 List<gatheringId> 가 return
-             */
-        };
+        Sort springSort =
+                switch (sortType) {
+                    case POPULAR ->
+                            Sort.by(Sort.Order.desc("participantCount"), Sort.Order.desc("id"));
+                    case LATEST -> Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+                        /*
+                        위치가 정확한지는 모르겠지만 일단.
+                        (POST)http://127.0.0.1:8000/api/ai/v2/recommendations
+                        request 로 com.gangku.be.dto.gathering.request.GatheringRecommendAiRequest 이거 넘겨주면 됨
+                        그럼 response 로 List<gatheringId> 가 return
+                         */
+                };
 
         Pageable pageable = PageRequest.of(page - 1, size, springSort);
 
@@ -289,12 +270,13 @@ public class GatheringService {
 
         User user = findUserById(userId);
 
-        List<String> preferredCategories = user.getPreferredCategories().stream()
-                .map(pc -> pc.getCategory().getName())
-                .toList();
+        List<String> preferredCategories =
+                user.getPreferredCategories().stream()
+                        .map(pc -> pc.getCategory().getName())
+                        .toList();
 
-        List<Gathering> candidates = gatheringRepository
-                .findTop50ByStatusOrderByCreatedAtDesc(Status.RECRUITING);
+        List<Gathering> candidates =
+                gatheringRepository.findTop50ByStatusOrderByCreatedAtDesc(Status.RECRUITING);
 
         AiRecommendRequestDto aiRecommendRequestDto = AiRecommendRequestDto.from(
                 user,
@@ -317,16 +299,15 @@ public class GatheringService {
         return GatheringListResponseDto.from(gatheringList);
     }
 
-    /**
-     * 사용자별 모임 목록 조회 (role=host | guest)
-     * - host: 내가 만든 모임
-     * - guest: 내가 참여한 모임
-     */
+    /** 사용자별 모임 목록 조회 (role=host | guest) - host: 내가 만든 모임 - guest: 내가 참여한 모임 */
     @Transactional(readOnly = true)
-    public GatheringListResponseDto getUserGatherings(Long userId, String role, int page, int size, String sort) {
+    public GatheringListResponseDto getUserGatherings(
+            Long userId, String role, int page, int size, String sort) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<Gathering> gatheringPage;
@@ -404,47 +385,70 @@ public class GatheringService {
 
 
     private User findUserById(Long hostId) {
-        User host = userRepository.findById(hostId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        User host =
+                userRepository
+                        .findById(hostId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         return host;
     }
 
     private Category findCategoryByName(String categoryName) {
-        Category category= null;
+        Category category = null;
         if (categoryName != null) {
-            category = categoryRepository.findByName(categoryName)
-                    .orElseThrow(() -> new CustomException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+            category =
+                    categoryRepository
+                            .findByName(categoryName)
+                            .orElseThrow(
+                                    () ->
+                                            new CustomException(
+                                                    CategoryErrorCode.CATEGORY_NOT_FOUND));
         }
         return category;
     }
 
-    public Gathering findGatheringById(Long gatheringId) {
-        return gatheringRepository.findById(gatheringId)
+    private Gathering findGatheringById(Long gatheringId) {
+        return gatheringRepository
+                .findById(gatheringId)
                 .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
     }
 
-    private void updateRequestBody(GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
-        if (gatheringUpdateRequestDto.getTitle() != null) gathering.setTitle(gatheringUpdateRequestDto.getTitle());
-        if (gatheringUpdateRequestDto.getGatheringImageObjectKey() != null) gathering.setGatheringImageObjectKey(gatheringUpdateRequestDto.getGatheringImageObjectKey());
-        if (gatheringUpdateRequestDto.getCategory() != null) gathering.setCategory(findCategoryByName(gatheringUpdateRequestDto.getCategory()));
-        if (gatheringUpdateRequestDto.getCapacity() != null) gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
-        if (gatheringUpdateRequestDto.getDate() != null) gathering.setDate(gatheringUpdateRequestDto.getDate());
-        if (gatheringUpdateRequestDto.getLocation() != null) gathering.setLocation(gatheringUpdateRequestDto.getLocation());
-        if (gatheringUpdateRequestDto.getOpenChatUrl() != null) gathering.setOpenChatUrl(gatheringUpdateRequestDto.getOpenChatUrl());
-        if (gatheringUpdateRequestDto.getDescription() != null) gathering.setDescription(gatheringUpdateRequestDto.getDescription());
+    private void updateRequestBody(
+            GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
+        if (gatheringUpdateRequestDto.getTitle() != null)
+            gathering.setTitle(gatheringUpdateRequestDto.getTitle());
+        if (gatheringUpdateRequestDto.getGatheringImageObjectKey() != null)
+            gathering.setGatheringImageObjectKey(
+                    gatheringUpdateRequestDto.getGatheringImageObjectKey());
+        if (gatheringUpdateRequestDto.getCategory() != null)
+            gathering.setCategory(findCategoryByName(gatheringUpdateRequestDto.getCategory()));
+        if (gatheringUpdateRequestDto.getCapacity() != null)
+            gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
+        if (gatheringUpdateRequestDto.getDate() != null)
+            gathering.setDate(gatheringUpdateRequestDto.getDate());
+        if (gatheringUpdateRequestDto.getLocation() != null)
+            gathering.setLocation(gatheringUpdateRequestDto.getLocation());
+        if (gatheringUpdateRequestDto.getOpenChatUrl() != null)
+            gathering.setOpenChatUrl(gatheringUpdateRequestDto.getOpenChatUrl());
+        if (gatheringUpdateRequestDto.getDescription() != null)
+            gathering.setDescription(gatheringUpdateRequestDto.getDescription());
     }
 
     private void validateGatheringHost(Long userId, Gathering gathering) {
         if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomException(GatheringErrorCode.FORBIDDEN);
+            throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_DELETE_GATHERING);
         }
     }
 
     private Category verifyCategoryName(String categoryName) {
         Category category = null;
         if (categoryName != null && !categoryName.isBlank()) {
-            category = categoryRepository.findByName(categoryName)
-                    .orElseThrow(() -> new CustomException(CategoryErrorCode.CATEGORY_NOT_FOUND));
+            category =
+                    categoryRepository
+                            .findByName(categoryName)
+                            .orElseThrow(
+                                    () ->
+                                            new CustomException(
+                                                    CategoryErrorCode.CATEGORY_NOT_FOUND));
         }
         return category;
     }

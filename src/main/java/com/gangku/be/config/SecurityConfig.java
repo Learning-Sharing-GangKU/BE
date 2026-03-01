@@ -36,35 +36,45 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(
-                        ex -> ex
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                        .accessDeniedHandler(jwtAccessDeniedHandler)
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(PathRequest.toH2Console()).permitAll()
+                        ex ->
+                                ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                        .accessDeniedHandler(jwtAccessDeniedHandler))
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers("/error")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                        .permitAll()
+                                        .requestMatchers(PathRequest.toH2Console())
+                                        .permitAll()
 
-                        // 인증 및 회원가입 관련
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                                        // 인증 및 회원가입 관련
+                                        .requestMatchers("/api/v1/auth/**")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/api/v1/users")
+                                        .permitAll()
 
-                        // 공개 데이터 - GET만 허용
-                        .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/home").permitAll()
+                                        // 공개 데이터 - GET만 허용
+                                        .requestMatchers(
+                                                HttpMethod.GET,
+                                                "/api/v1/categories",
+                                                "/api/v1/home")
+                                        .permitAll()
 
-                        // 이미지 업로드 (회원 가입 시 이용)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/objects/presigned-url/**").permitAll()
+                                        // 이미지 업로드 (회원 가입 시 이용)
+                                        .requestMatchers(
+                                                HttpMethod.POST, "/api/v1/objects/presigned-url/**")
+                                        .permitAll()
 
-                        // 이외에는 로그인 필요
-                        .anyRequest().authenticated()
-                )
+                                        // 이외에는 로그인 필요
+                                        .anyRequest()
+                                        .authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(h -> h.frameOptions(fo -> fo.sameOrigin()))
                 .build();

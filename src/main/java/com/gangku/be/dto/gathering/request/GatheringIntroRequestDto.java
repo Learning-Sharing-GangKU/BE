@@ -27,13 +27,15 @@ public class GatheringIntroRequestDto {
     private String category;
 
     @NotNull
-    @JsonFormat(shape =  JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssX", timezone = "Asia/Seoul")
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ssX",
+            timezone = "Asia/Seoul")
     private LocalDateTime date;
 
     @NotBlank
     @Size(min = 1, max = 30)
     private String location;
 
-    @NotEmpty
-    private List<String> keywords;
+    @NotEmpty private List<String> keywords;
 }

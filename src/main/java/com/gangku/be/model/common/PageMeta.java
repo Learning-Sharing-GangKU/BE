@@ -22,8 +22,7 @@ public record PageMeta(
                 pageResult.getTotalPages(),
                 sortedByForSpec == null ? "" : sortedByForSpec,
                 pageResult.hasPrevious(),
-                pageResult.hasNext()
-        );
+                pageResult.hasNext());
     }
 
 }

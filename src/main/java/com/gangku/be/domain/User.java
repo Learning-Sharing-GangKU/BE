@@ -1,15 +1,17 @@
 package com.gangku.be.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
+import lombok.*;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-@Table(name = "users")  // 예약어 피하기 위해 users 사용
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "users") // 예약어 피하기 위해 users 사용
 public class User {
 
     @Id
@@ -54,7 +56,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
 
-    //자동 시간 설정을 위한 콜백 메서드
+    // 자동 시간 설정을 위한 콜백 메서드
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -88,8 +90,7 @@ public class User {
             Integer age,
             String gender,
             Integer enrollNumber,
-            String profileImageObjectKey
-    ) {
+            String profileImageObjectKey) {
         return User.builder()
                 .email(email)
                 .password(encodedPassword)

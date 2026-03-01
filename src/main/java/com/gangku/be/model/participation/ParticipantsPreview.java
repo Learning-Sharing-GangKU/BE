@@ -7,10 +7,7 @@ import java.util.List;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
 
-public record ParticipantsPreview(
-        List<ParticipantsPreviewItem> data,
-        PageMeta meta
-) {
+public record ParticipantsPreview(List<ParticipantsPreviewItem> data, PageMeta meta) {
     public static ParticipantsPreview from(
             Page<Participation> participationPage,
             String sortedByForSpec,
