@@ -446,7 +446,7 @@ public class GatheringService {
         return category;
     }
 
-    public Gathering findGatheringById(Long gatheringId) {
+    private Gathering findGatheringById(Long gatheringId) {
         return gatheringRepository
                 .findById(gatheringId)
                 .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
@@ -475,7 +475,7 @@ public class GatheringService {
 
     private void validateGatheringHost(Long userId, Gathering gathering) {
         if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomException(GatheringErrorCode.FORBIDDEN);
+            throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_DELETE_GATHERING);
         }
     }
 

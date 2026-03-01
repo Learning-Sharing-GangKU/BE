@@ -67,7 +67,4 @@ dependencies {
 
 test {
 	useJUnitPlatform()
-    filter {
-        setFailOnNoMatchingTests(false)
-    }
 }
