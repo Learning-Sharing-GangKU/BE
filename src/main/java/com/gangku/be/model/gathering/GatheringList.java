@@ -9,14 +9,16 @@ import org.springframework.data.domain.Page;
 public record GatheringList(List<GatheringListItem> data, PageMeta meta) {
     public static GatheringList from(
             Page<Gathering> gatheringPage,
-            String sortedByForSpec,
-            Function<Gathering, String> imageUrlResolver
-    ) {
-        List<GatheringListItem> items = gatheringPage.getContent().stream()
-                .map(g -> GatheringListItem.from(g, imageUrlResolver.apply(g)))
-                .toList();
+            int pageNumber,
+            int size,
+            String sortedBy,
+            Function<Gathering, String> imageUrlResolver) {
+        List<GatheringListItem> items =
+                gatheringPage.getContent().stream()
+                        .map(g -> GatheringListItem.from(g, imageUrlResolver.apply(g)))
+                        .toList();
 
-        PageMeta meta = PageMeta.from(gatheringPage, sortedByForSpec);
+        PageMeta meta = PageMeta.from(gatheringPage, pageNumber, size, sortedBy);
 
         return new GatheringList(items, meta);
     }

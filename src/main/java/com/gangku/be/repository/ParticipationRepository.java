@@ -28,10 +28,5 @@ AND p.status = 'APPROVED'
 AND p.role = 'GUEST'
 ORDER BY p.joinedAt DESC, g.id DESC
 """)
-    Page<Gathering> findJoinedGatheringsByUserId(
-            @Param("userId") Long userId,
-            Pageable pageable
-    );
-
-
+    Page<Gathering> findJoinedGatheringsByUserId(@Param("userId") Long userId, Pageable pageable);
 }

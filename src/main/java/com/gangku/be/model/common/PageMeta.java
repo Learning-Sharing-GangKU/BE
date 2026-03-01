@@ -1,28 +1,23 @@
 package com.gangku.be.model.common;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-
-import java.util.stream.Collectors;
 
 public record PageMeta(
-        int page,       // 1-base
+        int page,
         int size,
         long totalElements,
         int totalPages,
         String sortedBy,
         boolean hasPrev,
-        boolean hasNext
-) {
-    public static PageMeta from(Page<?> pageResult, String sortedByForSpec) {
+        boolean hasNext) {
+    public static PageMeta from(Page<?> pageResult, int pageNumber, int size, String sortedBy) {
         return new PageMeta(
-                pageResult.getNumber() + 1, // 0-base -> 1-base
-                pageResult.getSize(),
+                pageNumber,
+                size,
                 pageResult.getTotalElements(),
                 pageResult.getTotalPages(),
-                sortedByForSpec == null ? "" : sortedByForSpec,
+                sortedBy,
                 pageResult.hasPrevious(),
                 pageResult.hasNext());
     }
-
 }
