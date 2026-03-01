@@ -2,12 +2,9 @@ package com.gangku.be.model.common;
 
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.constant.ParticipationErrorCode;
+import com.gangku.be.exception.constant.CommonErrorCode;
 
-public record PrefixedId(
-        ResourceType resourceType,
-        Long value
-) {
+public record PrefixedId(ResourceType resourceType, Long value) {
 
     public String toExternal() {
         return resourceType.prefix() + value;
@@ -15,14 +12,14 @@ public record PrefixedId(
 
     public static PrefixedId of(ResourceType resourceType, Long value) {
         if (value == null) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+            throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
         }
         return new PrefixedId(resourceType, value);
     }
 
     public static PrefixedId parse(String externalId) {
         if (externalId == null) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+            throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
         }
 
         ResourceType resourceType = ResourceType.fromPrefix(externalId);
@@ -33,13 +30,13 @@ public record PrefixedId(
             Long value = Long.parseLong(numericPart);
             return new PrefixedId(resourceType, value);
         } catch (NumberFormatException e) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+            throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
         }
     }
 
     public Long require(ResourceType expectedType) {
         if (this.resourceType != expectedType) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+            throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
         }
         return value;
     }

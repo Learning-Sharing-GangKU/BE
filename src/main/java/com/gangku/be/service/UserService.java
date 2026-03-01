@@ -2,16 +2,18 @@ package com.gangku.be.service;
 
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.PreferredCategory;
+import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
-import java.util.List;
-import java.util.regex.Pattern;
-import com.gangku.be.domain.User;
 import com.gangku.be.repository.UserRepository;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +27,12 @@ public class UserService {
     private final CategoryRepository categoryRepository;
     private final PreferredCategoryRepository preferredCategoryRepository;
 
+    private final StringRedisTemplate stringRedisTemplate;
     private final PasswordEncoder passwordEncoder;
 
-    public User registerUser(SignUpRequestDto signUpRequestDto) {
+    public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
+
+        validateEmailVerification(sessionId, signUpRequestDto.getEmail());
 
         // 중복된 이메일 예외처리
         validateEmailConflict(signUpRequestDto.getEmail());
@@ -48,29 +53,58 @@ public class UserService {
          */
 
         // 4) DB에 저장
-        User newUser = User.create(
-                signUpRequestDto.getEmail(),
-                passwordEncoder.encode(signUpRequestDto.getPassword()),
-                signUpRequestDto.getNickname(),
-                signUpRequestDto.getAge(),
-                signUpRequestDto.getGender(),
-                signUpRequestDto.getEnrollNumber(),
-                signUpRequestDto.getProfileImageObjectKey()
-        );
+        User newUser =
+                User.create(
+                        signUpRequestDto.getEmail(),
+                        passwordEncoder.encode(signUpRequestDto.getPassword()),
+                        signUpRequestDto.getNickname(),
+                        signUpRequestDto.getAge(),
+                        signUpRequestDto.getGender(),
+                        signUpRequestDto.getEnrollNumber(),
+                        signUpRequestDto.getProfileImageObjectKey());
 
         userRepository.save(newUser);
+
+        stringRedisTemplate.delete("auth:signup:session:" + sessionId);
 
         assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
 
         return newUser;
     }
 
-    /**
-     * --- 검증 및 반환 헬퍼 메서드 ---
-     */
-    
+    @Transactional
+    public void deleteUser(Long targetUserId, Long currentUserId) {
+
+        User user = findUserById(targetUserId);
+
+        validateUserPrincipal(currentUserId, user);
+
+        userRepository.delete(user);
+    }
+
+    /** --- 검증 및 반환 헬퍼 메서드 --- */
+    private void validateEmailVerification(String sessionId, String email) {
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        String sessionKey = "auth:signup:session:" + sessionId;
+        Map<Object, Object> sessionData = stringRedisTemplate.opsForHash().entries(sessionKey);
+
+        if (sessionData.isEmpty()) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        String verified = (String) sessionData.get("verified");
+        String sessionEmail = (String) sessionData.get("email");
+
+        if (!"1".equals(verified) || !email.equals(sessionEmail)) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+    }
+
     private void validateEmailConflict(String email) {
-        if(userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             throw new CustomException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }
     }
@@ -91,17 +125,31 @@ public class UserService {
 
         List<Category> categories = categoryRepository.findByNameIn(distinctCategories);
 
-        List<PreferredCategory> preferredCategoryList = categories.stream()
-                .map(category -> {
-                    PreferredCategory preferredCategory = new PreferredCategory();
-                    preferredCategory.setCategory(category);
+        List<PreferredCategory> preferredCategoryList =
+                categories.stream()
+                        .map(
+                                category -> {
+                                    PreferredCategory preferredCategory = new PreferredCategory();
+                                    preferredCategory.setCategory(category);
 
-                    newUser.addPreferredCategory(preferredCategory);
+                                    newUser.addPreferredCategory(preferredCategory);
 
-                    return preferredCategory;
-                })
-                .toList();
+                                    return preferredCategory;
+                                })
+                        .toList();
 
         preferredCategoryRepository.saveAll(preferredCategoryList);
+    }
+
+    private User findUserById(Long userId) {
+        return userRepository
+                .findById(userId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+    }
+
+    private void validateUserPrincipal(Long currentUserId, User user) {
+        if (!user.getId().equals(currentUserId)) {
+            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_CANCEL_MEMBERSHIP);
+        }
     }
 }

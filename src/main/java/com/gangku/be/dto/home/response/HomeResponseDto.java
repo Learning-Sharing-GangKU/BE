@@ -15,5 +15,4 @@ public class HomeResponseDto {
     private GatheringListResponseDto recommended;
     private GatheringListResponseDto latest;
     private GatheringListResponseDto popular;
-
 }

@@ -8,9 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class GatheringIntroResponseDto {
 
-    @NotBlank
-    private String intro;
+    @NotBlank private String intro;
 
-    @NotBlank
-    private String aiVersion;
+    @NotBlank private String aiVersion;
 }

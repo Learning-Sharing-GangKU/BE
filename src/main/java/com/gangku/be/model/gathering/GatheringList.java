@@ -6,10 +6,7 @@ import java.util.List;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
 
-public record GatheringList(
-        List<GatheringListItem> data,
-        PageMeta meta
-) {
+public record GatheringList(List<GatheringListItem> data, PageMeta meta) {
     public static GatheringList from(
             Page<Gathering> gatheringPage,
             String sortedByForSpec,

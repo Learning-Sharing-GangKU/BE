@@ -1,11 +1,7 @@
 package com.gangku.be.controller;
 
-import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.home.response.HomeResponseDto;
 import com.gangku.be.service.GatheringService;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.gangku.be.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +21,7 @@ public class HomeController {
     private final HomeService homeService;
 
     @GetMapping()
-    public ResponseEntity<HomeResponseDto> getHomeGatherings(
-            @AuthenticationPrincipal Long userId
-    ) {
-       return ResponseEntity.ok(homeService.getHome(userId, 1, 3));
+    public ResponseEntity<HomeResponseDto> getHomeGatherings(@AuthenticationPrincipal Long userId) {
+        return ResponseEntity.ok(homeService.getHome(userId, 1, 3));
     }
 }

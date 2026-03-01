@@ -3,13 +3,12 @@ package com.gangku.be.dto.gathering.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -29,21 +28,16 @@ public class GatheringRecommendAiRequest {
     @Data
     public static class Gathering {
 
-        @NotNull
-        @Positive
-        private Long gatheringId;
+        @NotNull @Positive private Long gatheringId;
 
-        @NotNull
-        private String category;
+        @NotNull private String category;
 
         @Min(0)
         private Integer hostAge;
 
-        @NotNull
-        private Integer capacity;
+        @NotNull private Integer capacity;
 
-        @NotNull
-        private Integer participantCount;
+        @NotNull private Integer participantCount;
 
         @NotNull
         @JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -53,16 +47,16 @@ public class GatheringRecommendAiRequest {
     // 이거 어떻게 뭐 pathparam으로 받는지 어떻게 받는지 모르겠는데 암튼 이렇게 둘게요
     // 그리고 이게
 
-    //Nullable
+    // Nullable
     private int userId;
 
     @Min(value = 14)
     @Max(value = 100)
-    //Nullable
+    // Nullable
     private Integer age;
 
     @Size(max = 3)
-    //Nullable
+    // Nullable
     private List<String> preferredCategories;
 
     @NotNull
@@ -70,5 +64,3 @@ public class GatheringRecommendAiRequest {
     @Valid
     private List<Gathering> gatherings;
 }
-
-

@@ -22,13 +22,9 @@ public class AiRecommendRequestDto {
     private List<AiRecommendGatheringItem> gatheringItems;
 
     public static AiRecommendRequestDto from(
-            User user,
-            List<String> preferredCategories,
-            List<Gathering> gatherings
-    ) {
-        List<AiRecommendGatheringItem> items = gatherings.stream()
-                .map(AiRecommendGatheringItem::from)
-                .toList();
+            User user, List<String> preferredCategories, List<Gathering> gatherings) {
+        List<AiRecommendGatheringItem> items =
+                gatherings.stream().map(AiRecommendGatheringItem::from).toList();
 
         return AiRecommendRequestDto.builder()
                 .userId(user.getId())

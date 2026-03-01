@@ -3,13 +3,11 @@ package com.gangku.be.dto.gathering.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gangku.be.constant.category.CategoryList;
 import com.gangku.be.exception.annotation.ValidEnum;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -32,7 +30,10 @@ public class GatheringCreateRequestDto {
 
     @NotNull
     @Future
-    @JsonFormat(shape =  JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssX", timezone = "Asia/Seoul")
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ssX",
+            timezone = "Asia/Seoul")
     private LocalDateTime date;
 
     @NotBlank
