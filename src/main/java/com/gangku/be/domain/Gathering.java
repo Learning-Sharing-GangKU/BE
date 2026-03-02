@@ -68,8 +68,7 @@ public class Gathering {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // cascade 로 모임 삭제 시 참여자도 삭제 , orphanRemoval=true 로 연관 끊기면 DB에서 제거
-    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Participation> participations = new ArrayList<>();
 
@@ -84,11 +83,7 @@ public class Gathering {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 양방향 연관관계 편의 메서드
-    public void addParticipation(Participation participation) {
-        participations.add(participation);
-        participation.setGathering(this);
-
+    public void increaseParticipantCount() {
         this.participantCount++;
 
         if (this.participantCount >= this.capacity) {
@@ -96,10 +91,7 @@ public class Gathering {
         }
     }
 
-    public void removeParticipation(Participation participation) {
-        participations.remove(participation);
-        participation.setGathering(null);
-
+    public void decreaseParticipantCount() {
         this.participantCount--;
 
         if (this.participantCount < this.capacity) {

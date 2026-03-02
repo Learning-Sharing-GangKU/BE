@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "users") // 예약어 피하기 위해 users 사용
+@Table(name = "users")
 public class User {
 
     @Id
@@ -38,8 +38,6 @@ public class User {
     @Column(name = "profile_image_object_key", length = 255)
     private String profileImageObjectKey;
 
-    private Boolean emailVerified;
-
     private Boolean reviewsPublic;
 
     @Column(name = "refresh_token")
@@ -52,9 +50,11 @@ public class User {
 
     private LocalDateTime updatedAt;
 
-    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Participation> participations = new ArrayList<>();
 
     // 자동 시간 설정을 위한 콜백 메서드
     @PrePersist
@@ -99,7 +99,6 @@ public class User {
                 .gender(gender)
                 .enrollNumber(enrollNumber)
                 .profileImageObjectKey(profileImageObjectKey)
-                .emailVerified(false)
                 .reviewsPublic(true)
                 .build();
     }

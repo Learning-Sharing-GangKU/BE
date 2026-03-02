@@ -41,15 +41,14 @@ public class ParticipationService {
         validateConflict(user, gathering);
 
         Participation participation = Participation.create(user, gathering, Role.GUEST);
-        gathering.addParticipation(participation);
+
+        gathering.increaseParticipantCount();
+
         participationRepository.save(participation);
-        // 이거 테스트 해보고 지울 수 있으면 지우자
-        //        gatheringRepository.save(gathering);
 
         return ParticipationResponseDto.from(participation, gathering, user);
     }
 
-    // 침여 취소 메서드
     @Transactional
     public void cancelParticipation(Long gatheringId, Long userId) {
 
@@ -59,8 +58,10 @@ public class ParticipationService {
         // 참여자 정보 확인
         Participation participation = verifyUserInParticipation(user, gathering);
 
-        // 모임 객체에서 Participation 제거 (양방향일 경우)
-        gathering.removeParticipation(participation);
+        // 양방향 동기화
+        participation.unlink();
+
+        gathering.decreaseParticipantCount();
 
         // DB에서 참여 정보 삭제
         participationRepository.delete(participation);
