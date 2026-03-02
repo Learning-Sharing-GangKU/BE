@@ -23,15 +23,18 @@ public class AiIntroWebClient implements AiIntroClient {
 
     @Override
     public GatheringIntroResponseDto createIntro(GatheringIntroRequestDto request) {
-        return webClient.post()
+        return webClient
+                .post()
                 .uri(aiServerBaseUrl + "/ai/v1/gatherings/intro")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(
                         HttpStatusCode::is5xxServerError,
-                        r -> Mono.error(new CustomException(GatheringErrorCode.AI_SERVICE_UNAVAILABLE))
-                )
+                        r ->
+                                Mono.error(
+                                        new CustomException(
+                                                GatheringErrorCode.AI_SERVICE_UNAVAILABLE)))
                 .bodyToMono(GatheringIntroResponseDto.class)
                 .block();
     }

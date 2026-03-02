@@ -10,11 +10,11 @@ public record GatheringList(List<GatheringListItem> data, PageMeta meta) {
     public static GatheringList from(
             Page<Gathering> gatheringPage,
             String sortedByForSpec,
-            Function<Gathering, String> imageUrlResolver
-    ) {
-        List<GatheringListItem> items = gatheringPage.getContent().stream()
-                .map(g -> GatheringListItem.from(g, imageUrlResolver.apply(g)))
-                .toList();
+            Function<Gathering, String> imageUrlResolver) {
+        List<GatheringListItem> items =
+                gatheringPage.getContent().stream()
+                        .map(g -> GatheringListItem.from(g, imageUrlResolver.apply(g)))
+                        .toList();
 
         PageMeta meta = PageMeta.from(gatheringPage, sortedByForSpec);
 
