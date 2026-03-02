@@ -1,11 +1,11 @@
 package com.gangku.be.external.ai;
 
-import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.AiRecommendRequestDto;
 import com.gangku.be.dto.ai.AiRecommendResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -13,11 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
-import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
-
 
 @Component
 @RequiredArgsConstructor
@@ -30,17 +25,21 @@ public class AiRecommendationWebClient implements AiRecommendationClient {
 
     @Override
     public List<Long> recommend(AiRecommendRequestDto request) {
-        AiRecommendResponseDto response = webClient.post()
-                .uri(aiServerBaseUrl + "/api/ai/v1/recommendations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(
-                        HttpStatusCode::is5xxServerError,
-                        r -> Mono.error(new CustomException(GatheringErrorCode.AI_SERVICE_UNAVAILABLE))
-                )
-                .bodyToMono(AiRecommendResponseDto.class)
-                .block();
+        AiRecommendResponseDto response =
+                webClient
+                        .post()
+                        .uri(aiServerBaseUrl + "/api/ai/v1/recommendations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(request)
+                        .retrieve()
+                        .onStatus(
+                                HttpStatusCode::is5xxServerError,
+                                r ->
+                                        Mono.error(
+                                                new CustomException(
+                                                        GatheringErrorCode.AI_SERVICE_UNAVAILABLE)))
+                        .bodyToMono(AiRecommendResponseDto.class)
+                        .block();
 
         if (response == null || response.getItems() == null) {
             return Collections.emptyList();
