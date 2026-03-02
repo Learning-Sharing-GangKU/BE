@@ -1,6 +1,7 @@
 package com.gangku.be.service;
 
 import com.gangku.be.domain.Category;
+import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.SignUpRequestDto;
@@ -10,6 +11,7 @@ import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.UserRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +80,12 @@ public class UserService {
         User user = findUserById(targetUserId);
 
         validateUserPrincipal(currentUserId, user);
+
+        List<Participation> participations = new ArrayList<>(user.getParticipations());
+
+        for (Participation participation : participations) {
+            participation.withdraw();
+        }
 
         userRepository.delete(user);
     }
