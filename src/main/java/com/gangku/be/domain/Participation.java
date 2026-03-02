@@ -52,12 +52,13 @@ public class Participation {
     }
 
     public static Participation create(User user, Gathering gathering, Role role) {
-        Participation participation = Participation.builder()
-                .user(user)
-                .gathering(gathering)
-                .status(Status.APPROVED)
-                .role(role)
-                .build();
+        Participation participation =
+                Participation.builder()
+                        .user(user)
+                        .gathering(gathering)
+                        .status(Status.APPROVED)
+                        .role(role)
+                        .build();
 
         participation.link(user, gathering);
 
