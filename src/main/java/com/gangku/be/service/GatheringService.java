@@ -175,6 +175,18 @@ public class GatheringService {
         gatheringRepository.delete(gathering);
     }
 
+    @Transactional
+    public void finishGathering(Long gatheringId, Long userId) {
+
+        Gathering gathering = findGatheringById(gatheringId);
+
+        validateGatheringHost(userId, gathering);
+
+        gathering.changeStatusAsFinished();
+
+        gatheringRepository.save(gathering);
+    }
+
     @Transactional(readOnly = true)
     public GatheringDetailResponseDto getGatheringDetail(
             Long gatheringId, int page, int size, String sortParam) {
@@ -415,7 +427,7 @@ public class GatheringService {
 
     private void validateGatheringHost(Long userId, Gathering gathering) {
         if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_DELETE_GATHERING);
+            throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_MANIPULATE_GATHERING);
         }
     }
 

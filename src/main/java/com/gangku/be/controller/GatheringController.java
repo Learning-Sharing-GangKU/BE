@@ -85,6 +85,15 @@ public class GatheringController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{gatheringId}/finish")
+    public ResponseEntity<Void> finishGathering(
+            @PathVariable String gatheringId, @AuthenticationPrincipal Long userId) {
+        Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
+
+        gatheringService.finishGathering(internalGatheringId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     // AI 모임 정보 생성
     @PostMapping("/intro")
     public ResponseEntity<GatheringIntroResponseDto> createGatheringIntro(

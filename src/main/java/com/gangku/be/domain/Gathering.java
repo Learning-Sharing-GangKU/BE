@@ -99,6 +99,10 @@ public class Gathering {
         }
     }
 
+    public void changeStatusAsFinished() {
+        this.status = Status.FINISHED;
+    }
+
     public static Gathering create(
             User host,
             Category category,
