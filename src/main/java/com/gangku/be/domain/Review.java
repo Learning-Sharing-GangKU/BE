@@ -73,7 +73,7 @@ public class Review {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static Review create(User reviewer, User reviewee, Gathering gathering, int rating, String content) {
+    public static Review create(User reviewer, User reviewee, Gathering gathering, Integer rating, String content) {
         return Review.builder()
                 .reviewer(reviewer)
                 .reviewee(reviewee)
@@ -83,7 +83,7 @@ public class Review {
                 .build();
     }
 
-    public void update(int rating, String content) {
+    public void update(Integer rating, String content) {
         this.rating = rating;
         this.content = content;
     }
