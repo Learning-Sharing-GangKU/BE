@@ -80,7 +80,7 @@ public class User {
 
     public void addPreferredCategory(PreferredCategory preferredCategory) {
         this.preferredCategories.add(preferredCategory);
-        preferredCategory.setUser(this);
+        preferredCategory.assignUser(this);
     }
 
     public static User create(

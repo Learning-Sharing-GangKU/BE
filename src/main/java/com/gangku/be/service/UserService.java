@@ -138,7 +138,7 @@ public class UserService {
                         .map(
                                 category -> {
                                     PreferredCategory preferredCategory = new PreferredCategory();
-                                    preferredCategory.setCategory(category);
+                                    preferredCategory.assignCategory(category);
 
                                     newUser.addPreferredCategory(preferredCategory);
 
