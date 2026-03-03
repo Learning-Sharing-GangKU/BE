@@ -6,7 +6,15 @@ import lombok.*;
 
 @Getter
 @Entity
-@Table(name = "participations")
+@Table(
+        name = "participations",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_participations_gathering_user",
+                        columnNames = {"gathering_id", "user_id"}
+                )
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
