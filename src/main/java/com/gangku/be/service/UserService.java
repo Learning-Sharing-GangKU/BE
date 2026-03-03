@@ -74,7 +74,6 @@ public class UserService {
         return newUser;
     }
 
-    @Transactional
     public void deleteUser(Long targetUserId, Long currentUserId) {
 
         User user = findUserById(targetUserId);

@@ -39,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -75,7 +74,7 @@ public class AuthService {
     // ======================================================
     // 1. 로그인 / 토큰 재발급 / 로그아웃
     // ======================================================
-
+    @Transactional
     public TokenPair login(LoginRequestDto loginRequestDto) {
 
         // 1) 이메일 / 비밀번호 검증 및 유저 반환
@@ -93,6 +92,7 @@ public class AuthService {
         return tokenPair;
     }
 
+    @Transactional
     public TokenPair reIssue(HttpServletRequest request) {
 
         // 1) 쿠키에서 Refresh Token 꺼내기
@@ -114,6 +114,7 @@ public class AuthService {
         return tokenPair;
     }
 
+    @Transactional
     public void logout(HttpServletRequest request) {
 
         // 1) 쿠키에서 Refresh Token 꺼내기
@@ -136,6 +137,7 @@ public class AuthService {
     //    - STEP3: 클라이언트에서 세션 확인 (confirmEmailVerification)
     // ======================================================
 
+    @Transactional
     public EmailVerificationSendResult sendEmailVerification(String email) {
 
         // 1) 이메일 중복 검증
@@ -158,6 +160,7 @@ public class AuthService {
                 emailVerificationProps.getSessionTtlMinutes());
     }
 
+    @Transactional
     public void consumeEmailVerification(String emailVerificationTokenString) {
 
         // 1) JWT 서명/만료 검증
@@ -170,6 +173,7 @@ public class AuthService {
         markEmailAsVerified(email);
     }
 
+    @Transactional
     public EmailVerificationConfirmResult confirmEmailVerification(String sessionId) {
 
         // 1) 세션 ID 검증 + Redis 키 획득

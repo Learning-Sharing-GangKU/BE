@@ -175,7 +175,7 @@ public class GatheringService {
         gatheringRepository.delete(gathering);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public GatheringDetailResponseDto getGatheringDetail(
             Long gatheringId, int page, int size, String sortParam) {
 
@@ -207,6 +207,7 @@ public class GatheringService {
     }
 
     // 외부 AI 호출만 -> Client로 위임
+    @Transactional
     public GatheringIntroResponseDto createGatheringIntro(
             GatheringIntroRequestDto gatheringIntroRequestDto) {
         return aiIntroClient.createIntro(gatheringIntroRequestDto);
