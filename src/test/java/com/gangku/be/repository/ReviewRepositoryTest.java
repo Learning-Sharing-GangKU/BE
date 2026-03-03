@@ -12,6 +12,7 @@ import jakarta.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.*;
 
+@Tag("unit")
 @DataJpaTest
 class ReviewRepositoryTest {
 
