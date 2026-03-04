@@ -60,18 +60,22 @@ public class CreateReviewUnitTest {
         when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
                 .thenReturn(List.of(gatheringId));
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
-        when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> {
-            Review r = inv.getArgument(0);
-            java.lang.reflect.Field f = Review.class.getDeclaredField("id");
-            f.setAccessible(true);
-            f.set(r, 1L);
-            return r;
-        });
-        when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId))
+        when(reviewRepository.save(any(Review.class)))
+                .thenAnswer(
+                        inv -> {
+                            Review r = inv.getArgument(0);
+                            java.lang.reflect.Field f = Review.class.getDeclaredField("id");
+                            f.setAccessible(true);
+                            f.set(r, 1L);
+                            return r;
+                        });
+        when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
+                        gatheringId, reviewerId, revieweeId))
                 .thenReturn(false);
 
         // when
-        ReviewCreateResponseDto response = reviewService.createReview(reviewerId, revieweeId, requestDto);
+        ReviewCreateResponseDto response =
+                reviewService.createReview(reviewerId, revieweeId, requestDto);
 
         // then
         ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
@@ -88,10 +92,12 @@ public class CreateReviewUnitTest {
 
         verify(userRepository, times(1)).findById(reviewerId);
         verify(userRepository, times(1)).findById(revieweeId);
-        verify(participationRepository, times(1)).findFinishedCommonGatheringIds(reviewerId, revieweeId);
+        verify(participationRepository, times(1))
+                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
         verify(gatheringRepository, times(1)).findById(gatheringId);
 
-        verifyNoMoreInteractions(userRepository, participationRepository, gatheringRepository, reviewRepository);
+        verifyNoMoreInteractions(
+                userRepository, participationRepository, gatheringRepository, reviewRepository);
     }
 
     @Test
@@ -110,7 +116,8 @@ public class CreateReviewUnitTest {
                 .isEqualTo(ReviewErrorCode.INVALID_REVIEW_TARGET);
 
         // then
-        verifyNoInteractions(userRepository, participationRepository, gatheringRepository, reviewRepository);
+        verifyNoInteractions(
+                userRepository, participationRepository, gatheringRepository, reviewRepository);
     }
 
     @Test
@@ -192,7 +199,8 @@ public class CreateReviewUnitTest {
         // then
         verify(userRepository, times(1)).findById(reviewerId);
         verify(userRepository, times(1)).findById(revieweeId);
-        verify(participationRepository, times(1)).findFinishedCommonGatheringIds(reviewerId, revieweeId);
+        verify(participationRepository, times(1))
+                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
 
         verifyNoInteractions(gatheringRepository, reviewRepository);
         verifyNoMoreInteractions(userRepository, participationRepository);
@@ -226,7 +234,8 @@ public class CreateReviewUnitTest {
         // then
         verify(userRepository, times(1)).findById(reviewerId);
         verify(userRepository, times(1)).findById(revieweeId);
-        verify(participationRepository, times(1)).findFinishedCommonGatheringIds(reviewerId, revieweeId);
+        verify(participationRepository, times(1))
+                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
         verify(gatheringRepository, times(1)).findById(gatheringId);
 
         verifyNoInteractions(reviewRepository);
@@ -252,7 +261,8 @@ public class CreateReviewUnitTest {
         when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
                 .thenReturn(List.of(gatheringId));
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
-        when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId))
+        when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
+                        gatheringId, reviewerId, revieweeId))
                 .thenReturn(true);
 
         // when
@@ -264,7 +274,8 @@ public class CreateReviewUnitTest {
         // then
         verify(userRepository, times(1)).findById(reviewerId);
         verify(userRepository, times(1)).findById(revieweeId);
-        verify(participationRepository, times(1)).findFinishedCommonGatheringIds(reviewerId, revieweeId);
+        verify(participationRepository, times(1))
+                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
         verify(gatheringRepository, times(1)).findById(gatheringId);
 
         verify(reviewRepository, times(1))
@@ -272,6 +283,7 @@ public class CreateReviewUnitTest {
 
         verify(reviewRepository, never()).save(any());
 
-        verifyNoMoreInteractions(userRepository, participationRepository, gatheringRepository, reviewRepository);
+        verifyNoMoreInteractions(
+                userRepository, participationRepository, gatheringRepository, reviewRepository);
     }
 }

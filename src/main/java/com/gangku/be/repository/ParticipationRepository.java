@@ -31,7 +31,8 @@ ORDER BY p.joinedAt DESC, g.id DESC
 """)
     Page<Gathering> findJoinedGatheringsByUserId(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("""
+    @Query(
+            """
 select p1.gathering.id
 from Participation p1
 join Participation p2 on p2.gathering = p1.gathering

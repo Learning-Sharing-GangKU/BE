@@ -41,7 +41,8 @@ public class ParticipationService {
 
         validateConflict(user, gathering);
 
-        Participation participation = Participation.create(user, gathering, ParticipationRole.GUEST);
+        Participation participation =
+                Participation.create(user, gathering, ParticipationRole.GUEST);
 
         gathering.increaseParticipantCount();
 

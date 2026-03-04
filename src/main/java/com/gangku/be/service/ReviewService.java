@@ -55,22 +55,30 @@ public class ReviewService {
     }
 
     private Gathering findGatheringById(Long gatheringId) {
-        Gathering gathering = gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
+        Gathering gathering =
+                gatheringRepository
+                        .findById(gatheringId)
+                        .orElseThrow(
+                                () -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
         return gathering;
     }
 
     private Long findGatheringIdParticipatedTogether(Long reviewerId, Long revieweeId) {
-        Long gatheringId = participationRepository
-                .findFinishedCommonGatheringIds(reviewerId, revieweeId)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new CustomException(ReviewErrorCode.NO_PERMISSION_TO_WRITE_REVIEW));
+        Long gatheringId =
+                participationRepository
+                        .findFinishedCommonGatheringIds(reviewerId, revieweeId)
+                        .stream()
+                        .findFirst()
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                ReviewErrorCode.NO_PERMISSION_TO_WRITE_REVIEW));
         return gatheringId;
     }
 
     private void validateNotDuplicatedReview(Long gatheringId, Long reviewerId, Long revieweeId) {
-        if (reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId)) {
+        if (reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
+                gatheringId, reviewerId, revieweeId)) {
             throw new CustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
         }
     }

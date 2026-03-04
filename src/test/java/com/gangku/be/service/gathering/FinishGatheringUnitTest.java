@@ -37,7 +37,11 @@ public class FinishGatheringUnitTest {
 
         User host = User.builder().id(userId).build();
         Gathering gathering =
-                Gathering.builder().id(gatheringId).host(host).status(GatheringStatus.RECRUITING).build();
+                Gathering.builder()
+                        .id(gatheringId)
+                        .host(host)
+                        .status(GatheringStatus.RECRUITING)
+                        .build();
 
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
@@ -79,7 +83,11 @@ public class FinishGatheringUnitTest {
 
         User host = User.builder().id(hostId).build();
         Gathering gathering =
-                Gathering.builder().id(gatheringId).host(host).status(GatheringStatus.RECRUITING).build();
+                Gathering.builder()
+                        .id(gatheringId)
+                        .host(host)
+                        .status(GatheringStatus.RECRUITING)
+                        .build();
 
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
