@@ -3,6 +3,7 @@ package com.gangku.be.repository;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,4 +30,17 @@ AND p.role = 'GUEST'
 ORDER BY p.joinedAt DESC, g.id DESC
 """)
     Page<Gathering> findJoinedGatheringsByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("""
+select p1.gathering.id
+from Participation p1
+join Participation p2 on p2.gathering = p1.gathering
+where p1.user.id = :reviewerId
+  and p2.user.id = :revieweeId
+  and p1.status = 'APPROVED'
+  and p2.status = 'APPROVED'
+  and p1.gathering.status = 'FINISHED'
+order by p1.gathering.date desc
+""")
+    List<Long> findFinishedCommonGatheringIds(Long reviewerId, Long revieweeId);
 }
