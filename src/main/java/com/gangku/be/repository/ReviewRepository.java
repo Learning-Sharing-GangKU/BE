@@ -12,5 +12,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Optional<Review> findByIdAndReviewerId(Long reviewId, Long reviewerId);
 
-    boolean existsByGatheringIdAndReviewerIdAndRevieweeId(Long gatheringId ,Long reviewerId, Long revieweeId);
+    boolean existsByGatheringIdAndReviewerIdAndRevieweeId(
+            Long gatheringId, Long reviewerId, Long revieweeId);
 }

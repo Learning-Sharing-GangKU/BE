@@ -18,8 +18,7 @@ public class ReviewCreateResponseDto {
     private LocalDateTime createdAt;
 
     public static ReviewCreateResponseDto from(Review review) {
-        String publicReviewId =
-                PrefixedId.of(ResourceType.REVIEW, review.getId()).toExternal();
+        String publicReviewId = PrefixedId.of(ResourceType.REVIEW, review.getId()).toExternal();
 
         return ReviewCreateResponseDto.builder()
                 .reviewId(publicReviewId)

@@ -27,11 +27,11 @@ public class ReviewController {
     public ResponseEntity<ReviewCreateResponseDto> createReview(
             @PathVariable("userId") String revieweeId,
             @Valid @RequestBody ReviewCreateRequestDto reviewCreateRequestDto,
-            @AuthenticationPrincipal Long reviewerId
-    ) {
+            @AuthenticationPrincipal Long reviewerId) {
         Long internalRevieweeId = PrefixedId.parse(revieweeId).require(ResourceType.USER);
 
-        ReviewCreateResponseDto reviewCreateResponseDto = reviewService.createReview(reviewerId, internalRevieweeId, reviewCreateRequestDto);
+        ReviewCreateResponseDto reviewCreateResponseDto =
+                reviewService.createReview(reviewerId, internalRevieweeId, reviewCreateRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(reviewCreateResponseDto);
     }
 }
