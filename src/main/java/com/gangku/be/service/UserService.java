@@ -74,7 +74,6 @@ public class UserService {
         return newUser;
     }
 
-    @Transactional
     public void deleteUser(Long targetUserId, Long currentUserId) {
 
         User user = findUserById(targetUserId);
@@ -138,7 +137,7 @@ public class UserService {
                         .map(
                                 category -> {
                                     PreferredCategory preferredCategory = new PreferredCategory();
-                                    preferredCategory.setCategory(category);
+                                    preferredCategory.assignCategory(category);
 
                                     newUser.addPreferredCategory(preferredCategory);
 

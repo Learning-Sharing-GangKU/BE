@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -28,6 +29,7 @@ public class ObjectStoragePresignService {
     private final AssetPolicyProps assetPolicyProps;
     private final FileUrlResolver fileUrlResolver;
 
+    @Transactional
     public PresignResponseDto presign(PresignRequestDto presignRequestDto) {
 
         // 1) MIME major → category 선택 (현재는 이미지만 저장하지만, 확장성 고려)

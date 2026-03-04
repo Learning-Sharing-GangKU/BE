@@ -1,0 +1,55 @@
+package com.gangku.be.service;
+
+import com.gangku.be.domain.Review;
+import com.gangku.be.domain.User;
+import com.gangku.be.dto.review.ReviewCreateRequestDto;
+import com.gangku.be.dto.review.ReviewCreateResponseDto;
+import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.constant.ReviewErrorCode;
+import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.repository.GatheringRepository;
+import com.gangku.be.repository.ReviewRepository;
+import com.gangku.be.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class ReviewService {
+
+    private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+    private final GatheringRepository gatheringRepository;
+
+    @Transactional
+    public ReviewCreateResponseDto createReview(Long reviewerId, Long revieweeId, ReviewCreateRequestDto reviewCreateRequestDto) {
+
+        validateDifferentUser(reviewerId, revieweeId);
+
+        User reviewer = findUserById(reviewerId);
+
+        User reviewee = findUserById(revieweeId);
+
+        /**
+         * 같은 모임인지 확인하고 같은 모임이라면 그 모임 객체 생성하는 로직 필요
+         */
+
+        Review review = Review.create(reviewer, reviewee, gathering, reviewCreateRequestDto.getRating(), reviewCreateRequestDto.getComment());
+        reviewRepository.save(review);
+
+        return ReviewCreateResponseDto.from(review);
+    }
+
+    private User findUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        return user;
+    }
+
+    private void validateDifferentUser(Long reviewerId, Long revieweeId) {
+        if (reviewerId.equals(revieweeId)) {
+            throw new CustomException(ReviewErrorCode.INVALID_REVIEW_TARGET);
+        }
+    }
+}

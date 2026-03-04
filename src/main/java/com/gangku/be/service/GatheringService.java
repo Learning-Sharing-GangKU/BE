@@ -176,6 +176,18 @@ public class GatheringService {
     }
 
     @Transactional
+    public void finishGathering(Long gatheringId, Long userId) {
+
+        Gathering gathering = findGatheringById(gatheringId);
+
+        validateGatheringHost(userId, gathering);
+
+        gathering.changeStatusAsFinished();
+
+        gatheringRepository.save(gathering);
+    }
+
+    @Transactional(readOnly = true)
     public GatheringDetailResponseDto getGatheringDetail(
             Long gatheringId, int page, int size, String sortParam) {
 
@@ -207,6 +219,7 @@ public class GatheringService {
     }
 
     // 외부 AI 호출만 -> Client로 위임
+    @Transactional
     public GatheringIntroResponseDto createGatheringIntro(
             GatheringIntroRequestDto gatheringIntroRequestDto) {
         return aiIntroClient.createIntro(gatheringIntroRequestDto);
@@ -414,7 +427,7 @@ public class GatheringService {
 
     private void validateGatheringHost(Long userId, Gathering gathering) {
         if (!gathering.getHost().getId().equals(userId)) {
-            throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_DELETE_GATHERING);
+            throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_MANIPULATE_GATHERING);
         }
     }
 

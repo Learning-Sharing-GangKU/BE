@@ -6,7 +6,8 @@ import com.gangku.be.exception.constant.CommonErrorCode;
 public enum ResourceType {
     USER("usr_"),
     GATHERING("gath_"),
-    PARTICIPATION("part_");
+    PARTICIPATION("part_"),
+    REVIEW("rev_");
 
     private final String prefix;
 

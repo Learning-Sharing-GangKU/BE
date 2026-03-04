@@ -4,9 +4,10 @@ import com.gangku.be.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum GatheringErrorCode implements ErrorCode {
-    NO_PERMISSION_TO_DELETE_GATHERING(
-            "NO_PERMISSION_TO_DELETE_GATHERING", "해당 모임의 호스트가 아닙니다.", HttpStatus.FORBIDDEN.value()),
+    NO_PERMISSION_TO_MANIPULATE_GATHERING(
+            "NO_PERMISSION_TO_MANIPULATE_GATHERING", "해당 모임의 호스트가 아닙니다.", HttpStatus.FORBIDDEN.value()),
     GATHERING_NOT_FOUND("GATHERING_NOT_FOUND", "해당 모임을 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value()),
+    ALREADY_FINISHED_GATHERING("ALREADY_FINISHED_GATHERING", "이미 종료된 모임입니다.", HttpStatus.CONFLICT.value()),
     AI_SERVICE_UNAVAILABLE(
             "AI_SERVICE_UNAVAILABLE",
             "AI 모델 서버와의 통신에 실패했습니다.",

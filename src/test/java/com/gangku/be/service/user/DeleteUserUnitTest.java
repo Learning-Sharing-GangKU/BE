@@ -1,4 +1,4 @@
-package com.gangku.be.user;
+package com.gangku.be.service.user;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;

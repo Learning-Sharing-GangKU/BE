@@ -32,7 +32,7 @@ app:
     from: ${MAIL_FROM}
     verification:
       token-ttl-minutes: 10
-      session-ttl-minutes: 60
+      session-ttl-minutes: 10
   cdn:
     base-url: ${CDN_BASE_URL}
 

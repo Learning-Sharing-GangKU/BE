@@ -7,10 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class HomeService {
     private final GatheringService gatheringService;
 
+    @Transactional(readOnly = true)
     public HomeResponseDto getHome(Long userId, int page, int size) {
         return HomeResponseDto.builder()
                 .recommended(gatheringService.getRecommendedGatherings(userId, page, size))

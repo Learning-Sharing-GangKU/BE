@@ -41,7 +41,7 @@ public class Gathering {
 
     @Column(name = "participant_count", nullable = false)
     @Builder.Default
-    private Integer participantCount = 0;
+    private Integer participantCount = 1;
 
     @Column(nullable = false)
     private LocalDateTime date;
@@ -99,6 +99,10 @@ public class Gathering {
         }
     }
 
+    public void changeStatusAsFinished() {
+        this.status = Status.FINISHED;
+    }
+
     public static Gathering create(
             User host,
             Category category,
@@ -116,7 +120,6 @@ public class Gathering {
                 .description(description)
                 .gatheringImageObjectKey(gatheringImageObjectKey)
                 .capacity(capacity)
-                .participantCount(1)
                 .date(date)
                 .location(location)
                 .openChatUrl(openChatUrl)

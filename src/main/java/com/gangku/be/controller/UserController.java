@@ -54,9 +54,9 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(
             @PathVariable("userId") String targetUserId,
             @AuthenticationPrincipal Long currentUserId) {
-        Long internalUserId = PrefixedId.parse(targetUserId).require(ResourceType.USER);
+        Long internalTargetUserId = PrefixedId.parse(targetUserId).require(ResourceType.USER);
 
-        userService.deleteUser(internalUserId, currentUserId);
+        userService.deleteUser(internalTargetUserId, currentUserId);
         return ResponseEntity.noContent().build();
     }
 
