@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class HomeController {
 
-    private final GatheringService gatheringService;
     private final HomeService homeService;
 
     @GetMapping()
