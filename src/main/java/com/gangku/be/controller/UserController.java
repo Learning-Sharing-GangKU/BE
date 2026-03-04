@@ -5,6 +5,8 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.SignUpResponseDto;
+import com.gangku.be.dto.user.UpdateReviewSettingRequestDto;
+import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.UserService;
@@ -58,6 +60,18 @@ public class UserController {
 
         userService.deleteUser(internalTargetUserId, currentUserId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{userId}/review")
+    public ResponseEntity<UpdateReviewSettingResponseDto> updateReviewSetting(
+            @PathVariable("userId") String targetUserId,
+            @AuthenticationPrincipal Long currentUserId,
+            @RequestBody @Valid UpdateReviewSettingRequestDto updateReviewSettingRequestDto
+    ) {
+        Long internalTargetUserId = PrefixedId.parse(targetUserId).require(ResourceType.USER);
+
+        UpdateReviewSettingResponseDto updateReviewSettingResponseDto = userService.updateReviewSetting(internalTargetUserId, currentUserId, updateReviewSettingRequestDto.getReviewPublic());
+        return ResponseEntity.ok(updateReviewSettingResponseDto);
     }
 
     /** 특정 사용자의 모임 목록 조회 - role=host → 내가 만든 모임 - role=guest → 내가 참여한 모임 */
