@@ -66,11 +66,14 @@ public class UserController {
     public ResponseEntity<UpdateReviewSettingResponseDto> updateReviewSetting(
             @PathVariable("userId") String targetUserId,
             @AuthenticationPrincipal Long currentUserId,
-            @RequestBody @Valid UpdateReviewSettingRequestDto updateReviewSettingRequestDto
-    ) {
+            @RequestBody @Valid UpdateReviewSettingRequestDto updateReviewSettingRequestDto) {
         Long internalTargetUserId = PrefixedId.parse(targetUserId).require(ResourceType.USER);
 
-        UpdateReviewSettingResponseDto updateReviewSettingResponseDto = userService.updateReviewSetting(internalTargetUserId, currentUserId, updateReviewSettingRequestDto.getReviewPublic());
+        UpdateReviewSettingResponseDto updateReviewSettingResponseDto =
+                userService.updateReviewSetting(
+                        internalTargetUserId,
+                        currentUserId,
+                        updateReviewSettingRequestDto.getReviewPublic());
         return ResponseEntity.ok(updateReviewSettingResponseDto);
     }
 

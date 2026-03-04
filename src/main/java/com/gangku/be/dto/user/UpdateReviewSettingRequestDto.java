@@ -10,6 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateReviewSettingRequestDto {
 
-    @NotNull
-    private Boolean reviewPublic;
+    @NotNull private Boolean reviewPublic;
 }

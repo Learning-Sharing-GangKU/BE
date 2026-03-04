@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,7 +91,8 @@ public class UserService {
     }
 
     @Transactional
-    public UpdateReviewSettingResponseDto updateReviewSetting(Long targetUserId, Long currentUserId, Boolean reviewSetting) {
+    public UpdateReviewSettingResponseDto updateReviewSetting(
+            Long targetUserId, Long currentUserId, Boolean reviewSetting) {
 
         User user = findUserById(targetUserId);
 

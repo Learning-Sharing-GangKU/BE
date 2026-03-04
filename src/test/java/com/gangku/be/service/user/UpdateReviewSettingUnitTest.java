@@ -12,6 +12,7 @@ import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -21,8 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +59,11 @@ public class UpdateReviewSettingUnitTest {
         verify(userRepository, times(1)).save(user);
         verifyNoMoreInteractions(userRepository);
 
-        verifyNoInteractions(categoryRepository, preferredCategoryRepository, stringRedisTemplate, passwordEncoder);
+        verifyNoInteractions(
+                categoryRepository,
+                preferredCategoryRepository,
+                stringRedisTemplate,
+                passwordEncoder);
     }
 
     @Test
@@ -74,7 +77,10 @@ public class UpdateReviewSettingUnitTest {
         when(userRepository.findById(targetUserId)).thenReturn(Optional.empty());
 
         // when
-        assertThatThrownBy(() -> userService.updateReviewSetting(targetUserId, currentUserId, reviewSetting))
+        assertThatThrownBy(
+                        () ->
+                                userService.updateReviewSetting(
+                                        targetUserId, currentUserId, reviewSetting))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
@@ -84,11 +90,16 @@ public class UpdateReviewSettingUnitTest {
         verify(userRepository, never()).save(any());
         verifyNoMoreInteractions(userRepository);
 
-        verifyNoInteractions(categoryRepository, preferredCategoryRepository, stringRedisTemplate, passwordEncoder);
+        verifyNoInteractions(
+                categoryRepository,
+                preferredCategoryRepository,
+                stringRedisTemplate,
+                passwordEncoder);
     }
 
     @Test
-    @DisplayName("리뷰 설정 변경 (403 Forbidden): 본인이 아니면 NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION 예외")
+    @DisplayName(
+            "리뷰 설정 변경 (403 Forbidden): 본인이 아니면 NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION 예외")
     void updateReviewSetting_noPermission() {
         // given
         Long targetUserId = 1L;
@@ -100,7 +111,10 @@ public class UpdateReviewSettingUnitTest {
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
 
         // when
-        assertThatThrownBy(() -> userService.updateReviewSetting(targetUserId, currentUserId, reviewSetting))
+        assertThatThrownBy(
+                        () ->
+                                userService.updateReviewSetting(
+                                        targetUserId, currentUserId, reviewSetting))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
@@ -110,6 +124,10 @@ public class UpdateReviewSettingUnitTest {
         verify(userRepository, never()).save(any());
         verifyNoMoreInteractions(userRepository);
 
-        verifyNoInteractions(categoryRepository, preferredCategoryRepository, stringRedisTemplate, passwordEncoder);
+        verifyNoInteractions(
+                categoryRepository,
+                preferredCategoryRepository,
+                stringRedisTemplate,
+                passwordEncoder);
     }
 }
