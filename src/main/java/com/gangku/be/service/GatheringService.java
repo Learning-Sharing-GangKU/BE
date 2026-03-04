@@ -1,11 +1,11 @@
 package com.gangku.be.service;
 
 import com.gangku.be.constant.gathering.GatheringSort;
+import com.gangku.be.constant.gathering.GatheringStatus;
+import com.gangku.be.constant.participation.ParticipationRole;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.Gathering.Status;
 import com.gangku.be.domain.Participation;
-import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.AiRecommendRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
@@ -111,7 +111,7 @@ public class GatheringService {
         Gathering savedGathering = gatheringRepository.save(gathering);
 
         // 호스트도 참여자로 추가
-        Participation participation = Participation.create(host, savedGathering, Role.HOST);
+        Participation participation = Participation.create(host, savedGathering, ParticipationRole.HOST);
         participationRepository.save(participation);
 
         // 4. 응답 DTO 생성
@@ -283,7 +283,7 @@ public class GatheringService {
                         .toList();
 
         List<Gathering> candidates =
-                gatheringRepository.findTop50ByStatusOrderByCreatedAtDesc(Status.RECRUITING);
+                gatheringRepository.findTop50ByStatusOrderByCreatedAtDesc(GatheringStatus.RECRUITING);
 
         AiRecommendRequestDto aiRecommendRequestDto =
                 AiRecommendRequestDto.from(user, preferredCategories, candidates);

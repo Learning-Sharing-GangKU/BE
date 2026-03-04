@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.gangku.be.constant.gathering.GatheringStatus;
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.Gathering.Status;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
@@ -37,7 +37,7 @@ public class FinishGatheringUnitTest {
 
         User host = User.builder().id(userId).build();
         Gathering gathering =
-                Gathering.builder().id(gatheringId).host(host).status(Status.RECRUITING).build();
+                Gathering.builder().id(gatheringId).host(host).status(GatheringStatus.RECRUITING).build();
 
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
@@ -45,7 +45,7 @@ public class FinishGatheringUnitTest {
         gatheringService.finishGathering(gatheringId, userId);
 
         // then
-        assertThat(gathering.getStatus()).isEqualTo(Status.FINISHED);
+        assertThat(gathering.getStatus()).isEqualTo(GatheringStatus.FINISHED);
         verify(gatheringRepository, times(1)).findById(gatheringId);
         verify(gatheringRepository, times(1)).save(gathering);
     }
@@ -79,7 +79,7 @@ public class FinishGatheringUnitTest {
 
         User host = User.builder().id(hostId).build();
         Gathering gathering =
-                Gathering.builder().id(gatheringId).host(host).status(Status.RECRUITING).build();
+                Gathering.builder().id(gatheringId).host(host).status(GatheringStatus.RECRUITING).build();
 
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
 
@@ -91,6 +91,6 @@ public class FinishGatheringUnitTest {
 
         verify(gatheringRepository, times(1)).findById(gatheringId);
         verify(gatheringRepository, never()).save(any());
-        assertThat(gathering.getStatus()).isNotEqualTo(Status.FINISHED);
+        assertThat(gathering.getStatus()).isNotEqualTo(GatheringStatus.FINISHED);
     }
 }

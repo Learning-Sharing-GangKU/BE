@@ -1,5 +1,6 @@
 package com.gangku.be.repository;
 
+import com.gangku.be.constant.gathering.GatheringStatus;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Gathering.Status;
@@ -94,7 +95,7 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
     Page<Gathering> findByHostIdOrderByCreatedAtDesc(@Param("host") User host, Pageable pageable);
 
     // AI 후보용: 모집중인 방 중 최신 50개
-    List<Gathering> findTop50ByStatusOrderByCreatedAtDesc(Status status);
+    List<Gathering> findTop50ByStatusOrderByCreatedAtDesc(GatheringStatus status);
 
     // AI가 추천해준 ID 리스트로 조회
     List<Gathering> findByIdIn(Collection<Long> ids);

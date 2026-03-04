@@ -1,8 +1,8 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.participation.ParticipationRole;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
-import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
@@ -40,7 +40,7 @@ public class ParticipationService {
 
         validateConflict(user, gathering);
 
-        Participation participation = Participation.create(user, gathering, Role.GUEST);
+        Participation participation = Participation.create(user, gathering, ParticipationRole.GUEST);
 
         gathering.increaseParticipantCount();
 
