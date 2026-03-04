@@ -3,7 +3,6 @@ package com.gangku.be.repository;
 import com.gangku.be.constant.gathering.GatheringStatus;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.Gathering.Status;
 import com.gangku.be.domain.User;
 import java.util.Collection;
 import java.util.List;
