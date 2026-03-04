@@ -1,5 +1,6 @@
 package com.gangku.be.domain;
 
+import com.gangku.be.constant.gathering.GatheringStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -54,13 +55,7 @@ public class Gathering {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Status status;
-
-    public enum Status {
-        RECRUITING,
-        FULL,
-        FINISHED
-    }
+    private GatheringStatus status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -87,7 +82,7 @@ public class Gathering {
         this.participantCount++;
 
         if (this.participantCount >= this.capacity) {
-            this.status = Status.FULL;
+            this.status = GatheringStatus.FULL;
         }
     }
 
@@ -95,12 +90,12 @@ public class Gathering {
         this.participantCount--;
 
         if (this.participantCount < this.capacity) {
-            this.status = Status.RECRUITING;
+            this.status = GatheringStatus.RECRUITING;
         }
     }
 
     public void changeStatusAsFinished() {
-        this.status = Status.FINISHED;
+        this.status = GatheringStatus.FINISHED;
     }
 
     public static Gathering create(
@@ -123,7 +118,7 @@ public class Gathering {
                 .date(date)
                 .location(location)
                 .openChatUrl(openChatUrl)
-                .status(Status.RECRUITING)
+                .status(GatheringStatus.RECRUITING)
                 .build();
     }
 }

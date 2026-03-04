@@ -1,5 +1,7 @@
 package com.gangku.be.domain;
 
+import com.gangku.be.constant.participation.ParticipationRole;
+import com.gangku.be.constant.participation.ParticipationStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -32,37 +34,26 @@ public class Participation {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status;
+    private ParticipationStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private ParticipationRole role;
 
     @Column(nullable = false)
     private LocalDateTime joinedAt;
-
-    public enum Status {
-        APPROVED,
-        PENDING,
-        CANCELED
-    }
-
-    public enum Role {
-        HOST,
-        GUEST
-    }
 
     @PrePersist
     public void prePersist() {
         this.joinedAt = LocalDateTime.now();
     }
 
-    public static Participation create(User user, Gathering gathering, Role role) {
+    public static Participation create(User user, Gathering gathering, ParticipationRole role) {
         Participation participation =
                 Participation.builder()
                         .user(user)
                         .gathering(gathering)
-                        .status(Status.APPROVED)
+                        .status(ParticipationStatus.APPROVED)
                         .role(role)
                         .build();
 

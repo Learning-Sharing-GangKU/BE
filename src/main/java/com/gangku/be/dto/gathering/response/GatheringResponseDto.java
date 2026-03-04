@@ -26,6 +26,7 @@ public class GatheringResponseDto {
     private String location;
     private String openChatUrl;
     private String description;
+    private String status;
     private String hostId;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -47,6 +48,7 @@ public class GatheringResponseDto {
                 .location(gathering.getLocation())
                 .openChatUrl(gathering.getOpenChatUrl())
                 .description(gathering.getDescription())
+                .status(gathering.getStatus().name())
                 .hostId(publicUserId)
                 .createdAt(gathering.getCreatedAt())
                 .build();
