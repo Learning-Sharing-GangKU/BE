@@ -24,6 +24,7 @@ public class GatheringDetailResponseDto {
     private String location;
     private String openChatUrl;
     private String description;
+    private String status;
     private HostSummary host;
     private ParticipantsPreview participantsPreview;
     private LocalDateTime createdAt;
@@ -47,6 +48,7 @@ public class GatheringDetailResponseDto {
                 .location(gathering.getLocation())
                 .openChatUrl(gathering.getOpenChatUrl())
                 .description(gathering.getDescription())
+                .status(gathering.getStatus().toString())
                 .host(host)
                 .participantsPreview(participantsPreview)
                 .createdAt(gathering.getCreatedAt())

@@ -1,8 +1,9 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.gathering.GatheringStatus;
+import com.gangku.be.constant.participation.ParticipationRole;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
-import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
@@ -40,7 +41,8 @@ public class ParticipationService {
 
         validateConflict(user, gathering);
 
-        Participation participation = Participation.create(user, gathering, Role.GUEST);
+        Participation participation =
+                Participation.create(user, gathering, ParticipationRole.GUEST);
 
         gathering.increaseParticipantCount();
 
@@ -55,8 +57,9 @@ public class ParticipationService {
         Gathering gathering = findGatheringById(gatheringId);
         User user = findUserById(userId);
 
-        // 참여자 정보 확인
         Participation participation = verifyUserInParticipation(user, gathering);
+
+        validateGatheringStatus(gathering);
 
         // 양방향 동기화
         participation.unlink();
@@ -114,6 +117,12 @@ public class ParticipationService {
         return participation;
     }
 
+    private void validateGatheringStatus(Gathering gathering) {
+        if (gathering.getStatus().equals(GatheringStatus.FINISHED)) {
+            throw new CustomException(ParticipationErrorCode.GATHERING_IS_FINISHED);
+        }
+    }
+
     private void validateConflict(User user, Gathering gathering) {
         if (participationRepository.existsByUserAndGathering(user, gathering)) {
             throw new CustomException(ParticipationErrorCode.ALREADY_JOINED);
@@ -122,6 +131,8 @@ public class ParticipationService {
         if (gathering.getParticipantCount() >= gathering.getCapacity()) {
             throw new CustomException(ParticipationErrorCode.CAPACITY_FULL);
         }
+
+        validateGatheringStatus(gathering);
     }
 
     private User findUserById(Long userId) {
