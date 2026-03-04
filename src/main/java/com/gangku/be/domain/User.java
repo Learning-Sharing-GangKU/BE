@@ -38,6 +38,7 @@ public class User {
     @Column(name = "profile_image_object_key", length = 255)
     private String profileImageObjectKey;
 
+    @Column(name = "reviews_public")
     private Boolean reviewsPublic;
 
     @Column(name = "refresh_token")
@@ -83,6 +84,7 @@ public class User {
         preferredCategory.assignUser(this);
     }
 
+
     public static User create(
             String email,
             String encodedPassword,
@@ -102,4 +104,6 @@ public class User {
                 .reviewsPublic(true)
                 .build();
     }
+
+
 }

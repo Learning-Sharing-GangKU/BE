@@ -1,20 +1,25 @@
 package com.gangku.be.service;
 
-import com.gangku.be.domain.Category;
-import com.gangku.be.domain.Participation;
-import com.gangku.be.domain.PreferredCategory;
-import com.gangku.be.domain.User;
+import com.gangku.be.constant.user.UserReviewSort;
+import com.gangku.be.domain.*;
 import com.gangku.be.dto.user.SignUpRequestDto;
+import com.gangku.be.dto.user.UserProfileResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.model.review.ReviewPageables;
+import com.gangku.be.model.review.ReviewsPreview;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
+import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.gangku.be.util.object.FileUrlResolver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,8 +34,10 @@ public class UserService {
     private final CategoryRepository categoryRepository;
     private final PreferredCategoryRepository preferredCategoryRepository;
 
+    private final FileUrlResolver fileUrlResolver;
     private final StringRedisTemplate stringRedisTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final ReviewRepository reviewRepository;
 
     public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
 
@@ -88,6 +95,53 @@ public class UserService {
 
         userRepository.delete(user);
     }
+
+    @Transactional(readOnly = true)
+    public UserProfileResponseDto getUserProfile(Long userId) {
+
+        User user = findUserById(userId);
+
+        String profileImageUrl = null;
+        String profileImageKey = null;
+        if (user.getProfileImageObjectKey() != null) {
+            profileImageUrl = fileUrlResolver.toPublicUrl(profileImageKey);
+        }
+
+        List<String> preferredCategories =
+                user.getPreferredCategories().stream()
+                        .map(pc -> pc.getCategory().getName())
+                        .toList();
+
+        UserReviewSort reviewSort = UserReviewSort.LATEST;
+
+
+        // 리뷰 조회
+        Page<Review> reviewPage =
+                reviewRepository.findByRevieweeId(userId, ReviewPageables.preview(reviewSort));
+
+        // 리뷰 프리뷰 생성
+        ReviewsPreview reviewsPreview = ReviewsPreview.from(
+                reviewPage,
+                reviewSort.toSortedByForSpec(),
+                r -> resolveImageUrl(r.getReviewer().getProfileImageObjectKey())
+        );
+
+        return UserProfileResponseDto.from(
+                user,
+                profileImageUrl,
+                preferredCategories,
+                reviewsPreview
+        );
+
+
+    }
+
+
+
+    private String resolveImageUrl(String objectKey) {
+        return objectKey == null ? null : fileUrlResolver.toPublicUrl(objectKey);
+    }
+
 
     /** --- 검증 및 반환 헬퍼 메서드 --- */
     private void validateEmailVerification(String sessionId, String email) {

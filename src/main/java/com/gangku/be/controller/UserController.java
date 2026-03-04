@@ -5,6 +5,7 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.SignUpResponseDto;
+import com.gangku.be.dto.user.UserProfileResponseDto;
 import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.UserService;
@@ -73,5 +74,13 @@ public class UserController {
         GatheringListResponseDto response =
                 gatheringService.getUserGatherings(userId, role, page, size, sort);
         return ResponseEntity.ok().header("Cache-Control", "private, max-age=60").body(response);
+    }
+
+
+
+    @GetMapping("/{userId}")
+    public UserProfileResponseDto getUserProfile(@PathVariable Long userId) {
+        return userService.getUserProfile(userId);
+
     }
 }
