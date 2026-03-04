@@ -8,7 +8,7 @@ public enum ReviewErrorCode implements ErrorCode {
             "INVALID_REVIEW_TARGET", "본인의 리뷰는 남길 수 없습니다.", HttpStatus.BAD_REQUEST.value()),
     NO_PERMISSION_TO_WRITE_REVIEW(
             "NO_PERMISSION_TO_WRITE_REVIEW",
-            "리뷰를 작성하려는 사용자와 같은 모임에 참여하지 않아 리뷰를 작성할 수 없습니다.",
+            "리뷰를 작성할 수 없습니다.",
             HttpStatus.FORBIDDEN.value()),
     REVIEW_ALREADY_EXISTS("REVIEW_ALREADY_EXISTS", "이미 해당 사용자에 대해 리뷰를 작성했습니다.", HttpStatus.CONFLICT.value());
 
