@@ -1,7 +1,6 @@
 package com.gangku.be.controller;
 
 import com.gangku.be.dto.home.response.HomeResponseDto;
-import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

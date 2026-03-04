@@ -6,6 +6,4 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-class CreateReviewUnitTest {
-
-}
+class CreateReviewUnitTest {}

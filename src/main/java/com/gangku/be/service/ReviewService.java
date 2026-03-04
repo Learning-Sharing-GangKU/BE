@@ -23,7 +23,8 @@ public class ReviewService {
     private final GatheringRepository gatheringRepository;
 
     @Transactional
-    public ReviewCreateResponseDto createReview(Long reviewerId, Long revieweeId, ReviewCreateRequestDto reviewCreateRequestDto) {
+    public ReviewCreateResponseDto createReview(
+            Long reviewerId, Long revieweeId, ReviewCreateRequestDto reviewCreateRequestDto) {
 
         validateDifferentUser(reviewerId, revieweeId);
 
@@ -31,19 +32,24 @@ public class ReviewService {
 
         User reviewee = findUserById(revieweeId);
 
-        /**
-         * 같은 모임인지 확인하고 같은 모임이라면 그 모임 객체 생성하는 로직 필요
-         */
-
-        Review review = Review.create(reviewer, reviewee, gathering, reviewCreateRequestDto.getRating(), reviewCreateRequestDto.getComment());
+        /** 같은 모임인지 확인하고 같은 모임이라면 그 모임 객체 생성하는 로직 필요 */
+        Review review =
+                Review.create(
+                        reviewer,
+                        reviewee,
+                        gathering,
+                        reviewCreateRequestDto.getRating(),
+                        reviewCreateRequestDto.getComment());
         reviewRepository.save(review);
 
         return ReviewCreateResponseDto.from(review);
     }
 
     private User findUserById(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         return user;
     }
 

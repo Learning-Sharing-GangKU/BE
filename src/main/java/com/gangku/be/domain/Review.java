@@ -22,12 +22,10 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "reviews",
         uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_reviews_gathering_reviewer_reviewee",
-                        columnNames = {"gathering_id", "reviewer_id", "reviewee_id"}
-                )
-        }
-)
+            @UniqueConstraint(
+                    name = "uk_reviews_gathering_reviewer_reviewee",
+                    columnNames = {"gathering_id", "reviewer_id", "reviewee_id"})
+        })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -73,7 +71,8 @@ public class Review {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static Review create(User reviewer, User reviewee, Gathering gathering, Integer rating, String content) {
+    public static Review create(
+            User reviewer, User reviewee, Gathering gathering, Integer rating, String content) {
         return Review.builder()
                 .reviewer(reviewer)
                 .reviewee(reviewee)
