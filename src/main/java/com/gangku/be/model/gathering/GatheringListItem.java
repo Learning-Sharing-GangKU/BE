@@ -16,7 +16,8 @@ public record GatheringListItem(
     public static GatheringListItem from(Gathering gathering, String gatheringImageUrl) {
         User host = gathering.getHost();
 
-        String publicGatheringId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
+        String publicGatheringId =
+                PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
 
         return new GatheringListItem(
                 publicGatheringId,

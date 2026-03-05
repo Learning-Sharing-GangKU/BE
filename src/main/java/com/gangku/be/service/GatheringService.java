@@ -444,16 +444,21 @@ public class GatheringService {
         return category;
     }
 
-    private Page<Gathering> getGatheringPage(Category category, GatheringSort sortType, Pageable pageable) {
+    private Page<Gathering> getGatheringPage(
+            Category category, GatheringSort sortType, Pageable pageable) {
         Page<Gathering> gatheringPage;
         if (category != null) {
-            gatheringPage = (sortType == GatheringSort.POPULAR)
-                    ? gatheringRepository.findPopularGatheringsByCategory(category, pageable)
-                    : gatheringRepository.findLatestGatheringsByCategory(category, pageable);
+            gatheringPage =
+                    (sortType == GatheringSort.POPULAR)
+                            ? gatheringRepository.findPopularGatheringsByCategory(
+                                    category, pageable)
+                            : gatheringRepository.findLatestGatheringsByCategory(
+                                    category, pageable);
         } else {
-            gatheringPage = (sortType == GatheringSort.POPULAR)
-                    ? gatheringRepository.findPopularGatherings(pageable)
-                    : gatheringRepository.findLatestGatherings(pageable);
+            gatheringPage =
+                    (sortType == GatheringSort.POPULAR)
+                            ? gatheringRepository.findPopularGatherings(pageable)
+                            : gatheringRepository.findLatestGatherings(pageable);
         }
         return gatheringPage;
     }
