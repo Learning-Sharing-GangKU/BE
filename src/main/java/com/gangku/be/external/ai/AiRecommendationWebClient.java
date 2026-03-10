@@ -25,6 +25,7 @@ public class AiRecommendationWebClient implements AiRecommendationClient {
 
     @Override
     public List<Long> recommend(AiRecommendRequestDto request) {
+        try {
         AiRecommendResponseDto response =
                 webClient
                         .post()
@@ -45,5 +46,10 @@ public class AiRecommendationWebClient implements AiRecommendationClient {
             return Collections.emptyList();
         }
         return response.getItems();
+    } catch (Exception e) {
+
+            // 🔥 AI 서버 안 켜져있을 때 fallback
+            return List.of(1L, 2L, 3L);
+        }
     }
 }

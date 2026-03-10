@@ -84,6 +84,19 @@ public class User {
         preferredCategory.assignUser(this);
     }
 
+    public void updateProfile(
+            String profileImageObjectKey,
+            String nickname,
+            Integer age,
+            String gender,
+            Integer enrollNumber) {
+        if (profileImageObjectKey != null) this.profileImageObjectKey = profileImageObjectKey;
+        if (nickname != null) this.nickname = nickname;
+        if (age != null) this.age = age;
+        if (gender != null) this.gender = gender;
+        if (enrollNumber != null) this.enrollNumber = enrollNumber;
+    }
+
 
     public static User create(
             String email,

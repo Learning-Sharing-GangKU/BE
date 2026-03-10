@@ -16,6 +16,7 @@ import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +55,7 @@ public class GetUserProfileUnitTest {
                         .enrollNumber(22)
                         .profileImageObjectKey("profiles/user1.png")
                         .reviewsPublic(true)
+                        .preferredCategories(new ArrayList<>())
                         .build();
 
         // 리뷰어 유저

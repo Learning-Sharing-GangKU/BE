@@ -3,9 +3,7 @@ package com.gangku.be.controller;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
-import com.gangku.be.dto.user.SignUpRequestDto;
-import com.gangku.be.dto.user.SignUpResponseDto;
-import com.gangku.be.dto.user.UserProfileResponseDto;
+import com.gangku.be.dto.user.*;
 import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.service.UserService;
@@ -79,8 +77,28 @@ public class UserController {
 
 
     @GetMapping("/{userId}")
-    public UserProfileResponseDto getUserProfile(@PathVariable Long userId) {
-        return userService.getUserProfile(userId);
+    public ResponseEntity<UserProfileResponseDto> getUserProfile (
+            @PathVariable String userId) {
+        Long internalUserId =
+                PrefixedId.parse(userId).require(ResourceType.USER);
+        UserProfileResponseDto response =
+                userService.getUserProfile(internalUserId);
+
+        return ResponseEntity.ok(response);
 
     }
+
+    @PatchMapping("/{userId}")
+    public ResponseEntity<UserProfileUpdateResponseDto> updateUserProfile(
+            @PathVariable String userId,
+            @AuthenticationPrincipal Long currentUserId,
+            @Valid @RequestBody UserProfileUpdateRequestDto requestDto
+    ){
+        Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
+        UserProfileUpdateResponseDto response =
+                userService.updateUserProfile(internalUserId, currentUserId, requestDto);
+
+        return ResponseEntity.ok(response);
+    }
+
 }

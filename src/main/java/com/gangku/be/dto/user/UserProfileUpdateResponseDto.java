@@ -2,16 +2,15 @@ package com.gangku.be.dto.user;
 
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
-import java.util.List;
-
 import com.gangku.be.model.common.PrefixedId;
-import com.gangku.be.model.review.ReviewsPreview;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class UserProfileResponseDto {
+public class UserProfileUpdateResponseDto {
 
     private String id;
     private String profileImageUrl;
@@ -20,18 +19,18 @@ public class UserProfileResponseDto {
     private String gender;
     private Integer enrollNumber;
     private List<String> preferredCategories;
-    private Boolean reviewsPublic;
-    private ReviewsPreview reviewsPreview;
+    private LocalDateTime updatedAt;
 
-    public static UserProfileResponseDto from(
+    public static UserProfileUpdateResponseDto from(
             User user,
             String profileImageUrl,
-            List<String> preferredCategories,
-            ReviewsPreview reviewsPreview
+            List<String> preferredCategories
     ) {
+
         String publicUserId =
                 PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
-        return UserProfileResponseDto.builder()
+
+        return UserProfileUpdateResponseDto.builder()
                 .id(publicUserId)
                 .profileImageUrl(profileImageUrl)
                 .nickname(user.getNickname())
@@ -39,10 +38,7 @@ public class UserProfileResponseDto {
                 .gender(user.getGender())
                 .enrollNumber(user.getEnrollNumber())
                 .preferredCategories(preferredCategories)
-                .reviewsPublic(user.getReviewsPublic())
-                .reviewsPreview(reviewsPreview)
+                .updatedAt(user.getUpdatedAt())
                 .build();
     }
-
-
 }

@@ -4,6 +4,8 @@ import com.gangku.be.constant.user.UserReviewSort;
 import com.gangku.be.domain.*;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.UserProfileResponseDto;
+import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
+import com.gangku.be.dto.user.UserProfileUpdateResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
@@ -76,7 +78,9 @@ public class UserService {
 
         stringRedisTemplate.delete("auth:signup:session:" + sessionId);
 
-        assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
+        if (signUpRequestDto.getPreferredCategories() != null) {
+            assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
+        }
 
         return newUser;
     }
@@ -100,12 +104,7 @@ public class UserService {
     public UserProfileResponseDto getUserProfile(Long userId) {
 
         User user = findUserById(userId);
-
-        String profileImageUrl = null;
-        String profileImageKey = null;
-        if (user.getProfileImageObjectKey() != null) {
-            profileImageUrl = fileUrlResolver.toPublicUrl(profileImageKey);
-        }
+        String profileImageUrl = resolveImageUrl(user.getProfileImageObjectKey());
 
         List<String> preferredCategories =
                 user.getPreferredCategories().stream()
@@ -136,12 +135,69 @@ public class UserService {
 
     }
 
+    @Transactional
+    public UserProfileUpdateResponseDto updateUserProfile(
+            Long targetUserId,
+            Long currentUserId,
+            UserProfileUpdateRequestDto requestDto
+    ) {
 
+        User user = findUserById(targetUserId);
 
-    private String resolveImageUrl(String objectKey) {
-        return objectKey == null ? null : fileUrlResolver.toPublicUrl(objectKey);
+        validateUserProfileOwner(currentUserId, user);
+
+        updateProfileFields(user, requestDto);
+
+        if (requestDto.getPreferredCategories() != null) {
+            replacePreferredCategories(user, requestDto.getPreferredCategories());
+        }
+
+        User savedUser = userRepository.save(user);
+
+        String profileImageUrl = resolveImageUrl(savedUser.getProfileImageObjectKey());
+
+        List<String> preferredCategories = savedUser.getPreferredCategories().stream()
+                .map(pc -> pc.getCategory().getName())
+                .map(String::toLowerCase)
+                .toList();
+
+        return UserProfileUpdateResponseDto.from(
+                savedUser,
+                profileImageUrl,
+                preferredCategories
+        );
     }
 
+
+
+
+    private String resolveImageUrl(String key) {
+        if (key == null || key.isBlank()) {
+        return null;
+        }
+        return fileUrlResolver.toPublicUrl(key);
+}
+
+
+
+    private void updateProfileFields(User user, UserProfileUpdateRequestDto requestDto) {
+        if (requestDto.getNickname() != null
+                && userRepository.existsByNicknameAndIdNot(requestDto.getNickname(), user.getId())) {
+            throw new CustomException(UserErrorCode.NICKNAME_ALREADY_EXISTS);
+        }
+        user.updateProfile(
+                requestDto.getProfileImageObjectKey(),
+                requestDto.getNickname(),
+                requestDto.getAge(),
+                requestDto.getGender(),
+                requestDto.getEnrollNumber());
+    }
+
+    private void replacePreferredCategories(User user, List<String> preferredCategories) {
+        user.getPreferredCategories().clear();
+        userRepository.flush();
+        assignPreferredCategories(preferredCategories, user);
+    }
 
     /** --- 검증 및 반환 헬퍼 메서드 --- */
     private void validateEmailVerification(String sessionId, String email) {
@@ -178,7 +234,7 @@ public class UserService {
 
     private void assignPreferredCategories(List<String> preferredCategories, User newUser) {
 
-        if (preferredCategories != null && preferredCategories.isEmpty()) {
+        if (preferredCategories == null || preferredCategories.isEmpty()) {
             return;
         }
 
@@ -211,6 +267,11 @@ public class UserService {
     private void validateUserPrincipal(Long currentUserId, User user) {
         if (!user.getId().equals(currentUserId)) {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_CANCEL_MEMBERSHIP);
+        }
+    }
+    private void validateUserProfileOwner(Long currentUserId, User user) {
+        if (!user.getId().equals(currentUserId)) {
+            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_UPDATE_PROFILE);
         }
     }
 }

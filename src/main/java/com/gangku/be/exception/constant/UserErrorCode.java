@@ -18,6 +18,12 @@ public enum UserErrorCode implements ErrorCode {
     NO_PERMISSION_TO_CANCEL_MEMBERSHIP(
             "NO_PERMISSION_TO_CANCEL_MEMBERSHIP",
             "회원탈퇴를 할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value()),
+
+    // --- 프로필 수정 ---
+    NO_PERMISSION_TO_UPDATE_PROFILE(
+            "NO_PERMISSION_TO_UPDATE_PROFILE",
+            "해당 프로필을 수정할 권한이 없습니다.",
             HttpStatus.FORBIDDEN.value());
 
     private final String code;
