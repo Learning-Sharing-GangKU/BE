@@ -53,3 +53,19 @@ assets:
 ai:
   server:
     base-url: ${AI_SERVER_BASE_URL}
+    connect-timeout-millis: 3000
+    response-timeout-millis: 5000
+    intro:
+      v1: /api/ai/v1/intro
+    text-filter:
+      v1: /api/ai/v1/text/filter
+      v2: /api/ai/v2/text/filter
+    recommendations:
+      v1: /api/ai/v1/recommendations
+      v2: /api/ai/v2/recommendations
+    refresh-clustering:
+      v1: /api/ai/v1/refresh/clustering
+      v2: /api/ai/v2/refresh/clustering
+    refresh-popularity:
+      v1: /api/ai/v1/refresh/popularity
+      v2: /api/ai/v2/refresh/popularity
