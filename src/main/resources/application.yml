@@ -52,7 +52,6 @@ assets:
 
 ai:
   server:
-    base-url: ${AI_SERVER_BASE_URL}
     connect-timeout-millis: 3000
     response-timeout-millis: 5000
     intro:
