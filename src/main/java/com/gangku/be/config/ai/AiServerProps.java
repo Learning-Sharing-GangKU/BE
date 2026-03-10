@@ -12,38 +12,9 @@ public class AiServerProps {
     private String baseUrl;
     private int connectTimeoutMillis;
     private int responseTimeoutMillis;
-    private Intro intro = new Intro();
-    private TextFilter textFilter = new TextFilter();
-    private Recommendations recommendations = new Recommendations();
-    private RefreshClustering refreshClustering = new RefreshClustering();
-    private RefreshPopularity refreshPopularity = new RefreshPopularity();
-
-    @Getter @Setter
-    public static class Intro {
-        private String v1;
-    }
-
-    @Getter @Setter
-    public static class TextFilter {
-        private String v1;
-        private String v2;
-    }
-
-    @Getter @Setter
-    public static class Recommendations {
-        private String v1;
-        private String v2;
-    }
-
-    @Getter @Setter
-    public static class RefreshClustering {
-        private String v1;
-        private String v2;
-    }
-
-    @Getter @Setter
-    public static class RefreshPopularity {
-        private String v1;
-        private String v2;
-    }
+    private String introPath;
+    private String textFilterPath;
+    private String recommendationsPath;
+    private String refreshClusteringPath;
+    private String refreshPopularityPath;
 }
