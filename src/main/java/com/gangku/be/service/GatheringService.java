@@ -7,20 +7,20 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.ai.AiRecommendRequestDto;
+import com.gangku.be.dto.ai.request.AiRecommendRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
+import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.*;
 import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
-import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
+import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.external.ai.AiIntroClient;
+import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.external.ai.AiRecommendationWebClient;
 import com.gangku.be.model.gathering.GatheringList;
 import com.gangku.be.model.participation.ParticipantsPreview;
@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -43,7 +42,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @RequiredArgsConstructor
@@ -54,13 +52,9 @@ public class GatheringService {
     private final ParticipationRepository participationRepository;
     private final UserRepository userRepository;
 
-    private final WebClient webClient;
     private final FileUrlResolver fileUrlResolver;
     private final AiRecommendationWebClient aiRecommendationWebClient;
-    private final AiIntroClient aiIntroClient;
-
-    @Value("${ai.server.base-url}")
-    private String aiServerBaseUrl;
+    private final AiApiClient aiApiClient;
 
     // 모임 생성 메서드
     @Transactional
@@ -221,9 +215,9 @@ public class GatheringService {
 
     // 외부 AI 호출만 -> Client로 위임
     @Transactional
-    public GatheringIntroResponseDto createGatheringIntro(
-            GatheringIntroRequestDto gatheringIntroRequestDto) {
-        return aiIntroClient.createIntro(gatheringIntroRequestDto);
+    public IntroCreateResponseDto createGatheringIntro(
+            IntroCreateRequestDto introCreateRequestDto) {
+        return aiApiClient.createIntro(introCreateRequestDto);
     }
 
     /**
@@ -234,7 +228,7 @@ public class GatheringService {
     public GatheringListResponseDto getGatheringList(
             String categoryName, int page, int size, String sort) {
 
-        Category category = verifyCategoryName(categoryName);
+        Category category = findCategoryByName(categoryName);
         GatheringSort sortType = GatheringSort.from(sort);
 
         Sort springSort =
@@ -376,11 +370,9 @@ public class GatheringService {
     }
 
     private User findUserById(Long hostId) {
-        User host =
-                userRepository
-                        .findById(hostId)
-                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-        return host;
+        return userRepository
+                .findById(hostId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private Category findCategoryByName(String categoryName) {
@@ -428,20 +420,6 @@ public class GatheringService {
         if (!gathering.getHost().getId().equals(userId)) {
             throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_MANIPULATE_GATHERING);
         }
-    }
-
-    private Category verifyCategoryName(String categoryName) {
-        Category category = null;
-        if (categoryName != null && !categoryName.isBlank()) {
-            category =
-                    categoryRepository
-                            .findByName(categoryName)
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    CategoryErrorCode.CATEGORY_NOT_FOUND));
-        }
-        return category;
     }
 
     private Page<Gathering> getGatheringPage(
