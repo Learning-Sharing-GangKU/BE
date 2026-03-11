@@ -22,13 +22,9 @@ public class UserProfileUpdateResponseDto {
     private LocalDateTime updatedAt;
 
     public static UserProfileUpdateResponseDto from(
-            User user,
-            String profileImageUrl,
-            List<String> preferredCategories
-    ) {
+            User user, String profileImageUrl, List<String> preferredCategories) {
 
-        String publicUserId =
-                PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
+        String publicUserId = PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
 
         return UserProfileUpdateResponseDto.builder()
                 .id(publicUserId)

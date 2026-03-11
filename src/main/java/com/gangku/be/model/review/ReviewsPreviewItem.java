@@ -9,8 +9,7 @@ public record ReviewsPreviewItem(
         String reviewerNickname,
         Integer rating,
         String content,
-        String createdAt
-) {
+        String createdAt) {
 
     public static ReviewsPreviewItem from(Review review, String reviewerProfileImageUrl) {
         return new ReviewsPreviewItem(
@@ -20,7 +19,6 @@ public record ReviewsPreviewItem(
                 review.getReviewer().getNickname(),
                 review.getRating(),
                 review.getContent(),
-                review.getCreatedAt().toString()
-        );
+                review.getCreatedAt().toString());
     }
 }

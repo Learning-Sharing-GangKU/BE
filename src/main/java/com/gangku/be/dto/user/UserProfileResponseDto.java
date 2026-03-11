@@ -2,10 +2,9 @@ package com.gangku.be.dto.user;
 
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
-import java.util.List;
-
 import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.model.review.ReviewsPreview;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -27,10 +26,8 @@ public class UserProfileResponseDto {
             User user,
             String profileImageUrl,
             List<String> preferredCategories,
-            ReviewsPreview reviewsPreview
-    ) {
-        String publicUserId =
-                PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
+            ReviewsPreview reviewsPreview) {
+        String publicUserId = PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
         return UserProfileResponseDto.builder()
                 .id(publicUserId)
                 .profileImageUrl(profileImageUrl)
@@ -43,6 +40,4 @@ public class UserProfileResponseDto {
                 .reviewsPreview(reviewsPreview)
                 .build();
     }
-
-
 }

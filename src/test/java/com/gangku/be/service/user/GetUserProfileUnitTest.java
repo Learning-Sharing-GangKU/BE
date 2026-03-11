@@ -4,13 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Review;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.model.review.ReviewsPreview;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
@@ -23,12 +21,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
@@ -106,8 +104,7 @@ public class GetUserProfileUnitTest {
         // 선호카테고리는 User.preferredCategories를 통해 내려가므로 여기서는 0개로 둔다
         // (선호카테고리 mapping은 도메인 구조에 따라 별도 fixture로 채워도 됨)
 
-        Page<Review> reviewPage =
-                new PageImpl<>(List.of(review1, review2, review3));
+        Page<Review> reviewPage = new PageImpl<>(List.of(review1, review2, review3));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(fileUrlResolver.toPublicUrl("profiles/user1.png"))

@@ -97,7 +97,6 @@ public class User {
         if (enrollNumber != null) this.enrollNumber = enrollNumber;
     }
 
-
     public static User create(
             String email,
             String encodedPassword,
@@ -117,6 +116,4 @@ public class User {
                 .reviewsPublic(true)
                 .build();
     }
-
-
 }

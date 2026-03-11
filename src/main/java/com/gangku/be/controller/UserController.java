@@ -74,31 +74,23 @@ public class UserController {
         return ResponseEntity.ok().header("Cache-Control", "private, max-age=60").body(response);
     }
 
-
-
     @GetMapping("/{userId}")
-    public ResponseEntity<UserProfileResponseDto> getUserProfile (
-            @PathVariable String userId) {
-        Long internalUserId =
-                PrefixedId.parse(userId).require(ResourceType.USER);
-        UserProfileResponseDto response =
-                userService.getUserProfile(internalUserId);
+    public ResponseEntity<UserProfileResponseDto> getUserProfile(@PathVariable String userId) {
+        Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
+        UserProfileResponseDto response = userService.getUserProfile(internalUserId);
 
         return ResponseEntity.ok(response);
-
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<UserProfileUpdateResponseDto> updateUserProfile(
             @PathVariable String userId,
             @AuthenticationPrincipal Long currentUserId,
-            @Valid @RequestBody UserProfileUpdateRequestDto requestDto
-    ){
+            @Valid @RequestBody UserProfileUpdateRequestDto requestDto) {
         Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
         UserProfileUpdateResponseDto response =
                 userService.updateUserProfile(internalUserId, currentUserId, requestDto);
 
         return ResponseEntity.ok(response);
     }
-
 }

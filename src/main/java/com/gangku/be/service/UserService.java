@@ -15,11 +15,10 @@ import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.util.object.FileUrlResolver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import com.gangku.be.util.object.FileUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -113,34 +112,24 @@ public class UserService {
 
         UserReviewSort reviewSort = UserReviewSort.LATEST;
 
-
         // 리뷰 조회
         Page<Review> reviewPage =
                 reviewRepository.findByRevieweeId(userId, ReviewPageables.preview(reviewSort));
 
         // 리뷰 프리뷰 생성
-        ReviewsPreview reviewsPreview = ReviewsPreview.from(
-                reviewPage,
-                reviewSort.toSortedByForSpec(),
-                r -> resolveImageUrl(r.getReviewer().getProfileImageObjectKey())
-        );
+        ReviewsPreview reviewsPreview =
+                ReviewsPreview.from(
+                        reviewPage,
+                        reviewSort.toSortedByForSpec(),
+                        r -> resolveImageUrl(r.getReviewer().getProfileImageObjectKey()));
 
         return UserProfileResponseDto.from(
-                user,
-                profileImageUrl,
-                preferredCategories,
-                reviewsPreview
-        );
-
-
+                user, profileImageUrl, preferredCategories, reviewsPreview);
     }
 
     @Transactional
     public UserProfileUpdateResponseDto updateUserProfile(
-            Long targetUserId,
-            Long currentUserId,
-            UserProfileUpdateRequestDto requestDto
-    ) {
+            Long targetUserId, Long currentUserId, UserProfileUpdateRequestDto requestDto) {
 
         User user = findUserById(targetUserId);
 
@@ -156,33 +145,26 @@ public class UserService {
 
         String profileImageUrl = resolveImageUrl(savedUser.getProfileImageObjectKey());
 
-        List<String> preferredCategories = savedUser.getPreferredCategories().stream()
-                .map(pc -> pc.getCategory().getName())
-                .map(String::toLowerCase)
-                .toList();
+        List<String> preferredCategories =
+                savedUser.getPreferredCategories().stream()
+                        .map(pc -> pc.getCategory().getName())
+                        .map(String::toLowerCase)
+                        .toList();
 
-        return UserProfileUpdateResponseDto.from(
-                savedUser,
-                profileImageUrl,
-                preferredCategories
-        );
+        return UserProfileUpdateResponseDto.from(savedUser, profileImageUrl, preferredCategories);
     }
-
-
-
 
     private String resolveImageUrl(String key) {
         if (key == null || key.isBlank()) {
-        return null;
+            return null;
         }
         return fileUrlResolver.toPublicUrl(key);
-}
-
-
+    }
 
     private void updateProfileFields(User user, UserProfileUpdateRequestDto requestDto) {
         if (requestDto.getNickname() != null
-                && userRepository.existsByNicknameAndIdNot(requestDto.getNickname(), user.getId())) {
+                && userRepository.existsByNicknameAndIdNot(
+                        requestDto.getNickname(), user.getId())) {
             throw new CustomException(UserErrorCode.NICKNAME_ALREADY_EXISTS);
         }
         user.updateProfile(
@@ -269,6 +251,7 @@ public class UserService {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_CANCEL_MEMBERSHIP);
         }
     }
+
     private void validateUserProfileOwner(Long currentUserId, User user) {
         if (!user.getId().equals(currentUserId)) {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_UPDATE_PROFILE);

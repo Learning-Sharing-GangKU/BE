@@ -26,27 +26,28 @@ public class AiRecommendationWebClient implements AiRecommendationClient {
     @Override
     public List<Long> recommend(AiRecommendRequestDto request) {
         try {
-        AiRecommendResponseDto response =
-                webClient
-                        .post()
-                        .uri(aiServerBaseUrl + "/api/ai/v1/recommendations")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(request)
-                        .retrieve()
-                        .onStatus(
-                                HttpStatusCode::is5xxServerError,
-                                r ->
-                                        Mono.error(
-                                                new CustomException(
-                                                        GatheringErrorCode.AI_SERVICE_UNAVAILABLE)))
-                        .bodyToMono(AiRecommendResponseDto.class)
-                        .block();
+            AiRecommendResponseDto response =
+                    webClient
+                            .post()
+                            .uri(aiServerBaseUrl + "/api/ai/v1/recommendations")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(request)
+                            .retrieve()
+                            .onStatus(
+                                    HttpStatusCode::is5xxServerError,
+                                    r ->
+                                            Mono.error(
+                                                    new CustomException(
+                                                            GatheringErrorCode
+                                                                    .AI_SERVICE_UNAVAILABLE)))
+                            .bodyToMono(AiRecommendResponseDto.class)
+                            .block();
 
-        if (response == null || response.getItems() == null) {
-            return Collections.emptyList();
-        }
-        return response.getItems();
-    } catch (Exception e) {
+            if (response == null || response.getItems() == null) {
+                return Collections.emptyList();
+            }
+            return response.getItems();
+        } catch (Exception e) {
 
             // 🔥 AI 서버 안 켜져있을 때 fallback
             return List.of(1L, 2L, 3L);
