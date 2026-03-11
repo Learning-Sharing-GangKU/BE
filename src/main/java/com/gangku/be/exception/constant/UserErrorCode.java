@@ -24,7 +24,11 @@ public enum UserErrorCode implements ErrorCode {
     NO_PERMISSION_TO_UPDATE_PROFILE(
             "NO_PERMISSION_TO_UPDATE_PROFILE",
             "해당 프로필을 수정할 권한이 없습니다.",
-            HttpStatus.FORBIDDEN.value());
+            HttpStatus.FORBIDDEN.value()),
+
+    // --- 리뷰 더보기 ---
+    NO_PERMISSION_TO_VIEW_REVIEW(
+            "NO_PERMISSION_TO_VIEW_REVIEW", "이 사용자의 리뷰를 볼 권한이 없습니다.", HttpStatus.FORBIDDEN.value());
 
     private final String code;
     private final String message;

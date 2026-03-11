@@ -7,12 +7,15 @@ import org.springframework.data.domain.Sort;
 
 @Getter
 public enum UserReviewSort {
-    LATEST("latest");
+    CREATED_AT_DESC("createdAt,desc", Sort.Direction.DESC),
+    CREATED_AT_ASC("createdAt,asc", Sort.Direction.ASC);
 
     private final String sort;
+    private final Sort.Direction direction;
 
-    UserReviewSort(String sort) {
+    UserReviewSort(String sort, Sort.Direction direction) {
         this.sort = sort;
+        this.direction = direction;
     }
 
     public static UserReviewSort from(String value) {
@@ -25,14 +28,10 @@ public enum UserReviewSort {
     }
 
     public Sort toSpringSort() {
-        return switch (this) {
-            case LATEST -> Sort.by("createdAt").descending().and(Sort.by("id").descending());
-        };
+        return Sort.by(direction, "createdAt").and(Sort.by(direction, "id"));
     }
 
     public String toSortedByForSpec() {
-        return switch (this) {
-            case LATEST -> "createdAt,desc,id,desc";
-        };
+        return this.sort;
     }
 }

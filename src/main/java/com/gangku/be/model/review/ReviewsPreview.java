@@ -1,25 +1,35 @@
 package com.gangku.be.model.review;
 
 import com.gangku.be.domain.Review;
-import com.gangku.be.model.common.PageMeta;
 import java.util.List;
 import java.util.function.Function;
-import org.springframework.data.domain.Page;
 
-public record ReviewsPreview(List<ReviewsPreviewItem> data, PageMeta meta) {
+public record ReviewsPreview(List<ReviewsPreviewItem> data, ReviewCursorMeta meta) {
 
     public static ReviewsPreview from(
-            Page<Review> reviewPage,
-            String sortedByForSpec,
+            List<Review> fetchedReviews,
+            int previewSize,
+            String sortedBy,
             Function<Review, String> profileImageResolver) {
 
+        boolean hasNext = fetchedReviews.size() > previewSize;
+
+        List<Review> previewReviews = fetchedReviews.stream().limit(previewSize).toList();
+
+        String nextCursor = null;
+        if (hasNext && !previewReviews.isEmpty()) {
+            Review lastReview = previewReviews.get(previewReviews.size() - 1);
+            nextCursor =
+                    ReviewCursorCodec.encode(
+                            new ReviewCursor(lastReview.getCreatedAt(), lastReview.getId()));
+        }
+
         List<ReviewsPreviewItem> items =
-                reviewPage.getContent().stream()
-                        .limit(3)
+                previewReviews.stream()
                         .map(r -> ReviewsPreviewItem.from(r, profileImageResolver.apply(r)))
                         .toList();
 
-        PageMeta meta = PageMeta.from(reviewPage, sortedByForSpec);
+        ReviewCursorMeta meta = ReviewCursorMeta.of(items.size(), sortedBy, nextCursor, hasNext);
 
         return new ReviewsPreview(items, meta);
     }

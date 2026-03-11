@@ -9,7 +9,7 @@ public class ReviewPageables {
     private ReviewPageables() {}
 
     public static Pageable preview(UserReviewSort sort) {
-        return PageRequest.of(0, 3, sort.toSpringSort());
+        return PageRequest.of(0, 4, sort.toSpringSort());
     }
 
     public static Pageable of(int page, int size, UserReviewSort sort) {
