@@ -95,6 +95,9 @@ public class User {
         if (age != null) this.age = age;
         if (gender != null) this.gender = gender;
         if (enrollNumber != null) this.enrollNumber = enrollNumber;
+      
+    public void changeReviewsPublic(Boolean reviewsPublic) {
+        this.reviewPublic = reviewsPublic;
     }
 
     public static User create(
@@ -113,7 +116,7 @@ public class User {
                 .gender(gender)
                 .enrollNumber(enrollNumber)
                 .profileImageObjectKey(profileImageObjectKey)
-                .reviewsPublic(true)
+                .reviewPublic(true)
                 .build();
     }
 }

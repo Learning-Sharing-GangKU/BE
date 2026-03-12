@@ -7,6 +7,7 @@ import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.UserProfileResponseDto;
 import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
 import com.gangku.be.dto.user.UserProfileUpdateResponseDto;
+import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
@@ -158,6 +159,21 @@ public class UserService {
 
         return UserProfileUpdateResponseDto.from(savedUser, profileImageUrl, preferredCategories);
     }
+  
+    @Transactional
+    public UpdateReviewSettingResponseDto updateReviewSetting(
+            Long targetUserId, Long currentUserId, Boolean reviewSetting) {
+
+        User user = findUserById(targetUserId);
+
+        validateUserPrincipal(currentUserId, user);
+
+        updateUserReviewsPublic(reviewSetting, user);
+
+        User updatedUser = userRepository.save(user);
+
+        return UpdateReviewSettingResponseDto.from(updatedUser);
+    }
 
     @Transactional(readOnly = true)
     public ReviewListResponseDto getUserReviews(
@@ -299,7 +315,7 @@ public class UserService {
 
     private void validateUserPrincipal(Long currentUserId, User user) {
         if (!user.getId().equals(currentUserId)) {
-            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_CANCEL_MEMBERSHIP);
+            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
         }
     }
 
@@ -316,5 +332,9 @@ public class UserService {
         if (!isOwner && !isPublic) {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_VIEW_REVIEW);
         }
+    }
+  
+    private void updateUserReviewsPublic(Boolean reviewSetting, User user) {
+        user.changeReviewsPublic(reviewSetting);
     }
 }

@@ -4,8 +4,6 @@ import com.gangku.be.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum UserErrorCode implements ErrorCode {
-
-    // --- 회원가입 ---
     USER_NOT_FOUND("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value()),
     EMAIL_CONFLICT("EMAIL_CONFLICT", "이미 가입된 이메일이 있습니다.", HttpStatus.CONFLICT.value()),
     INVALID_CREDENTIAL(
@@ -27,8 +25,10 @@ public enum UserErrorCode implements ErrorCode {
             HttpStatus.FORBIDDEN.value()),
 
     // --- 리뷰 더보기 ---
-    NO_PERMISSION_TO_VIEW_REVIEW(
-            "NO_PERMISSION_TO_VIEW_REVIEW", "이 사용자의 리뷰를 볼 권한이 없습니다.", HttpStatus.FORBIDDEN.value());
+    NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION(
+            "NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION",
+            "다른 유저 정보에 접근할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value());
 
     private final String code;
     private final String message;
