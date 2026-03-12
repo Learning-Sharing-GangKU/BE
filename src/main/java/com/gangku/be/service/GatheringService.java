@@ -69,14 +69,7 @@ public class GatheringService {
 
         Category category = findCategoryByName(gatheringCreateRequestDto.getCategory());
 
-        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromGatheringCreate(gatheringCreateRequestDto);
-        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
-
-        /**
-         * 여기에 타이틀 및 설명문 금칙어 체크 하는 거 추가
-         * allowed: false인지 true인지 확인
-         * 에러코드 추가 후 뱉기
-         */
+        validateGatheringContentFromGatheringCreate(gatheringCreateRequestDto);
 
         // 엔티티 생성
         Gathering gathering =
@@ -112,7 +105,7 @@ public class GatheringService {
 
         validateGatheringHost(userId, gathering);
 
-        validateGatheringText(gatheringUpdateRequestDto);
+        validateGatheringContentFromGatheringUpdate(gatheringUpdateRequestDto);
 
         updateRequestBody(gatheringUpdateRequestDto, gathering);
 
@@ -386,7 +379,16 @@ public class GatheringService {
         }
     }
 
-    private void validateGatheringText(GatheringUpdateRequestDto gatheringUpdateRequestDto) {
+    private void validateGatheringContentFromGatheringCreate(GatheringCreateRequestDto gatheringCreateRequestDto) {
+        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromGatheringCreate(gatheringCreateRequestDto);
+        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
+
+        if (!textFilterResponseDto.isAllowed()) {
+            throw new CustomException(GatheringErrorCode.INVALID_GATHERING_CONTENT);
+        }
+    }
+
+    private void validateGatheringContentFromGatheringUpdate(GatheringUpdateRequestDto gatheringUpdateRequestDto) {
         boolean hasTitle = gatheringUpdateRequestDto.getTitle() != null && !gatheringUpdateRequestDto.getTitle().isBlank();
         boolean hasDescription =
                 gatheringUpdateRequestDto.getDescription() != null && !gatheringUpdateRequestDto.getDescription().isBlank();
@@ -401,11 +403,9 @@ public class GatheringService {
         TextFilterResponseDto textFilterResponseDto =
                 aiApiClient.filterText(textFilterRequestDto);
 
-        /**
-         * 여기에 타이틀 및 설명문 금칙어 체크 하는 거 추가
-         * allowed: false인지 true인지 확인
-         * 에러코드 추가 후 뱉기
-         */
+        if (!textFilterResponseDto.isAllowed()) {
+            throw new CustomException(GatheringErrorCode.INVALID_GATHERING_CONTENT);
+        }
     }
 
     private Page<Gathering> getGatheringPage(

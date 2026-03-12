@@ -48,14 +48,7 @@ public class ReviewService {
 
         validateNotDuplicatedReview(gatheringId, reviewerId, revieweeId);
 
-        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromReviewCreate(reviewCreateRequestDto);
-        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
-
-        /**
-         * 여기에 리뷰 금칙어 체크 하는 거 추가
-         * allowed: false인지 true인지 확인
-         * 에러코드 추가 후 뱉기
-         */
+        validateReviewCommentAllowed(reviewCreateRequestDto);
 
         Review review =
                 Review.create(
@@ -103,6 +96,15 @@ public class ReviewService {
     private void validateDifferentUser(Long reviewerId, Long revieweeId) {
         if (reviewerId.equals(revieweeId)) {
             throw new CustomException(ReviewErrorCode.INVALID_REVIEW_TARGET);
+        }
+    }
+
+    private void validateReviewCommentAllowed(ReviewCreateRequestDto reviewCreateRequestDto) {
+        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromReviewCreate(reviewCreateRequestDto);
+        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
+
+        if (!textFilterResponseDto.isAllowed()) {
+            throw new CustomException(ReviewErrorCode.INVALID_REVIEW_COMMENT);
         }
     }
 }

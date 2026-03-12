@@ -10,7 +10,8 @@ public enum GatheringErrorCode implements ErrorCode {
             HttpStatus.FORBIDDEN.value()),
     GATHERING_NOT_FOUND("GATHERING_NOT_FOUND", "해당 모임을 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value()),
     ALREADY_FINISHED_GATHERING(
-            "ALREADY_FINISHED_GATHERING", "이미 종료된 모임입니다.", HttpStatus.CONFLICT.value());
+            "ALREADY_FINISHED_GATHERING", "이미 종료된 모임입니다.", HttpStatus.CONFLICT.value()),
+    INVALID_GATHERING_CONTENT("INVALID_GATHERING_CONTENT", "모임 이름 혹은 설명에 부적잘한 단어가 들어가있습니다.", HttpStatus.BAD_REQUEST.value());
 
     private final String code;
     private final String message;

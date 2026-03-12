@@ -66,14 +66,7 @@ public class UserService {
         // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
-        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromSignUp(signUpRequestDto);
-        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
-
-        /**
-         * 여기에 닉네임 금칙어 체크 하는 거 추가
-         * allowed: false인지 true인지 확인
-         * 에러코드 추가 후 뱉기
-         */
+        validateNicknameAllowedFromSignUp(signUpRequestDto);
 
         // 4) DB에 저장
         User newUser =
@@ -149,6 +142,8 @@ public class UserService {
         User user = findUserById(targetUserId);
 
         validateUserProfileOwner(currentUserId, user);
+
+        validateNickNameAllowedFromProfileUpdate(requestDto);
 
         updateProfileFields(user, requestDto);
 
@@ -344,5 +339,27 @@ public class UserService {
 
     private void updateUserReviewsPublic(Boolean reviewSetting, User user) {
         user.changeReviewPublic(reviewSetting);
+    }
+
+    private void validateNickNameAllowedFromProfileUpdate(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+        if (userProfileUpdateRequestDto.getNickname() != null && !userProfileUpdateRequestDto.getNickname().isBlank()) {
+            TextFilterRequestDto textFilterRequestDto =
+                    aiTextFilterMapper.fromProfileUpdate(userProfileUpdateRequestDto);
+            TextFilterResponseDto textFilterResponseDto =
+                    aiApiClient.filterText(textFilterRequestDto);
+
+            if (!textFilterResponseDto.isAllowed()) {
+                throw new CustomException(UserErrorCode.INVALID_NICKNAME);
+            }
+        }
+    }
+
+    private void validateNicknameAllowedFromSignUp(SignUpRequestDto signUpRequestDto) {
+        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromSignUp(signUpRequestDto);
+        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
+
+        if (!textFilterResponseDto.isAllowed()) {
+            throw new CustomException(UserErrorCode.INVALID_NICKNAME);
+        }
     }
 }

@@ -54,7 +54,7 @@ public class UpdateUserProfileUnitTest {
                         .gender("FEMALE")
                         .enrollNumber(22)
                         .profileImageObjectKey("old/profile.png")
-                        .reviewsPublic(true)
+                        .reviewPublic(true)
                         .preferredCategories(new ArrayList<>())
                         .build();
 

@@ -5,6 +5,7 @@ import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.review.ReviewCreateRequestDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
+import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,8 +17,8 @@ public class AiTextFilterMapper {
         return new TextFilterRequestDto(signUpRequestDto.getNickname().trim());
     }
 
-    public TextFilterRequestDto fromProfileUpdate() {
-        return new TextFilterRequestDto();
+    public TextFilterRequestDto fromProfileUpdate(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+        return new TextFilterRequestDto(userProfileUpdateRequestDto.getNickname().trim());
     }
 
     public TextFilterRequestDto fromReviewCreate(ReviewCreateRequestDto reviewCreateRequestDto) {

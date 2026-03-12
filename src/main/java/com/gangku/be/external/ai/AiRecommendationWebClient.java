@@ -41,14 +41,9 @@ public class AiRecommendationWebClient implements AiRecommendationClient {
                         .bodyToMono(AiRecommendResponseDto.class)
                         .block();
 
-            if (response == null || response.getItems() == null) {
-                return Collections.emptyList();
-            }
-            return response.getItems();
-        } catch (Exception e) {
-
-            // 🔥 AI 서버 안 켜져있을 때 fallback
-            return List.of(1L, 2L, 3L);
+        if (response == null || response.getItems() == null) {
+            return Collections.emptyList();
         }
+        return response.getItems();
     }
 }
