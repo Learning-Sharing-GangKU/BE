@@ -36,7 +36,7 @@ public class UserProfileResponseDto {
                 .gender(user.getGender())
                 .enrollNumber(user.getEnrollNumber())
                 .preferredCategories(preferredCategories)
-                .reviewsPublic(user.getReviewsPublic())
+                .reviewsPublic(user.getReviewPublic())
                 .reviewsPreview(reviewsPreview)
                 .build();
     }

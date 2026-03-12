@@ -327,14 +327,14 @@ public class UserService {
 
     private void validateReviewVisibility(Long currentUserId, User targetUser) {
         boolean isOwner = targetUser.getId().equals(currentUserId);
-        boolean isPublic = Boolean.TRUE.equals(targetUser.getReviewsPublic());
+        boolean isPublic = Boolean.TRUE.equals(targetUser.getReviewPublic());
 
         if (!isOwner && !isPublic) {
-            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_VIEW_REVIEW);
+            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
         }
     }
   
     private void updateUserReviewsPublic(Boolean reviewSetting, User user) {
-        user.changeReviewsPublic(reviewSetting);
+        user.changeReviewPublic(reviewSetting);
     }
 }
