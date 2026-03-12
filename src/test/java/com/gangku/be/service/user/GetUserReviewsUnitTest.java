@@ -56,7 +56,7 @@ public class GetUserReviewsUnitTest {
                         .email("target@test.com")
                         .password("encoded")
                         .nickname("대상유저")
-                        .reviewsPublic(true)
+                        .reviewPublic(true)
                         .preferredCategories(new ArrayList<>())
                         .build();
 
@@ -198,7 +198,7 @@ public class GetUserReviewsUnitTest {
                         .email("target@test.com")
                         .password("encoded")
                         .nickname("대상유저")
-                        .reviewsPublic(true)
+                        .reviewPublic(true)
                         .preferredCategories(new ArrayList<>())
                         .build();
 
@@ -348,7 +348,7 @@ public class GetUserReviewsUnitTest {
                         .email("target@test.com")
                         .password("encoded")
                         .nickname("대상유저")
-                        .reviewsPublic(false)
+                        .reviewPublic(false)
                         .preferredCategories(new ArrayList<>())
                         .build();
 
@@ -385,7 +385,7 @@ public class GetUserReviewsUnitTest {
                         .email("target@test.com")
                         .password("encoded")
                         .nickname("대상유저")
-                        .reviewsPublic(true)
+                        .reviewPublic(true)
                         .preferredCategories(new ArrayList<>())
                         .build();
 
