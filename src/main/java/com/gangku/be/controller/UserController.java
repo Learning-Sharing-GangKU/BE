@@ -3,6 +3,7 @@ package com.gangku.be.controller;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
+import com.gangku.be.dto.review.ReviewListResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.SignUpResponseDto;
 import com.gangku.be.dto.user.UpdateReviewSettingRequestDto;
@@ -90,5 +91,42 @@ public class UserController {
         GatheringListResponseDto response =
                 gatheringService.getUserGatherings(userId, role, page, size, sort);
         return ResponseEntity.ok().header("Cache-Control", "private, max-age=60").body(response);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserProfileResponseDto> getUserProfile(@PathVariable String userId) {
+        Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
+        UserProfileResponseDto response = userService.getUserProfile(internalUserId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{userId}")
+    public ResponseEntity<UserProfileUpdateResponseDto> updateUserProfile(
+            @PathVariable String userId,
+            @AuthenticationPrincipal Long currentUserId,
+            @Valid @RequestBody UserProfileUpdateRequestDto requestDto) {
+        Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
+        UserProfileUpdateResponseDto response =
+                userService.updateUserProfile(internalUserId, currentUserId, requestDto);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{userId}/reviews")
+    public ResponseEntity<ReviewListResponseDto> getUserReviews(
+            @PathVariable String userId,
+            @AuthenticationPrincipal Long currentUserId,
+            @RequestParam(defaultValue = "3") @Min(1) @Max(5) int size,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "createdAt,desc")
+                    @Pattern(regexp = "^(createdAt,desc|createdAt,asc)$")
+                    String sort) {
+        Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
+
+        ReviewListResponseDto response =
+                userService.getUserReviews(internalUserId, currentUserId, size, cursor, sort);
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -11,6 +11,20 @@ public enum UserErrorCode implements ErrorCode {
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT.value()),
     NICKNAME_ALREADY_EXISTS(
             "NICKNAME_ALREADY_EXISTS", "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT.value()),
+
+    // --- 회원탈퇴 ---
+    NO_PERMISSION_TO_CANCEL_MEMBERSHIP(
+            "NO_PERMISSION_TO_CANCEL_MEMBERSHIP",
+            "회원탈퇴를 할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value()),
+
+    // --- 프로필 수정 ---
+    NO_PERMISSION_TO_UPDATE_PROFILE(
+            "NO_PERMISSION_TO_UPDATE_PROFILE",
+            "해당 프로필을 수정할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value()),
+
+    // --- 리뷰 더보기 ---
     NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION(
             "NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION",
             "다른 유저 정보에 접근할 권한이 없습니다.",
