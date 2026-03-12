@@ -120,7 +120,7 @@ public class GetUserProfileUnitTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(userId);
+        assertThat(result.getId()).isEqualTo("usr_1");
         assertThat(result.getNickname()).isEqualTo("진지충");
         assertThat(result.getProfileImageUrl())
                 .isEqualTo("https://cdn.example.com/profiles/user1.png");

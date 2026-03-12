@@ -8,6 +8,7 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
+import java.util.ArrayList;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -32,7 +33,10 @@ public class DeleteUserUnitTest {
         Long targetUserId = 1L;
         Long currentUserId = 1L;
 
-        User user = User.builder().id(targetUserId).build();
+        User user = User.builder()
+                .id(targetUserId)
+                .participations(new ArrayList<>())
+                .build();
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
 

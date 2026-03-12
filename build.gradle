@@ -67,5 +67,12 @@ dependencies {
 }
 
 test {
-	useJUnitPlatform()
+	useJUnitPlatform {
+        if (project.hasProperty('includeTags')) {
+            includeTags project.property('includeTags') as String
+        }
+        if (project.hasProperty('excludeTags')) {
+            excludeTags project.property('excludeTags') as String
+        }
+    }
 }
