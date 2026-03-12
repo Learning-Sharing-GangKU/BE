@@ -8,17 +8,21 @@ import static org.mockito.Mockito.*;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Review;
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.ai.request.TextFilterRequestDto;
+import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.dto.review.ReviewCreateRequestDto;
 import com.gangku.be.dto.review.ReviewCreateResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ReviewErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.ReviewService;
+import com.gangku.be.util.ai.AiTextFilterMapper;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -38,6 +42,8 @@ public class CreateReviewUnitTest {
     @Mock private UserRepository userRepository;
     @Mock private GatheringRepository gatheringRepository;
     @Mock private ParticipationRepository participationRepository;
+    @Mock private AiApiClient aiApiClient;
+    @Mock private AiTextFilterMapper aiTextFilterMapper;
 
     @InjectMocks private ReviewService reviewService;
 
@@ -54,6 +60,9 @@ public class CreateReviewUnitTest {
         User reviewer = User.builder().id(reviewerId).build();
         User reviewee = User.builder().id(revieweeId).build();
         Gathering gathering = Gathering.builder().id(gatheringId).build();
+
+        TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
+        TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
 
         when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
         when(userRepository.findById(revieweeId)).thenReturn(Optional.of(reviewee));
@@ -72,6 +81,9 @@ public class CreateReviewUnitTest {
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
                         gatheringId, reviewerId, revieweeId))
                 .thenReturn(false);
+        when(aiTextFilterMapper.fromReviewCreate(requestDto)).thenReturn(textFilterRequestDto);
+        when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
+        when(textFilterResponseDto.isAllowed()).thenReturn(true);
 
         // when
         ReviewCreateResponseDto response =
@@ -95,9 +107,16 @@ public class CreateReviewUnitTest {
         verify(participationRepository, times(1))
                 .findFinishedCommonGatheringIds(reviewerId, revieweeId);
         verify(gatheringRepository, times(1)).findById(gatheringId);
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
 
         verifyNoMoreInteractions(
-                userRepository, participationRepository, gatheringRepository, reviewRepository);
+                userRepository,
+                participationRepository,
+                gatheringRepository,
+                reviewRepository,
+                aiTextFilterMapper,
+                aiApiClient);
     }
 
     @Test
@@ -118,6 +137,64 @@ public class CreateReviewUnitTest {
         // then
         verifyNoInteractions(
                 userRepository, participationRepository, gatheringRepository, reviewRepository);
+    }
+
+    @Test
+    @DisplayName("리뷰 작성 (400 Bad Request): 리뷰 내용에 금칙어가 있으면 INVALID_REVIEW_CONTENT 예외")
+    void createReview_invalidContent() {
+        // given
+        Long reviewerId = 1L;
+        Long revieweeId = 2L;
+        Long gatheringId = 10L;
+
+        ReviewCreateRequestDto requestDto = new ReviewCreateRequestDto(4, "금칙어 포함 리뷰");
+
+        User reviewer = User.builder().id(reviewerId).build();
+        User reviewee = User.builder().id(revieweeId).build();
+        Gathering gathering = Gathering.builder().id(gatheringId).build();
+
+        TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
+        TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
+
+        when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
+        when(userRepository.findById(revieweeId)).thenReturn(Optional.of(reviewee));
+        when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
+                .thenReturn(List.of(gatheringId));
+        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
+                gatheringId, reviewerId, revieweeId))
+                .thenReturn(false);
+
+        when(aiTextFilterMapper.fromReviewCreate(requestDto)).thenReturn(textFilterRequestDto);
+        when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
+        when(textFilterResponseDto.isAllowed()).thenReturn(false);
+
+        // when
+        assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ReviewErrorCode.INVALID_REVIEW_COMMENT);
+
+        // then
+        verify(userRepository, times(1)).findById(reviewerId);
+        verify(userRepository, times(1)).findById(revieweeId);
+        verify(participationRepository, times(1))
+                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
+        verify(gatheringRepository, times(1)).findById(gatheringId);
+        verify(reviewRepository, times(1))
+                .existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId);
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
+
+        verify(reviewRepository, never()).save(any());
+
+        verifyNoMoreInteractions(
+                userRepository,
+                participationRepository,
+                gatheringRepository,
+                reviewRepository,
+                aiTextFilterMapper,
+                aiApiClient);
     }
 
     @Test

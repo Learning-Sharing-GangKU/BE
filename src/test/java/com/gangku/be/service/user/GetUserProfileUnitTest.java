@@ -52,7 +52,7 @@ public class GetUserProfileUnitTest {
                         .gender("MALE")
                         .enrollNumber(22)
                         .profileImageObjectKey("profiles/user1.png")
-                        .reviewsPublic(true)
+                        .reviewPublic(true)
                         .preferredCategories(new ArrayList<>())
                         .build();
 
