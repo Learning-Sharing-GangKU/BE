@@ -4,10 +4,10 @@ import com.gangku.be.constant.user.UserReviewSort;
 import com.gangku.be.domain.*;
 import com.gangku.be.dto.review.ReviewListResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
+import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.dto.user.UserProfileResponseDto;
 import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
 import com.gangku.be.dto.user.UserProfileUpdateResponseDto;
-import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
@@ -159,7 +159,7 @@ public class UserService {
 
         return UserProfileUpdateResponseDto.from(savedUser, profileImageUrl, preferredCategories);
     }
-  
+
     @Transactional
     public UpdateReviewSettingResponseDto updateReviewSetting(
             Long targetUserId, Long currentUserId, Boolean reviewSetting) {
@@ -327,14 +327,14 @@ public class UserService {
 
     private void validateReviewVisibility(Long currentUserId, User targetUser) {
         boolean isOwner = targetUser.getId().equals(currentUserId);
-        boolean isPublic = Boolean.TRUE.equals(targetUser.getReviewsPublic());
+        boolean isPublic = Boolean.TRUE.equals(targetUser.getReviewPublic());
 
         if (!isOwner && !isPublic) {
-            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_VIEW_REVIEW);
+            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
         }
     }
-  
+
     private void updateUserReviewsPublic(Boolean reviewSetting, User user) {
-        user.changeReviewsPublic(reviewSetting);
+        user.changeReviewPublic(reviewSetting);
     }
 }
