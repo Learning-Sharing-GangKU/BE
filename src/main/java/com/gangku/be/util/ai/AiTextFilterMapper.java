@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AiTextFilterMapper {
 
-    private static final String FIELD_SEPARATOR = " ||| ";
+    private static final String FIELD_SEPARATOR = "|||";
 
     public TextFilterRequestDto fromSignUp(SignUpRequestDto signUpRequestDto) {
         return new TextFilterRequestDto(signUpRequestDto.getNickname().trim());
