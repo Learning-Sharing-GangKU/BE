@@ -1,8 +1,9 @@
 package com.gangku.be.external.ai;
 
-import com.gangku.be.dto.ai.AiRecommendRequestDto;
-import com.gangku.be.dto.ai.AiRecommendResponseDto;
+import com.gangku.be.dto.ai.request.AiRecommendRequestDto;
+import com.gangku.be.dto.ai.response.AiRecommendResponseDto;
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +38,7 @@ public class AiRecommendationWebClient implements AiRecommendationClient {
                                 r ->
                                         Mono.error(
                                                 new CustomException(
-                                                        GatheringErrorCode.AI_SERVICE_UNAVAILABLE)))
+                                                        CommonErrorCode.AI_SERVICE_ERROR)))
                         .bodyToMono(AiRecommendResponseDto.class)
                         .block();
 

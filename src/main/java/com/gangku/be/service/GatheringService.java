@@ -8,6 +8,8 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.request.AiRecommendRequestDto;
+import com.gangku.be.dto.ai.request.TextFilterRequestDto;
+import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
@@ -28,6 +30,7 @@ import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
 import java.util.Map;
@@ -55,40 +58,25 @@ public class GatheringService {
     private final FileUrlResolver fileUrlResolver;
     private final AiRecommendationWebClient aiRecommendationWebClient;
     private final AiApiClient aiApiClient;
+    private final AiTextFilterMapper aiTextFilterMapper;
 
     // 모임 생성 메서드
     @Transactional
     public GatheringResponseDto createGathering(
             GatheringCreateRequestDto gatheringCreateRequestDto, Long hostId) {
-        /*
-        SOL A
-        총 두 번 보내야됨 -> title 모임 제목 한 번 / description 모임 소개문 한 번.
-        (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
-        request = {
-                scenario = "title"
-                text = gatheringUpdateRequestDto.getTitle()
-        }
-
-        request = {
-                scenario = "description"
-                text = gatheringCreateRequestDto.getDescription()
-        }
-        -> 근데 총 두 번 보내야돼서 좀 좃같을 수도 있음
-
-        SOL B
-        gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
-        문자열 concat
-        해서
-        request = {
-                scenario = "description"
-                text = gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
-        }
-        로 보내도 됨 -> 근데 title에서 지랄난건지 Description에서 지랄난건지 알기 힘듦
-         */
 
         User host = findUserById(hostId);
 
         Category category = findCategoryByName(gatheringCreateRequestDto.getCategory());
+
+        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromGatheringCreate(gatheringCreateRequestDto);
+        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
+
+        /**
+         * 여기에 타이틀 및 설명문 금칙어 체크 하는 거 추가
+         * allowed: false인지 true인지 확인
+         * 에러코드 추가 후 뱉기
+         */
 
         // 엔티티 생성
         Gathering gathering =
@@ -119,36 +107,12 @@ public class GatheringService {
     @Transactional
     public GatheringResponseDto updateGathering(
             Long gatheringId, Long userId, GatheringUpdateRequestDto gatheringUpdateRequestDto) {
-        /*
-        SOL A
-        총 두 번 보내야됨 -> title 모임 제목 한 번 / description 모임 소개문 한 번.
-        (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
-        request = {
-                scenario = "title"
-                text = gatheringUpdateRequestDto.getTitle()
-        }
-
-        request = {
-                scenario = "description"
-                text = gatheringCreateRequestDto.getDescription()
-        }
-        -> 근데 총 두 번 보내야돼서 좀 좃같을 수도 있음
-
-        SOL B
-        gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
-        문자열 concat
-        해서
-        (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
-        request = {
-                scenario = "description"
-                text = gatheringUpdateRequestDto.getTitle() + gatheringCreateRequestDto.getDescription()
-        }
-        로 보내도 됨 -> 근데 title에서 지랄난건지 Description에서 지랄난건지 알기 힘듦
-         */
 
         Gathering gathering = findGatheringById(gatheringId);
 
         validateGatheringHost(userId, gathering);
+
+        validateGatheringText(gatheringUpdateRequestDto);
 
         updateRequestBody(gatheringUpdateRequestDto, gathering);
 
@@ -420,6 +384,28 @@ public class GatheringService {
         if (!gathering.getHost().getId().equals(userId)) {
             throw new CustomException(GatheringErrorCode.NO_PERMISSION_TO_MANIPULATE_GATHERING);
         }
+    }
+
+    private void validateGatheringText(GatheringUpdateRequestDto gatheringUpdateRequestDto) {
+        boolean hasTitle = gatheringUpdateRequestDto.getTitle() != null && !gatheringUpdateRequestDto.getTitle().isBlank();
+        boolean hasDescription =
+                gatheringUpdateRequestDto.getDescription() != null && !gatheringUpdateRequestDto.getDescription().isBlank();
+
+        if (!hasTitle && !hasDescription) {
+            return;
+        }
+
+        TextFilterRequestDto textFilterRequestDto =
+                aiTextFilterMapper.fromGatheringUpdate(gatheringUpdateRequestDto);
+
+        TextFilterResponseDto textFilterResponseDto =
+                aiApiClient.filterText(textFilterRequestDto);
+
+        /**
+         * 여기에 타이틀 및 설명문 금칙어 체크 하는 거 추가
+         * allowed: false인지 true인지 확인
+         * 에러코드 추가 후 뱉기
+         */
     }
 
     private Page<Gathering> getGatheringPage(

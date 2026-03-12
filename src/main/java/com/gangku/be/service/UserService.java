@@ -4,13 +4,17 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.ai.request.TextFilterRequestDto;
+import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.util.ai.AiTextFilterMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +36,9 @@ public class UserService {
     private final StringRedisTemplate stringRedisTemplate;
     private final PasswordEncoder passwordEncoder;
 
+    private final AiApiClient aiApiClient;
+    private final AiTextFilterMapper aiTextFilterMapper;
+
     public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
 
         validateEmailVerification(sessionId, signUpRequestDto.getEmail());
@@ -42,16 +49,13 @@ public class UserService {
         // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
-        /*
-        여기서 회원가입 DB로 처리 하기 전에
-        request = {
-            scenario = "nickname"
-            text = signUpRequestDto.getNickname()
-        }
-        으로 (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
+        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromSignUp(signUpRequestDto);
+        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
 
-        유저 프로필 수정 없다고 하셨으니깐(제가 잘 모르고 있는 걸 수도 있음)
-        따로 주석처리 안 할게요
+        /**
+         * 여기에 닉네임 금칙어 체크 하는 거 추가
+         * allowed: false인지 true인지 확인
+         * 에러코드 추가 후 뱉기
          */
 
         // 4) DB에 저장

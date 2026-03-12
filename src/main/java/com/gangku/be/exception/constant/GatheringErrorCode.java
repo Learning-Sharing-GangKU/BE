@@ -10,11 +10,7 @@ public enum GatheringErrorCode implements ErrorCode {
             HttpStatus.FORBIDDEN.value()),
     GATHERING_NOT_FOUND("GATHERING_NOT_FOUND", "해당 모임을 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value()),
     ALREADY_FINISHED_GATHERING(
-            "ALREADY_FINISHED_GATHERING", "이미 종료된 모임입니다.", HttpStatus.CONFLICT.value()),
-    AI_SERVICE_UNAVAILABLE(
-            "AI_SERVICE_UNAVAILABLE",
-            "AI 모델 서버와의 통신에 실패했습니다.",
-            HttpStatus.INTERNAL_SERVER_ERROR.value());
+            "ALREADY_FINISHED_GATHERING", "이미 종료된 모임입니다.", HttpStatus.CONFLICT.value());
 
     private final String code;
     private final String message;

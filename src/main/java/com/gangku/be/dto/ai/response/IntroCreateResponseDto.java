@@ -1,4 +1,4 @@
-package com.gangku.be.dto.gathering.response;
+package com.gangku.be.dto.ai.response;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class GatheringIntroResponseDto {
+public class IntroCreateResponseDto {
 
     @NotBlank private String intro;
 

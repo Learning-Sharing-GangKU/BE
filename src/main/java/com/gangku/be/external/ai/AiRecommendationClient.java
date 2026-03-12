@@ -1,6 +1,6 @@
 package com.gangku.be.external.ai;
 
-import com.gangku.be.dto.ai.AiRecommendRequestDto;
+import com.gangku.be.dto.ai.request.AiRecommendRequestDto;
 import java.util.List;
 
 public interface AiRecommendationClient {
