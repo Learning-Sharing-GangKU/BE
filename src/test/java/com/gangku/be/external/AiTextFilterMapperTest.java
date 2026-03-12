@@ -11,8 +11,10 @@ import com.gangku.be.util.ai.AiTextFilterMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("unit")
 class AiTextFilterMapperTest {
 
     private final AiTextFilterMapper mapper = new AiTextFilterMapper();
