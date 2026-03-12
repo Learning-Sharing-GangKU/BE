@@ -38,7 +38,8 @@ public class User {
     @Column(name = "profile_image_object_key", length = 255)
     private String profileImageObjectKey;
 
-    private Boolean reviewsPublic;
+    @Column(name = "review_public")
+    private Boolean reviewPublic;
 
     @Column(name = "refresh_token")
     private String refreshToken;
@@ -83,6 +84,23 @@ public class User {
         preferredCategory.assignUser(this);
     }
 
+    public void updateProfile(
+            String profileImageObjectKey,
+            String nickname,
+            Integer age,
+            String gender,
+            Integer enrollNumber) {
+        if (profileImageObjectKey != null) this.profileImageObjectKey = profileImageObjectKey;
+        if (nickname != null) this.nickname = nickname;
+        if (age != null) this.age = age;
+        if (gender != null) this.gender = gender;
+        if (enrollNumber != null) this.enrollNumber = enrollNumber;
+    }
+
+    public void changeReviewPublic(Boolean reviewPublic) {
+        this.reviewPublic = reviewPublic;
+    }
+
     public static User create(
             String email,
             String encodedPassword,
@@ -99,7 +117,7 @@ public class User {
                 .gender(gender)
                 .enrollNumber(enrollNumber)
                 .profileImageObjectKey(profileImageObjectKey)
-                .reviewsPublic(true)
+                .reviewPublic(true)
                 .build();
     }
 }

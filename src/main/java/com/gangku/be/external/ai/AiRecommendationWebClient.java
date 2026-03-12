@@ -4,7 +4,6 @@ import com.gangku.be.dto.ai.request.AiRecommendRequestDto;
 import com.gangku.be.dto.ai.response.AiRecommendResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
-import com.gangku.be.exception.constant.GatheringErrorCode;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,9 +41,14 @@ public class AiRecommendationWebClient implements AiRecommendationClient {
                         .bodyToMono(AiRecommendResponseDto.class)
                         .block();
 
-        if (response == null || response.getItems() == null) {
-            return Collections.emptyList();
+            if (response == null || response.getItems() == null) {
+                return Collections.emptyList();
+            }
+            return response.getItems();
+        } catch (Exception e) {
+
+            // 🔥 AI 서버 안 켜져있을 때 fallback
+            return List.of(1L, 2L, 3L);
         }
-        return response.getItems();
     }
 }
