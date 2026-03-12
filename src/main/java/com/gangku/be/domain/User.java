@@ -90,18 +90,13 @@ public class User {
             Integer age,
             String gender,
             Integer enrollNumber) {
-        if (profileImageObjectKey != null)
-            this.profileImageObjectKey = profileImageObjectKey;
-        if (nickname != null)
-            this.nickname = nickname;
-        if (age != null)
-            this.age = age;
-        if (gender != null)
-            this.gender = gender;
-        if (enrollNumber != null)
-            this.enrollNumber = enrollNumber;
+        if (profileImageObjectKey != null) this.profileImageObjectKey = profileImageObjectKey;
+        if (nickname != null) this.nickname = nickname;
+        if (age != null) this.age = age;
+        if (gender != null) this.gender = gender;
+        if (enrollNumber != null) this.enrollNumber = enrollNumber;
     }
-      
+
     public void changeReviewPublic(Boolean reviewPublic) {
         this.reviewPublic = reviewPublic;
     }
