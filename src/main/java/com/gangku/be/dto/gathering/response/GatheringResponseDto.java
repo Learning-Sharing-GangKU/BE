@@ -32,6 +32,9 @@ public class GatheringResponseDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime createdAt;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private LocalDateTime updatedAt;
+
     public static GatheringResponseDto from(Gathering gathering, String gatheringImageUrl) {
         String publicGatheringId =
                 PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
@@ -51,6 +54,7 @@ public class GatheringResponseDto {
                 .status(gathering.getStatus().name())
                 .hostId(publicUserId)
                 .createdAt(gathering.getCreatedAt())
+                .updatedAt(gathering.getUpdatedAt())
                 .build();
     }
 }

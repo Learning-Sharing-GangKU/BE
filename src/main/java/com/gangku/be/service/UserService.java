@@ -5,6 +5,7 @@ import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.SignUpRequestDto;
+import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
@@ -89,6 +90,21 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    @Transactional
+    public UpdateReviewSettingResponseDto updateReviewSetting(
+            Long targetUserId, Long currentUserId, Boolean reviewSetting) {
+
+        User user = findUserById(targetUserId);
+
+        validateUserPrincipal(currentUserId, user);
+
+        updateUserReviewsPublic(reviewSetting, user);
+
+        User updatedUser = userRepository.save(user);
+
+        return UpdateReviewSettingResponseDto.from(updatedUser);
+    }
+
     /** --- 검증 및 반환 헬퍼 메서드 --- */
     private void validateEmailVerification(String sessionId, String email) {
         if (sessionId == null || sessionId.isBlank()) {
@@ -156,7 +172,11 @@ public class UserService {
 
     private void validateUserPrincipal(Long currentUserId, User user) {
         if (!user.getId().equals(currentUserId)) {
-            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_CANCEL_MEMBERSHIP);
+            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
         }
+    }
+
+    private void updateUserReviewsPublic(Boolean reviewSetting, User user) {
+        user.changeReviewsPublic(reviewSetting);
     }
 }

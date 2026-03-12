@@ -81,7 +81,7 @@ public class DeleteUserUnitTest {
         assertThatThrownBy(() -> userService.deleteUser(targetUserId, currentUserId))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
-                .isEqualTo(UserErrorCode.NO_PERMISSION_TO_CANCEL_MEMBERSHIP);
+                .isEqualTo(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
 
         // then
         verify(userRepository, times(1)).findById(targetUserId);
