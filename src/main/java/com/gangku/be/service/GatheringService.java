@@ -235,7 +235,6 @@ public class GatheringService {
             String categoryName, int page, int size, String sort) {
 
         Category category = verifyCategoryName(categoryName);
-
         GatheringSort sortType = GatheringSort.from(sort);
 
         Sort springSort =
@@ -252,11 +251,9 @@ public class GatheringService {
                 };
 
         Pageable pageable = PageRequest.of(page - 1, size, springSort);
+        Page<Gathering> gatheringPage;
 
-        Page<Gathering> gatheringPage =
-                (sortType == GatheringSort.POPULAR)
-                        ? gatheringRepository.findPopularGatherings(pageable)
-                        : gatheringRepository.findLatestGatherings(pageable);
+        gatheringPage = getGatheringPage(category, sortType, pageable);
 
         String sortedByForSpec =
                 (sortType == GatheringSort.POPULAR)
@@ -445,5 +442,24 @@ public class GatheringService {
                                                     CategoryErrorCode.CATEGORY_NOT_FOUND));
         }
         return category;
+    }
+
+    private Page<Gathering> getGatheringPage(
+            Category category, GatheringSort sortType, Pageable pageable) {
+        Page<Gathering> gatheringPage;
+        if (category != null) {
+            gatheringPage =
+                    (sortType == GatheringSort.POPULAR)
+                            ? gatheringRepository.findPopularGatheringsByCategory(
+                                    category, pageable)
+                            : gatheringRepository.findLatestGatheringsByCategory(
+                                    category, pageable);
+        } else {
+            gatheringPage =
+                    (sortType == GatheringSort.POPULAR)
+                            ? gatheringRepository.findPopularGatherings(pageable)
+                            : gatheringRepository.findLatestGatherings(pageable);
+        }
+        return gatheringPage;
     }
 }
