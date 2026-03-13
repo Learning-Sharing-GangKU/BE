@@ -4,7 +4,7 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
 import java.time.LocalDateTime;
 
-public record AiRecommendGatheringItem(
+public record RecommendationGatheringItem(
         Long gatheringId,
         String category,
         Integer hostAge,
@@ -12,10 +12,10 @@ public record AiRecommendGatheringItem(
         Integer participantCount,
         LocalDateTime createdAt) {
 
-    public static AiRecommendGatheringItem from(Gathering gathering) {
+    public static RecommendationGatheringItem from(Gathering gathering) {
         User host = gathering.getHost();
 
-        return new AiRecommendGatheringItem(
+        return new RecommendationGatheringItem(
                 gathering.getId(),
                 gathering.getCategory().getName(),
                 host.getAge(),

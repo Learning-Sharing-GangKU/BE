@@ -7,7 +7,7 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
-import com.gangku.be.dto.ai.request.AiRecommendRequestDto;
+import com.gangku.be.dto.ai.request.RecommendationRequestDto;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
@@ -23,7 +23,6 @@ import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
-import com.gangku.be.external.ai.AiRecommendationWebClient;
 import com.gangku.be.model.gathering.GatheringList;
 import com.gangku.be.model.participation.ParticipantsPreview;
 import com.gangku.be.repository.CategoryRepository;
@@ -56,7 +55,6 @@ public class GatheringService {
     private final UserRepository userRepository;
 
     private final FileUrlResolver fileUrlResolver;
-    private final AiRecommendationWebClient aiRecommendationWebClient;
     private final AiApiClient aiApiClient;
     private final AiTextFilterMapper aiTextFilterMapper;
 
@@ -235,9 +233,9 @@ public class GatheringService {
                 gatheringRepository.findTop50ByStatusOrderByCreatedAtDesc(
                         GatheringStatus.RECRUITING);
 
-        AiRecommendRequestDto aiRecommendRequestDto =
-                AiRecommendRequestDto.from(user, preferredCategories, candidates);
-        List<Long> recommendedIds = aiRecommendationWebClient.recommend(aiRecommendRequestDto);
+        RecommendationRequestDto recommendationRequestDto =
+                RecommendationRequestDto.from(user, preferredCategories, candidates);
+        List<Long> recommendedIds = aiApiClient.recommend(recommendationRequestDto).getGatheringsId();
 
         if (recommendedIds == null || recommendedIds.isEmpty()) {
             return getGatheringList(null, page, size, "latest");
