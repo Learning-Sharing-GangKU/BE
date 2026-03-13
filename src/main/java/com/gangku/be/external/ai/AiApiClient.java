@@ -30,47 +30,36 @@ public class AiApiClient {
 
     public IntroCreateResponseDto createIntro(IntroCreateRequestDto introCreateRequestDto) {
         return post(
-                aiServerProps.getIntroPath(),
-                introCreateRequestDto,
-                IntroCreateResponseDto.class
-        );
+                aiServerProps.getIntroPath(), introCreateRequestDto, IntroCreateResponseDto.class);
     }
 
     public TextFilterResponseDto filterText(TextFilterRequestDto request) {
-        return post(
-                aiServerProps.getTextFilterPath(),
-                request,
-                TextFilterResponseDto.class
-        );
+        return post(aiServerProps.getTextFilterPath(), request, TextFilterResponseDto.class);
     }
 
     public RecommendationResponseDto recommend(RecommendationRequestDto request) {
         return post(
-                aiServerProps.getRecommendationsPath(),
-                request,
-                RecommendationResponseDto.class
-        );
+                aiServerProps.getRecommendationsPath(), request, RecommendationResponseDto.class);
     }
 
     public ClusteringRefreshResponseDto refreshClustering(ClusteringRefreshRequestDto request) {
         return post(
                 aiServerProps.getRefreshClusteringPath(),
                 request,
-                ClusteringRefreshResponseDto.class
-        );
+                ClusteringRefreshResponseDto.class);
     }
 
     public PopularityRefreshResponseDto refreshPopularity(PopularityRefreshRequestDto request) {
         return post(
                 aiServerProps.getRefreshPopularityPath(),
                 request,
-                PopularityRefreshResponseDto.class
-        );
+                PopularityRefreshResponseDto.class);
     }
 
     private <T> T post(String uri, Object requestDto, Class<T> responseType) {
         try {
-            return aiWebClient.post()
+            return aiWebClient
+                    .post()
                     .uri(uri)
                     .bodyValue(requestDto)
                     .retrieve()

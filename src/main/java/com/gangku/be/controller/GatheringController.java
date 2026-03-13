@@ -1,11 +1,11 @@
 package com.gangku.be.controller;
 
 import com.gangku.be.constant.id.ResourceType;
-import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
+import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
+import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
-import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.model.common.PrefixedId;

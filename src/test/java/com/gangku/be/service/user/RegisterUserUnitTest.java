@@ -58,14 +58,7 @@ public class RegisterUserUnitTest {
 
         SignUpRequestDto requestDto =
                 new SignUpRequestDto(
-                        "test@example.com",
-                        "plain-password",
-                        "정상닉네임",
-                        24,
-                        "MALE",
-                        20,
-                        null,
-                        null);
+                        "test@example.com", "plain-password", "정상닉네임", 24, "MALE", 20, null, null);
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
@@ -104,7 +97,8 @@ public class RegisterUserUnitTest {
         verify(userRepository, times(1)).save(any(User.class));
         verify(stringRedisTemplate, times(1)).delete(sessionKey);
 
-        verifyNoInteractions(categoryRepository, preferredCategoryRepository, fileUrlResolver, reviewRepository);
+        verifyNoInteractions(
+                categoryRepository, preferredCategoryRepository, fileUrlResolver, reviewRepository);
         verifyNoMoreInteractions(
                 userRepository,
                 stringRedisTemplate,
@@ -123,14 +117,7 @@ public class RegisterUserUnitTest {
 
         SignUpRequestDto requestDto =
                 new SignUpRequestDto(
-                        "test@example.com",
-                        "plain-password",
-                        "정상닉네임",
-                        24,
-                        "MALE",
-                        20,
-                        null,
-                        null);
+                        "test@example.com", "plain-password", "정상닉네임", 24, "MALE", 20, null, null);
 
         when(stringRedisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.entries(sessionKey)).thenReturn(Map.of());
@@ -165,14 +152,7 @@ public class RegisterUserUnitTest {
 
         SignUpRequestDto requestDto =
                 new SignUpRequestDto(
-                        "test@example.com",
-                        "plain-password",
-                        "정상닉네임",
-                        24,
-                        "MALE",
-                        20,
-                        null,
-                        null);
+                        "test@example.com", "plain-password", "정상닉네임", 24, "MALE", 20, null, null);
 
         when(stringRedisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.entries(sessionKey))
@@ -213,14 +193,7 @@ public class RegisterUserUnitTest {
 
         SignUpRequestDto requestDto =
                 new SignUpRequestDto(
-                        "test@example.com",
-                        "plain-password",
-                        "중복닉네임",
-                        24,
-                        "MALE",
-                        20,
-                        null,
-                        null);
+                        "test@example.com", "plain-password", "중복닉네임", 24, "MALE", 20, null, null);
 
         when(stringRedisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.entries(sessionKey))
@@ -262,14 +235,7 @@ public class RegisterUserUnitTest {
 
         SignUpRequestDto requestDto =
                 new SignUpRequestDto(
-                        "test@example.com",
-                        "plain-password",
-                        "금칙어닉네임",
-                        24,
-                        "MALE",
-                        20,
-                        null,
-                        null);
+                        "test@example.com", "plain-password", "금칙어닉네임", 24, "MALE", 20, null, null);
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
@@ -301,7 +267,8 @@ public class RegisterUserUnitTest {
         verify(userRepository, never()).save(any());
         verify(stringRedisTemplate, never()).delete(anyString());
 
-        verifyNoInteractions(categoryRepository, preferredCategoryRepository, fileUrlResolver, reviewRepository);
+        verifyNoInteractions(
+                categoryRepository, preferredCategoryRepository, fileUrlResolver, reviewRepository);
         verifyNoMoreInteractions(
                 userRepository,
                 stringRedisTemplate,

@@ -65,8 +65,7 @@ public class ReviewService {
     private Gathering findGatheringById(Long gatheringId) {
         return gatheringRepository
                 .findById(gatheringId)
-                .orElseThrow(
-                        () -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
     }
 
     private Long findGatheringIdParticipatedTogether(Long reviewerId, Long revieweeId) {
@@ -75,9 +74,7 @@ public class ReviewService {
                 .stream()
                 .findFirst()
                 .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        ReviewErrorCode.NO_PERMISSION_TO_WRITE_REVIEW));
+                        () -> new CustomException(ReviewErrorCode.NO_PERMISSION_TO_WRITE_REVIEW));
     }
 
     private void validateNotDuplicatedReview(Long gatheringId, Long reviewerId, Long revieweeId) {
@@ -100,7 +97,8 @@ public class ReviewService {
     }
 
     private void validateReviewCommentAllowed(ReviewCreateRequestDto reviewCreateRequestDto) {
-        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromReviewCreate(reviewCreateRequestDto);
+        TextFilterRequestDto textFilterRequestDto =
+                aiTextFilterMapper.fromReviewCreate(reviewCreateRequestDto);
         TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
 
         if (!textFilterResponseDto.isAllowed()) {

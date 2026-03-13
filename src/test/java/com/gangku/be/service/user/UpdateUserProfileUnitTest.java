@@ -138,8 +138,7 @@ public class UpdateUserProfileUnitTest {
                         .build();
 
         UserProfileUpdateRequestDto requestDto =
-                new UserProfileUpdateRequestDto(
-                        null, "금칙어닉네임", 24, "MALE", 20, List.of("SPORTS"));
+                new UserProfileUpdateRequestDto(null, "금칙어닉네임", 24, "MALE", 20, List.of("SPORTS"));
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
@@ -150,7 +149,10 @@ public class UpdateUserProfileUnitTest {
         when(textFilterResponseDto.isAllowed()).thenReturn(false);
 
         // when
-        assertThatThrownBy(() -> userService.updateUserProfile(targetUserId, currentUserId, requestDto))
+        assertThatThrownBy(
+                        () ->
+                                userService.updateUserProfile(
+                                        targetUserId, currentUserId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.INVALID_NICKNAME);
@@ -262,9 +264,9 @@ public class UpdateUserProfileUnitTest {
 
         // when
         assertThatThrownBy(
-                () ->
-                        userService.updateUserProfile(
-                                targetUserId, currentUserId, requestDto))
+                        () ->
+                                userService.updateUserProfile(
+                                        targetUserId, currentUserId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NICKNAME_ALREADY_EXISTS);

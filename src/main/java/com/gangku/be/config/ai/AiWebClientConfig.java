@@ -21,14 +21,13 @@ public class AiWebClientConfig {
 
     @Bean
     public WebClient aiWebClient() {
-        HttpClient httpClient = HttpClient.create()
-                .option(
-                        ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                        aiServerProps.getConnectTimeoutMillis()
-                )
-                .responseTimeout(
-                        Duration.ofMillis(aiServerProps.getResponseTimeoutMillis())
-                );
+        HttpClient httpClient =
+                HttpClient.create()
+                        .option(
+                                ChannelOption.CONNECT_TIMEOUT_MILLIS,
+                                aiServerProps.getConnectTimeoutMillis())
+                        .responseTimeout(
+                                Duration.ofMillis(aiServerProps.getResponseTimeoutMillis()));
 
         return WebClient.builder()
                 .baseUrl(aiServerProps.getBaseUrl())

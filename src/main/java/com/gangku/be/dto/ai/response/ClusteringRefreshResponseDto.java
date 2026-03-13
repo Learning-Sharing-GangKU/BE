@@ -1,5 +1,3 @@
 package com.gangku.be.dto.ai.response;
 
-public class ClusteringRefreshResponseDto {
-
-}
+public class ClusteringRefreshResponseDto {}

@@ -17,7 +17,8 @@ public class AiTextFilterMapper {
         return new TextFilterRequestDto(signUpRequestDto.getNickname().trim());
     }
 
-    public TextFilterRequestDto fromProfileUpdate(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+    public TextFilterRequestDto fromProfileUpdate(
+            UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
         return new TextFilterRequestDto(userProfileUpdateRequestDto.getNickname().trim());
     }
 
@@ -25,14 +26,22 @@ public class AiTextFilterMapper {
         return new TextFilterRequestDto(reviewCreateRequestDto.getComment().trim());
     }
 
-    public TextFilterRequestDto fromGatheringCreate(GatheringCreateRequestDto  gatheringCreateRequestDto) {
-        return new TextFilterRequestDto(joinText(gatheringCreateRequestDto.getTitle().trim(),
-                gatheringCreateRequestDto.getDescription()).trim());
+    public TextFilterRequestDto fromGatheringCreate(
+            GatheringCreateRequestDto gatheringCreateRequestDto) {
+        return new TextFilterRequestDto(
+                joinText(
+                                gatheringCreateRequestDto.getTitle().trim(),
+                                gatheringCreateRequestDto.getDescription())
+                        .trim());
     }
 
-    public TextFilterRequestDto fromGatheringUpdate(GatheringUpdateRequestDto gatheringUpdateRequestDto) {
-        return new TextFilterRequestDto(joinText(gatheringUpdateRequestDto.getTitle().trim(),
-                gatheringUpdateRequestDto.getDescription()).trim());
+    public TextFilterRequestDto fromGatheringUpdate(
+            GatheringUpdateRequestDto gatheringUpdateRequestDto) {
+        return new TextFilterRequestDto(
+                joinText(
+                                gatheringUpdateRequestDto.getTitle().trim(),
+                                gatheringUpdateRequestDto.getDescription())
+                        .trim());
     }
 
     private String joinText(String title, String description) {

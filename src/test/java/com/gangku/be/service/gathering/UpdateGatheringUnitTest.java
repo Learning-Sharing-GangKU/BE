@@ -191,11 +191,7 @@ public class UpdateGatheringUnitTest {
 
         User host = User.builder().id(hostId).build();
 
-        Gathering gathering =
-                Gathering.builder()
-                        .id(gatheringId)
-                        .host(host)
-                        .build();
+        Gathering gathering = Gathering.builder().id(gatheringId).host(host).build();
 
         GatheringUpdateRequestDto requestDto =
                 new GatheringUpdateRequestDto(
@@ -250,14 +246,7 @@ public class UpdateGatheringUnitTest {
 
         GatheringUpdateRequestDto requestDto =
                 new GatheringUpdateRequestDto(
-                        "금칙어 제목",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        "금칙어 설명");
+                        "금칙어 제목", null, null, null, null, null, null, "금칙어 설명");
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
@@ -311,14 +300,7 @@ public class UpdateGatheringUnitTest {
 
         GatheringUpdateRequestDto requestDto =
                 new GatheringUpdateRequestDto(
-                        "제목 수정",
-                        null,
-                        "study",
-                        null,
-                        null,
-                        null,
-                        null,
-                        "설명 수정");
+                        "제목 수정", null, "study", null, null, null, null, "설명 수정");
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);

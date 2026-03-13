@@ -70,11 +70,7 @@ public class CreateGatheringUnitTest {
                         "https://open.kakao.com/o/abcdef",
                         "기초부터 차근차근 알고리즘을 공부합니다.");
 
-        User host =
-                User.builder()
-                        .id(hostId)
-                        .participations(new ArrayList<>())
-                        .build();
+        User host = User.builder().id(hostId).participations(new ArrayList<>()).build();
 
         Category category = mock(Category.class);
 
@@ -94,7 +90,8 @@ public class CreateGatheringUnitTest {
                 .thenAnswer(
                         inv -> {
                             Gathering g = inv.getArgument(0);
-                            java.lang.reflect.Field idField = Gathering.class.getDeclaredField("id");
+                            java.lang.reflect.Field idField =
+                                    Gathering.class.getDeclaredField("id");
                             idField.setAccessible(true);
                             idField.set(g, 12345L);
                             return g;
@@ -138,8 +135,7 @@ public class CreateGatheringUnitTest {
         verify(aiTextFilterMapper, times(1)).fromGatheringCreate(requestDto);
         verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
         verify(participationRepository, times(1)).save(any(Participation.class));
-        verify(fileUrlResolver, times(1))
-                .toPublicUrl("statics/image/prod/2025/11/efe6-a7d.jpg");
+        verify(fileUrlResolver, times(1)).toPublicUrl("statics/image/prod/2025/11/efe6-a7d.jpg");
 
         verifyNoMoreInteractions(
                 userRepository,

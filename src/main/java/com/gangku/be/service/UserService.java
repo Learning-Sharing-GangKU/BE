@@ -1,13 +1,13 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.user.UserReviewSort;
+import com.gangku.be.domain.*;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
-import com.gangku.be.constant.user.UserReviewSort;
-import com.gangku.be.domain.*;
 import com.gangku.be.dto.review.ReviewListResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
@@ -17,17 +17,17 @@ import com.gangku.be.dto.user.UserProfileUpdateResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.model.review.ReviewCursor;
 import com.gangku.be.model.review.ReviewCursorCodec;
 import com.gangku.be.model.review.ReviewPageables;
 import com.gangku.be.model.review.ReviewsPreview;
-import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
-import com.gangku.be.util.object.FileUrlResolver;
 import com.gangku.be.util.ai.AiTextFilterMapper;
+import com.gangku.be.util.object.FileUrlResolver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -341,8 +341,10 @@ public class UserService {
         user.changeReviewPublic(reviewSetting);
     }
 
-    private void validateNickNameAllowedFromProfileUpdate(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
-        if (userProfileUpdateRequestDto.getNickname() != null && !userProfileUpdateRequestDto.getNickname().isBlank()) {
+    private void validateNickNameAllowedFromProfileUpdate(
+            UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+        if (userProfileUpdateRequestDto.getNickname() != null
+                && !userProfileUpdateRequestDto.getNickname().isBlank()) {
             TextFilterRequestDto textFilterRequestDto =
                     aiTextFilterMapper.fromProfileUpdate(userProfileUpdateRequestDto);
             TextFilterResponseDto textFilterResponseDto =

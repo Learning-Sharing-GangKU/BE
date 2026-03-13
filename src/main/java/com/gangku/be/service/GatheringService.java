@@ -7,15 +7,15 @@ import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
 import com.gangku.be.domain.User;
+import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.ai.request.RecommendationRequestDto;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
+import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
-import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.*;
 import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
-import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
@@ -235,7 +235,8 @@ public class GatheringService {
 
         RecommendationRequestDto recommendationRequestDto =
                 RecommendationRequestDto.from(user, preferredCategories, candidates);
-        List<Long> recommendedIds = aiApiClient.recommend(recommendationRequestDto).getGatheringsId();
+        List<Long> recommendedIds =
+                aiApiClient.recommend(recommendationRequestDto).getGatheringsId();
 
         if (recommendedIds == null || recommendedIds.isEmpty()) {
             return getGatheringList(null, page, size, "latest");
@@ -377,8 +378,10 @@ public class GatheringService {
         }
     }
 
-    private void validateGatheringContentFromGatheringCreate(GatheringCreateRequestDto gatheringCreateRequestDto) {
-        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromGatheringCreate(gatheringCreateRequestDto);
+    private void validateGatheringContentFromGatheringCreate(
+            GatheringCreateRequestDto gatheringCreateRequestDto) {
+        TextFilterRequestDto textFilterRequestDto =
+                aiTextFilterMapper.fromGatheringCreate(gatheringCreateRequestDto);
         TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
 
         if (!textFilterResponseDto.isAllowed()) {
@@ -386,10 +389,14 @@ public class GatheringService {
         }
     }
 
-    private void validateGatheringContentFromGatheringUpdate(GatheringUpdateRequestDto gatheringUpdateRequestDto) {
-        boolean hasTitle = gatheringUpdateRequestDto.getTitle() != null && !gatheringUpdateRequestDto.getTitle().isBlank();
+    private void validateGatheringContentFromGatheringUpdate(
+            GatheringUpdateRequestDto gatheringUpdateRequestDto) {
+        boolean hasTitle =
+                gatheringUpdateRequestDto.getTitle() != null
+                        && !gatheringUpdateRequestDto.getTitle().isBlank();
         boolean hasDescription =
-                gatheringUpdateRequestDto.getDescription() != null && !gatheringUpdateRequestDto.getDescription().isBlank();
+                gatheringUpdateRequestDto.getDescription() != null
+                        && !gatheringUpdateRequestDto.getDescription().isBlank();
 
         if (!hasTitle && !hasDescription) {
             return;
@@ -398,8 +405,7 @@ public class GatheringService {
         TextFilterRequestDto textFilterRequestDto =
                 aiTextFilterMapper.fromGatheringUpdate(gatheringUpdateRequestDto);
 
-        TextFilterResponseDto textFilterResponseDto =
-                aiApiClient.filterText(textFilterRequestDto);
+        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
 
         if (!textFilterResponseDto.isAllowed()) {
             throw new CustomException(GatheringErrorCode.INVALID_GATHERING_CONTENT);

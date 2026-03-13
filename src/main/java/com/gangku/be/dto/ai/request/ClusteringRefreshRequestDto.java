@@ -1,5 +1,3 @@
 package com.gangku.be.dto.ai.request;
 
-public class ClusteringRefreshRequestDto {
-
-}
+public class ClusteringRefreshRequestDto {}

@@ -42,15 +42,7 @@ class AiTextFilterMapperTest {
     @DisplayName("모임 수정 text filter 요청 생성: title과 description을 구분자 '|||'로 합친다")
     void fromGatheringUpdate() {
         GatheringUpdateRequestDto requestDto =
-                new GatheringUpdateRequestDto(
-                        "제목 수정",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        "설명 수정");
+                new GatheringUpdateRequestDto("제목 수정", null, null, null, null, null, null, "설명 수정");
 
         TextFilterRequestDto result = mapper.fromGatheringUpdate(requestDto);
 
@@ -62,14 +54,7 @@ class AiTextFilterMapperTest {
     void fromSignUp() {
         SignUpRequestDto requestDto =
                 new SignUpRequestDto(
-                        "test@example.com",
-                        "pw",
-                        "정상닉네임",
-                        24,
-                        "MALE",
-                        20,
-                        null,
-                        List.of("SPORTS"));
+                        "test@example.com", "pw", "정상닉네임", 24, "MALE", 20, null, List.of("SPORTS"));
 
         TextFilterRequestDto result = mapper.fromSignUp(requestDto);
 
@@ -80,13 +65,7 @@ class AiTextFilterMapperTest {
     @DisplayName("프로필 수정 text filter 요청 생성: nickname만 text로 넣는다")
     void fromProfileUpdate() {
         UserProfileUpdateRequestDto requestDto =
-                new UserProfileUpdateRequestDto(
-                        null,
-                        "새닉네임",
-                        24,
-                        "MALE",
-                        20,
-                        null);
+                new UserProfileUpdateRequestDto(null, "새닉네임", 24, "MALE", 20, null);
 
         TextFilterRequestDto result = mapper.fromProfileUpdate(requestDto);
 

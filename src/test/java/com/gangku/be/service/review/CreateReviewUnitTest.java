@@ -162,7 +162,7 @@ public class CreateReviewUnitTest {
                 .thenReturn(List.of(gatheringId));
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
-                gatheringId, reviewerId, revieweeId))
+                        gatheringId, reviewerId, revieweeId))
                 .thenReturn(false);
 
         when(aiTextFilterMapper.fromReviewCreate(requestDto)).thenReturn(textFilterRequestDto);

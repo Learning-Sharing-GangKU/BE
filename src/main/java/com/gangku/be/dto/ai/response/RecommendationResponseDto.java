@@ -8,5 +8,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RecommendationResponseDto {
     private List<Long> gatheringsId;
-
 }

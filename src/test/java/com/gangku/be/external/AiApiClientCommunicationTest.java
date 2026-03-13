@@ -3,12 +3,12 @@ package com.gangku.be.external;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gangku.be.config.ai.AiServerProps;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gangku.be.external.ai.AiApiClient;
 import java.io.IOException;
 import okhttp3.mockwebserver.MockResponse;
@@ -47,10 +47,11 @@ class AiApiClientCommunicationTest {
         aiServerProps.setRefreshClusteringPath("/api/ai/clustering/refresh");
         aiServerProps.setRefreshPopularityPath("/api/ai/popularity/refresh");
 
-        WebClient webClient = WebClient.builder()
-                .baseUrl(aiServerProps.getBaseUrl())
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
+        WebClient webClient =
+                WebClient.builder()
+                        .baseUrl(aiServerProps.getBaseUrl())
+                        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .build();
 
         aiApiClient = new AiApiClient(webClient, aiServerProps);
     }
@@ -68,14 +69,14 @@ class AiApiClientCommunicationTest {
                 new MockResponse()
                         .setResponseCode(200)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody("""
+                        .setBody(
+                                """
                                 {
                                   "allowed": true
                                 }
                                 """));
 
-        TextFilterRequestDto requestDto =
-                new TextFilterRequestDto("테스트");
+        TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
 
         // when
         TextFilterResponseDto response = aiApiClient.filterText(requestDto);
@@ -100,14 +101,14 @@ class AiApiClientCommunicationTest {
                 new MockResponse()
                         .setResponseCode(200)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody("""
+                        .setBody(
+                                """
                                 {
                                   "allowed": false
                                 }
                                 """));
 
-        TextFilterRequestDto requestDto =
-                new TextFilterRequestDto("금칙어");
+        TextFilterRequestDto requestDto = new TextFilterRequestDto("금칙어");
 
         // when
         TextFilterResponseDto response = aiApiClient.filterText(requestDto);
@@ -125,14 +126,14 @@ class AiApiClientCommunicationTest {
                 new MockResponse()
                         .setResponseCode(500)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody("""
+                        .setBody(
+                                """
                                 {
                                   "error": "internal server error"
                                 }
                                 """));
 
-        TextFilterRequestDto requestDto =
-                new TextFilterRequestDto("테스트");
+        TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
 
         // when & then
         assertThatThrownBy(() -> aiApiClient.filterText(requestDto))
@@ -149,14 +150,14 @@ class AiApiClientCommunicationTest {
                 new MockResponse()
                         .setResponseCode(200)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody("""
+                        .setBody(
+                                """
                                 {
                                   "allowed": "not_boolean"
                                 }
                                 """));
 
-        TextFilterRequestDto requestDto =
-                new TextFilterRequestDto("테스트");
+        TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
 
         // when & then
         assertThatThrownBy(() -> aiApiClient.filterText(requestDto))
