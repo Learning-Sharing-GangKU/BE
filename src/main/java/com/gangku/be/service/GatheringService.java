@@ -189,23 +189,19 @@ public class GatheringService {
     }
 
     @Transactional(readOnly = true)
-    public GatheringDetailResponseDto getGatheringDetail(
-            Long gatheringId, int page, int size, String sortParam) {
+    public GatheringDetailResponseDto getGatheringDetail(Long gatheringId, int page, int size) {
 
         Gathering gathering = findGatheringById(gatheringId);
 
-        String[] parts = sortParam.split(",");
-        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
-
-        Sort.Direction direction = dirStr.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, "joinedAt").and(Sort.by(direction, "id"));
+        Sort sort =
+                Sort.by(Sort.Direction.DESC, "joinedAt").and(Sort.by(Sort.Direction.DESC, "id"));
 
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         Page<Participation> participationPage =
                 participationRepository.findByGatheringId(gatheringId, pageable);
 
-        String sortedByForSpec = "joinedAt," + dirStr + ",id," + dirStr;
+        String sortedByForSpec = "joinedAt,desc";
         ParticipantsPreview participantsPreview =
                 ParticipantsPreview.from(
                         participationPage, sortedByForSpec, this::resolveProfileImageUrl);
@@ -303,23 +299,28 @@ public class GatheringService {
     /** 사용자별 모임 목록 조회 (role=host | guest) - host: 내가 만든 모임 - guest: 내가 참여한 모임 */
     @Transactional(readOnly = true)
     public GatheringListResponseDto getUserGatherings(
-            Long userId, String role, int page, int size, String sort) {
+            Long userId, String role, int page, int size) {
 
         User user =
                 userRepository
                         .findById(userId)
                         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
 
-        Pageable pageable = PageRequest.of(page - 1, size);
         Page<Gathering> gatheringPage;
         String sortedByForSpec;
 
-        if ("host".equals(role)) {
-            gatheringPage = gatheringRepository.findByHostIdOrderByCreatedAtDesc(user, pageable);
-            sortedByForSpec = "createdAt,desc,id,desc";
-        } else if ("guest".equals(role)) {
+        if ("host".equalsIgnoreCase(role)) {
+            Pageable pageable =
+                    PageRequest.of(
+                            page - 1,
+                            size,
+                            Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
+            gatheringPage = gatheringRepository.findByHostId(user, pageable);
+            sortedByForSpec = "createdAt,desc";
+        } else if ("guest".equalsIgnoreCase(role)) {
+            Pageable pageable = PageRequest.of(page - 1, size);
             gatheringPage = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
-            sortedByForSpec = "joinedAt,desc,userId,desc";
+            sortedByForSpec = "joinedAt,desc";
         } else {
             // role 값이 잘못 들어온 케이스
             throw new CustomException(

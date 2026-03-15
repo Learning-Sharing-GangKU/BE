@@ -71,23 +71,19 @@ public class ParticipationService {
     }
 
     @Transactional(readOnly = true)
-    public ParticipantsPreviewResponseDto getParticipants(
-            Long gatheringId, int page, int size, String sortParam) {
+    public ParticipantsPreviewResponseDto getParticipants(Long gatheringId, int page, int size) {
 
         findGatheringById(gatheringId);
 
-        String[] parts = sortParam.split(",");
-        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
-
-        Sort.Direction direction = dirStr.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, "joinedAt").and(Sort.by(direction, "id"));
+        Sort sort =
+                Sort.by(Sort.Direction.DESC, "joinedAt").and(Sort.by(Sort.Direction.DESC, "id"));
 
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         Page<Participation> participationPage =
                 participationRepository.findByGatheringId(gatheringId, pageable);
 
-        String sortedByForSpec = "joinedAt," + dirStr + ",id," + dirStr;
+        String sortedByForSpec = "joinedAt,desc";
 
         ParticipantsPreview participantsPreview =
                 ParticipantsPreview.from(

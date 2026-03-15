@@ -13,7 +13,6 @@ import com.gangku.be.service.GatheringService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Pattern;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -65,13 +64,11 @@ public class GatheringController {
     public ResponseEntity<GatheringDetailResponseDto> getGatheringDetail(
             @PathVariable String gatheringId,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
-            @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size,
-            @RequestParam(defaultValue = "joinedAt,asc") @Pattern(regexp = "^joinedAt.(asc|desc)$")
-                    String sort) {
+            @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
         GatheringDetailResponseDto gatheringDetailResponseDto =
-                gatheringService.getGatheringDetail(internalGatheringId, page, size, sort);
+                gatheringService.getGatheringDetail(internalGatheringId, page, size);
         return ResponseEntity.ok(gatheringDetailResponseDto);
     }
 
