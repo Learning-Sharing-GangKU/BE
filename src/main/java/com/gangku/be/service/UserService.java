@@ -66,7 +66,7 @@ public class UserService {
         // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
-        validateNicknameAllowedFromSignUp(signUpRequestDto);
+//        validateNicknameAllowedFromSignUp(signUpRequestDto);
 
         // 4) DB에 저장
         User newUser =
@@ -267,7 +267,11 @@ public class UserService {
         String verified = (String) sessionData.get("verified");
         String sessionEmail = (String) sessionData.get("email");
 
-        if (!"1".equals(verified) || !email.equals(sessionEmail)) {
+        if (!email.equals(sessionEmail)) {
+            throw new CustomException(AuthErrorCode.INVALID_EMAIL_VERIFICATION_SESSION);
+        }
+
+        if (!"1".equals(verified)) {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
         }
     }
