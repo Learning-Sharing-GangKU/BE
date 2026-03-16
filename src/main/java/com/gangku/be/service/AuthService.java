@@ -164,7 +164,10 @@ public class AuthService {
 
         stringRedisTemplate
                 .opsForValue()
-                .set(emailVerificationTokenKey(emailVerificationToken.tokenId()), email, timeToLive);
+                .set(
+                        emailVerificationTokenKey(emailVerificationToken.tokenId()),
+                        email,
+                        timeToLive);
 
         String sessionId = UUID.randomUUID().toString();
         String sessionKey = signupSessionKey(sessionId);
