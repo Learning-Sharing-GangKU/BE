@@ -28,6 +28,11 @@ public enum UserErrorCode implements ErrorCode {
     NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION(
             "NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION",
             "다른 유저 정보에 접근할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value()),
+
+    NO_PERMISSION_TO_VIEW_REVIEW(
+            "NO_PERMISSION_TO_VIEW_REVIEW",
+            "이 사용자의 리뷰를 볼 권한이 없습니다.",
             HttpStatus.FORBIDDEN.value());
 
     private final String code;

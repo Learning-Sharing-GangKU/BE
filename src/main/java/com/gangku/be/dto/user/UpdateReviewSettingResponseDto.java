@@ -22,7 +22,7 @@ public class UpdateReviewSettingResponseDto {
 
         return UpdateReviewSettingResponseDto.builder()
                 .userId(publicUserId)
-                .reviewPublic(user.getReviewPublic())
+                .reviewPublic(user.getReviewsPublic())
                 .updatedAt(user.getUpdatedAt())
                 .build();
     }
