@@ -1,8 +1,6 @@
 package com.gangku.be.dto.gathering.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gangku.be.constant.category.CategoryList;
-import com.gangku.be.exception.annotation.ValidEnum;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -21,7 +19,6 @@ public class GatheringCreateRequestDto {
     private String gatheringImageObjectKey;
 
     @NotBlank
-    @ValidEnum(enumClass = CategoryList.class, ignoreCase = true)
     private String category;
 
     @Min(value = 1)
