@@ -66,7 +66,7 @@ public class UserService {
         // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
-        //        validateNicknameAllowedFromSignUp(signUpRequestDto);
+        validateNicknameAllowedFromSignUp(signUpRequestDto);
 
         // 4) DB에 저장
         User newUser =
