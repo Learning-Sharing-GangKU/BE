@@ -157,7 +157,7 @@ public class GetUserReviewsUnitTest {
 
         // when
         ReviewListResponseDto response =
-                userService.getUserReviews(targetUserId, currentUserId, size, cursor, sort);
+                userService.getUserReviews(targetUserId, currentUserId, size, cursor);
 
         // then
         assertThat(response).isNotNull();
@@ -284,7 +284,7 @@ public class GetUserReviewsUnitTest {
 
         // when
         ReviewListResponseDto response =
-                userService.getUserReviews(targetUserId, currentUserId, size, cursor, sort);
+                userService.getUserReviews(targetUserId, currentUserId, size, cursor);
 
         // then
         assertThat(response.getData()).hasSize(2);
@@ -319,9 +319,7 @@ public class GetUserReviewsUnitTest {
 
         // when
         assertThatThrownBy(
-                        () ->
-                                userService.getUserReviews(
-                                        targetUserId, currentUserId, size, cursor, sort))
+                        () -> userService.getUserReviews(targetUserId, currentUserId, size, cursor))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
@@ -356,9 +354,7 @@ public class GetUserReviewsUnitTest {
 
         // when
         assertThatThrownBy(
-                        () ->
-                                userService.getUserReviews(
-                                        targetUserId, currentUserId, size, cursor, sort))
+                        () -> userService.getUserReviews(targetUserId, currentUserId, size, cursor))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_VIEW_REVIEW);
@@ -370,14 +366,13 @@ public class GetUserReviewsUnitTest {
     }
 
     @Test
-    @DisplayName("리뷰 더보기 조회 (400 Bad Request): sort 값이 잘못되면 INVALID_REQUEST_PARAMETER 예외")
-    void getUserReviews_invalidSort() {
+    @DisplayName("리뷰 더보기 조회 (400 Bad Request): cursor 값이 잘못되면 INVALID_REQUEST_PARAMETER 예외")
+    void getUserReviews_invalidCursor() {
         // given
         Long targetUserId = 1L;
         Long currentUserId = 1L;
         int size = 3;
-        String cursor = null;
-        String sort = "latest";
+        String cursor = "invalid-cursor";
 
         User targetUser =
                 User.builder()
@@ -393,9 +388,7 @@ public class GetUserReviewsUnitTest {
 
         // when
         assertThatThrownBy(
-                        () ->
-                                userService.getUserReviews(
-                                        targetUserId, currentUserId, size, cursor, sort))
+                        () -> userService.getUserReviews(targetUserId, currentUserId, size, cursor))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(CommonErrorCode.INVALID_REQUEST_PARAMETER);

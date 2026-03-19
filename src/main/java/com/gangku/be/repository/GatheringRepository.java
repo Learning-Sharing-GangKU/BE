@@ -83,7 +83,6 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
         JOIN FETCH g.host
         JOIN FETCH g.category
         WHERE g.host = :host
-        ORDER BY g.createdAt DESC, g.id DESC
     """,
             countQuery =
                     """
@@ -91,7 +90,7 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
         FROM Gathering g
         WHERE g.host = :host
     """)
-    Page<Gathering> findByHostIdOrderByCreatedAtDesc(@Param("host") User host, Pageable pageable);
+    Page<Gathering> findByHostId(@Param("host") User host, Pageable pageable);
 
     // AI 후보용: 모집중인 방 중 최신 50개
     List<Gathering> findTop50ByStatusOrderByCreatedAtDesc(GatheringStatus status);

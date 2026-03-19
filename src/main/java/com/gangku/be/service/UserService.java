@@ -26,6 +26,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -115,7 +116,7 @@ public class UserService {
                         .map(pc -> pc.getCategory().getName())
                         .toList();
 
-        // 정렬 정책 확정 후 다시 수정. 우선 정렬 기준 고정시킴
+        // 정렬 정책 고정
         UserReviewSort reviewSort = UserReviewSort.CREATED_AT_DESC;
 
         // 리뷰 조회
@@ -177,12 +178,12 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public ReviewListResponseDto getUserReviews(
-            Long targetUserId, Long currentUserId, int size, String cursor, String sort) {
+            Long targetUserId, Long currentUserId, int size, String cursor) {
+
         User user = findUserById(targetUserId);
 
         validateReviewVisibility(currentUserId, user);
 
-        UserReviewSort reviewSort = UserReviewSort.from(sort);
         int fetchSize = size + 1;
 
         List<Review> fetchedReviews;
@@ -190,32 +191,26 @@ public class UserService {
         if (cursor == null || cursor.isBlank()) {
             fetchedReviews =
                     reviewRepository.findFirstPageByRevieweeId(
-                            targetUserId, PageRequest.of(0, fetchSize, reviewSort.toSpringSort()));
+                            targetUserId,
+                            PageRequest.of(
+                                    0,
+                                    fetchSize,
+                                    Sort.by(Sort.Direction.DESC, "createdAt")
+                                            .and(Sort.by(Sort.Direction.DESC, "id"))));
         } else {
             ReviewCursor decodedCursor = ReviewCursorCodec.decode(cursor);
-
-            if (reviewSort == UserReviewSort.CREATED_AT_DESC) {
-                fetchedReviews =
-                        reviewRepository.findNextPageByRevieweeIdAndCursorDesc(
-                                targetUserId,
-                                decodedCursor.createdAt(),
-                                decodedCursor.id(),
-                                PageRequest.of(0, fetchSize));
-            } else {
-                fetchedReviews =
-                        reviewRepository.findNextPageByRevieweeIdAndCursorAsc(
-                                targetUserId,
-                                decodedCursor.createdAt(),
-                                decodedCursor.id(),
-                                PageRequest.of(0, fetchSize));
-            }
+            fetchedReviews =
+                    reviewRepository.findNextPageByRevieweeIdAndCursorDesc(
+                            targetUserId,
+                            decodedCursor.createdAt(),
+                            decodedCursor.id(),
+                            PageRequest.of(0, fetchSize));
         }
-
         ReviewsPreview reviewsPreview =
                 ReviewsPreview.from(
                         fetchedReviews,
                         size,
-                        reviewSort.toSortedByForSpec(),
+                        "createdAt,desc",
                         r -> resolveImageUrl(r.getReviewer().getProfileImageObjectKey()));
 
         return ReviewListResponseDto.from(reviewsPreview);

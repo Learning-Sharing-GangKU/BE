@@ -87,12 +87,9 @@ public class UserController {
             @AuthenticationPrincipal Long userId,
             @RequestParam @Pattern(regexp = "^(host|guest)") String role,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
-            @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 50) int size,
-            @RequestParam(defaultValue = "createdAt,desc")
-                    @Pattern(regexp = "^(createdAt|startAt),(asc|desc)$")
-                    String sort) {
+            @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 50) int size) {
         GatheringListResponseDto response =
-                gatheringService.getUserGatherings(userId, role, page, size, sort);
+                gatheringService.getUserGatherings(userId, role, page, size);
         return ResponseEntity.ok().header("Cache-Control", "private, max-age=60").body(response);
     }
 
@@ -121,14 +118,11 @@ public class UserController {
             @PathVariable String userId,
             @AuthenticationPrincipal Long currentUserId,
             @RequestParam(defaultValue = "3") @Min(1) @Max(5) int size,
-            @RequestParam(required = false) String cursor,
-            @RequestParam(defaultValue = "createdAt,desc")
-                    @Pattern(regexp = "^(createdAt,desc|createdAt,asc)$")
-                    String sort) {
+            @RequestParam(required = false) String cursor) {
         Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
 
         ReviewListResponseDto response =
-                userService.getUserReviews(internalUserId, currentUserId, size, cursor, sort);
+                userService.getUserReviews(internalUserId, currentUserId, size, cursor);
 
         return ResponseEntity.ok(response);
     }
