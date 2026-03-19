@@ -15,7 +15,6 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.codec.DecodingException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -63,9 +62,39 @@ public class AiApiClient {
                     .uri(uri)
                     .bodyValue(requestDto)
                     .retrieve()
+                    .onStatus(
+                            status -> status.value() == 422,
+                            response ->
+                                    response.bodyToMono(String.class)
+                                            .defaultIfEmpty("")
+                                            .map(
+                                                    body -> {
+                                                        log.warn(
+                                                                "AI 서버 422 오류. uri={}, body={}",
+                                                                uri,
+                                                                body);
+                                                        return new CustomException(
+                                                                CommonErrorCode
+                                                                        .AI_VALIDATION_ERROR);
+                                                    }))
+                    .onStatus(
+                            status -> status.is5xxServerError(),
+                            response ->
+                                    response.bodyToMono(String.class)
+                                            .defaultIfEmpty("")
+                                            .map(
+                                                    body -> {
+                                                        log.error(
+                                                                "AI 서버 5xx 오류. uri={}, body={}",
+                                                                uri,
+                                                                body);
+                                                        return new CustomException(
+                                                                CommonErrorCode.AI_SERVICE_ERROR);
+                                                    }))
                     .bodyToMono(responseType)
                     .block();
-        } catch (WebClientException | DecodingException e) {
+
+        } catch (WebClientException e) {
             log.error("AI 서버 통신 실패. uri={}, message={}", uri, e.getMessage(), e);
             throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
         }
