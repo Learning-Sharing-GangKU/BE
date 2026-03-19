@@ -21,12 +21,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+@Slf4j
 @RestController
 @Validated
 @RequestMapping("/api/v1/users")
