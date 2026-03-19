@@ -17,7 +17,6 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
-import com.gangku.be.external.ai.AiRecommendationWebClient;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -44,7 +43,6 @@ public class UpdateGatheringUnitTest {
     @Mock private ParticipationRepository participationRepository;
     @Mock private UserRepository userRepository;
     @Mock private FileUrlResolver fileUrlResolver;
-    @Mock private AiRecommendationWebClient aiRecommendationWebClient;
     @Mock private AiApiClient aiApiClient;
     @Mock private AiTextFilterMapper aiTextFilterMapper;
 
@@ -139,7 +137,7 @@ public class UpdateGatheringUnitTest {
                 fileUrlResolver,
                 aiTextFilterMapper,
                 aiApiClient);
-        verifyNoInteractions(userRepository, participationRepository, aiRecommendationWebClient);
+        verifyNoInteractions(userRepository, participationRepository, aiApiClient);
     }
 
     @Test
@@ -177,7 +175,7 @@ public class UpdateGatheringUnitTest {
                 aiApiClient,
                 userRepository,
                 participationRepository,
-                aiRecommendationWebClient);
+                aiApiClient);
         verifyNoMoreInteractions(gatheringRepository);
     }
 
@@ -221,7 +219,7 @@ public class UpdateGatheringUnitTest {
                 aiApiClient,
                 userRepository,
                 participationRepository,
-                aiRecommendationWebClient);
+                aiApiClient);
         verifyNoMoreInteractions(gatheringRepository);
     }
 
@@ -276,7 +274,7 @@ public class UpdateGatheringUnitTest {
                 aiApiClient,
                 categoryRepository,
                 fileUrlResolver);
-        verifyNoInteractions(userRepository, participationRepository, aiRecommendationWebClient);
+        verifyNoInteractions(userRepository, participationRepository, aiApiClient);
     }
 
     @Test
@@ -331,6 +329,6 @@ public class UpdateGatheringUnitTest {
                 aiApiClient,
                 categoryRepository,
                 fileUrlResolver);
-        verifyNoInteractions(userRepository, participationRepository, aiRecommendationWebClient);
+        verifyNoInteractions(userRepository, participationRepository, aiApiClient);
     }
 }

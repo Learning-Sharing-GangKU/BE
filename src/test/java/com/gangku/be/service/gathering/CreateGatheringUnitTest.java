@@ -18,7 +18,6 @@ import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
-import com.gangku.be.external.ai.AiRecommendationWebClient;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -47,7 +46,6 @@ public class CreateGatheringUnitTest {
     @Mock private ParticipationRepository participationRepository;
     @Mock private UserRepository userRepository;
     @Mock private FileUrlResolver fileUrlResolver;
-    @Mock private AiRecommendationWebClient aiRecommendationWebClient;
     @Mock private AiApiClient aiApiClient;
     @Mock private AiTextFilterMapper aiTextFilterMapper;
 
@@ -145,7 +143,7 @@ public class CreateGatheringUnitTest {
                 fileUrlResolver,
                 aiApiClient,
                 aiTextFilterMapper);
-        verifyNoInteractions(aiRecommendationWebClient);
+        verifyNoInteractions(aiApiClient);
     }
 
     @Test
@@ -182,7 +180,7 @@ public class CreateGatheringUnitTest {
                 fileUrlResolver,
                 aiApiClient,
                 aiTextFilterMapper,
-                aiRecommendationWebClient);
+                aiApiClient);
         verifyNoMoreInteractions(userRepository);
     }
 
@@ -223,7 +221,7 @@ public class CreateGatheringUnitTest {
                 fileUrlResolver,
                 aiApiClient,
                 aiTextFilterMapper,
-                aiRecommendationWebClient);
+                aiApiClient);
         verifyNoMoreInteractions(userRepository, categoryRepository);
     }
 
@@ -280,6 +278,6 @@ public class CreateGatheringUnitTest {
                 gatheringRepository,
                 participationRepository,
                 fileUrlResolver);
-        verifyNoInteractions(aiRecommendationWebClient);
+        verifyNoInteractions(aiApiClient);
     }
 }
