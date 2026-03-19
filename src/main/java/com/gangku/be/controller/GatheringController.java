@@ -1,11 +1,11 @@
 package com.gangku.be.controller;
 
 import com.gangku.be.constant.id.ResourceType;
+import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
+import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
 import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
-import com.gangku.be.dto.gathering.request.GatheringIntroRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.GatheringDetailResponseDto;
-import com.gangku.be.dto.gathering.response.GatheringIntroResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.model.common.PrefixedId;
@@ -93,11 +93,11 @@ public class GatheringController {
 
     // AI 모임 정보 생성
     @PostMapping("/intro")
-    public ResponseEntity<GatheringIntroResponseDto> createGatheringIntro(
-            @RequestBody @Valid GatheringIntroRequestDto gatheringIntroRequestDto) {
-        GatheringIntroResponseDto gatheringIntroResponseDto =
-                gatheringService.createGatheringIntro(gatheringIntroRequestDto);
-        return ResponseEntity.ok(gatheringIntroResponseDto);
+    public ResponseEntity<IntroCreateResponseDto> createGatheringIntro(
+            @RequestBody @Valid IntroCreateRequestDto introCreateRequestDto) {
+        IntroCreateResponseDto introCreateResponseDto =
+                gatheringService.createGatheringIntro(introCreateRequestDto);
+        return ResponseEntity.ok(introCreateResponseDto);
     }
 
     // 모임 리스트 조회

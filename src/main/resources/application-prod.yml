@@ -26,3 +26,7 @@ app:
   s3:
     env-prefix: prod
   base-url: ${APP_BASE_URL}
+
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL}
