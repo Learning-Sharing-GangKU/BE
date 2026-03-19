@@ -143,7 +143,6 @@ public class CreateGatheringUnitTest {
                 fileUrlResolver,
                 aiApiClient,
                 aiTextFilterMapper);
-        verifyNoInteractions(aiApiClient);
     }
 
     @Test
@@ -179,8 +178,7 @@ public class CreateGatheringUnitTest {
                 participationRepository,
                 fileUrlResolver,
                 aiApiClient,
-                aiTextFilterMapper,
-                aiApiClient);
+                aiTextFilterMapper);
         verifyNoMoreInteractions(userRepository);
     }
 
@@ -220,8 +218,7 @@ public class CreateGatheringUnitTest {
                 participationRepository,
                 fileUrlResolver,
                 aiApiClient,
-                aiTextFilterMapper,
-                aiApiClient);
+                aiTextFilterMapper);
         verifyNoMoreInteractions(userRepository, categoryRepository);
     }
 
@@ -278,6 +275,5 @@ public class CreateGatheringUnitTest {
                 gatheringRepository,
                 participationRepository,
                 fileUrlResolver);
-        verifyNoInteractions(aiApiClient);
     }
 }

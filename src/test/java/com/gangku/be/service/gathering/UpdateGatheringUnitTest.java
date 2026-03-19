@@ -137,7 +137,7 @@ public class UpdateGatheringUnitTest {
                 fileUrlResolver,
                 aiTextFilterMapper,
                 aiApiClient);
-        verifyNoInteractions(userRepository, participationRepository, aiApiClient);
+        verifyNoInteractions(userRepository, participationRepository);
     }
 
     @Test
@@ -174,8 +174,7 @@ public class UpdateGatheringUnitTest {
                 aiTextFilterMapper,
                 aiApiClient,
                 userRepository,
-                participationRepository,
-                aiApiClient);
+                participationRepository);
         verifyNoMoreInteractions(gatheringRepository);
     }
 
@@ -218,8 +217,7 @@ public class UpdateGatheringUnitTest {
                 aiTextFilterMapper,
                 aiApiClient,
                 userRepository,
-                participationRepository,
-                aiApiClient);
+                participationRepository);
         verifyNoMoreInteractions(gatheringRepository);
     }
 
@@ -274,7 +272,7 @@ public class UpdateGatheringUnitTest {
                 aiApiClient,
                 categoryRepository,
                 fileUrlResolver);
-        verifyNoInteractions(userRepository, participationRepository, aiApiClient);
+        verifyNoInteractions(userRepository, participationRepository);
     }
 
     @Test
@@ -329,6 +327,6 @@ public class UpdateGatheringUnitTest {
                 aiApiClient,
                 categoryRepository,
                 fileUrlResolver);
-        verifyNoInteractions(userRepository, participationRepository, aiApiClient);
+        verifyNoInteractions(userRepository, participationRepository);
     }
 }
