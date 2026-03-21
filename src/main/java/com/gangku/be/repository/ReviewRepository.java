@@ -39,22 +39,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             @Param("id") Long id,
             Pageable pageable);
 
-    @Query(
-            """
-            select r
-            from Review r
-            where r.reviewee.id = :revieweeId
-              and (
-                    r.createdAt > :createdAt
-                    or (r.createdAt = :createdAt and r.id > :id)
-              )
-            order by r.createdAt asc, r.id asc
-            """)
-    List<Review> findNextPageByRevieweeIdAndCursorAsc(
-            @Param("revieweeId") Long revieweeId,
-            @Param("createdAt") LocalDateTime createdAt,
-            @Param("id") Long id,
-            Pageable pageable);
+
+    @Query("""
+        select avg(r.rating)
+        from Review r
+        where r.reviewee.id = :revieweeId
+        """)
+    Double findAverageRatingByRevieweeId(@Param("revieweeId") Long revieweeId);
 
     Optional<Review> findByIdAndReviewerId(Long reviewId, Long reviewerId);
 

@@ -131,8 +131,10 @@ public class UserService {
                         reviewSort.toSortedByForSpec(),
                         r -> resolveImageUrl(r.getReviewer().getProfileImageObjectKey()));
 
+        Double averageRating = reviewRepository.findAverageRatingByRevieweeId(userId);
+        Double roundedAverageRating = roundToOneDecimalPlace(averageRating);
         return UserProfileResponseDto.from(
-                user, profileImageUrl, preferredCategories, reviewsPreview);
+                user, profileImageUrl, preferredCategories, roundedAverageRating, reviewsPreview);
     }
 
     @Transactional
@@ -235,6 +237,14 @@ public class UserService {
                 requestDto.getAge(),
                 requestDto.getGender(),
                 requestDto.getEnrollNumber());
+    }
+
+    // 반올림 메서드
+    private Double roundToOneDecimalPlace(Double value) {
+        if (value == null) {
+            return null;
+        }
+        return Math.round(value * 10) / 10.0;
     }
 
     private void replacePreferredCategories(User user, List<String> preferredCategories) {

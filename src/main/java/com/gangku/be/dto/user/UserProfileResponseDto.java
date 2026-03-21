@@ -19,6 +19,7 @@ public class UserProfileResponseDto {
     private String gender;
     private Integer enrollNumber;
     private List<String> preferredCategories;
+    private Double averageRating;
     private Boolean reviewsPublic;
     private ReviewsPreview reviewsPreview;
 
@@ -26,6 +27,7 @@ public class UserProfileResponseDto {
             User user,
             String profileImageUrl,
             List<String> preferredCategories,
+            Double averageRating,
             ReviewsPreview reviewsPreview) {
         String publicUserId = PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
         return UserProfileResponseDto.builder()
@@ -36,6 +38,7 @@ public class UserProfileResponseDto {
                 .gender(user.getGender())
                 .enrollNumber(user.getEnrollNumber())
                 .preferredCategories(preferredCategories)
+                .averageRating(averageRating)
                 .reviewsPublic(user.getReviewsPublic())
                 .reviewsPreview(reviewsPreview)
                 .build();
