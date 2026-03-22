@@ -44,4 +44,15 @@ where p1.user.id = :reviewerId
 order by p1.gathering.date desc
 """)
     List<Long> findFinishedCommonGatheringIds(Long reviewerId, Long revieweeId);
+
+    // user 마다 지금까지 방 참여한 횟수 count 용
+    @Query(
+            """
+    SELECT p.user.id, COUNT(p)
+    FROM Participation p
+    WHERE p.status = 'APPROVED'
+    GROUP BY p.user.id
+""")
+    List<Object[]> countApprovedParticipationGroupByUserId();
+
 }
