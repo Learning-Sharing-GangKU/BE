@@ -1,12 +1,11 @@
 package com.gangku.be.dto.ai.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.Map;
 
 @Getter
 @Builder
@@ -24,5 +23,4 @@ public class ClusteringRefreshResponseDto {
 
     @JsonProperty("cluster_sizes")
     private Map<Integer, Integer> clusterSizes;
-
 }

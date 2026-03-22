@@ -1,13 +1,12 @@
 package com.gangku.be.dto.ai.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.Map;
-import java.util.List;
 
 @Getter
 @Builder

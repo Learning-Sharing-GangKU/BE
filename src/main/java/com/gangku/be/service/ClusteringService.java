@@ -8,12 +8,11 @@ import com.gangku.be.dto.ai.request.PopularityRefreshRequestDto;
 import com.gangku.be.dto.ai.response.ClusteringRefreshResponseDto;
 import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.repository.UserActionCollectionRepository;
+import com.gangku.be.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,54 +34,66 @@ public class ClusteringService {
         List<User> users = userRepository.findAll();
 
         // 2-0) DB 에서 따온 userCount 한 번에 관리
-        Map<Long, Integer> joinCountMap = participationRepository
-                .countApprovedParticipationGroupByUserId()
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> ((Long) row[1]).intValue()
-                ));
+        Map<Long, Integer> joinCountMap =
+                participationRepository.countApprovedParticipationGroupByUserId().stream()
+                        .collect(
+                                Collectors.toMap(
+                                        row -> (Long) row[0], row -> ((Long) row[1]).intValue()));
 
         // 2-1) DTO 조립
-        List<ClusteringUserData> clusteringUserDataList = users.stream()
-                .map(user -> ClusteringUserData.builder()
-                        .userId(user.getId().intValue())
-                        .preferredCategories(
-                                user.getPreferredCategories().stream()
-                                        .map(pc -> pc.getCategory().getName())
-                                        .toList())
-                        .age(user.getAge())
-                        .enrollNumber(user.getEnrollNumber())
-                        .userJoinCount(joinCountMap.getOrDefault(user.getId(), 0))
-                        .build())
-                .toList();
+        List<ClusteringUserData> clusteringUserDataList =
+                users.stream()
+                        .map(
+                                user ->
+                                        ClusteringUserData.builder()
+                                                .userId(user.getId().intValue())
+                                                .preferredCategories(
+                                                        user.getPreferredCategories().stream()
+                                                                .map(
+                                                                        pc ->
+                                                                                pc.getCategory()
+                                                                                        .getName())
+                                                                .toList())
+                                                .age(user.getAge())
+                                                .enrollNumber(user.getEnrollNumber())
+                                                .userJoinCount(
+                                                        joinCountMap.getOrDefault(user.getId(), 0))
+                                                .build())
+                        .toList();
 
-        ClusteringRefreshRequestDto request = ClusteringRefreshRequestDto.builder().users(clusteringUserDataList).build();
+        ClusteringRefreshRequestDto request =
+                ClusteringRefreshRequestDto.builder().users(clusteringUserDataList).build();
 
         // 3) AI 호출
         ClusteringRefreshResponseDto response = aiApiClient.refreshClustering(request);
 
-        log.info("클러스터링 완료 - 유저수: {}, 클러스터수: {}, inertia: {}, 클러스터별 유저수: {}",
+        log.info(
+                "클러스터링 완료 - 유저수: {}, 클러스터수: {}, inertia: {}, 클러스터별 유저수: {}",
                 response.getNUsers(),
                 response.getNClusters(),
                 response.getInertia(),
                 response.getClusterSizes());
     }
 
-    public void refreshPopularity(){
+    public void refreshPopularity() {
         // 1) 전체 로그리스트 조회
-        List<UserActionCollection> logList = actionCollectionRepository.findAllWithUserAndGathering();
+        List<UserActionCollection> logList =
+                actionCollectionRepository.findAllWithUserAndGathering();
 
         // 2) DTO 조립
-        List<PopularityRefreshRequestDto.UserActionLog> clusteringPopularityDataList = logList.stream()
-                .map(ua -> PopularityRefreshRequestDto.UserActionLog.builder()
-                        .userId(ua.getUser().getId().intValue())
-                        .gatheringId(ua.getGathering().getId().intValue())
-                        .status(ua.getStatus().name())
-                        .build())
-                .toList();
+        List<PopularityRefreshRequestDto.UserActionLog> clusteringPopularityDataList =
+                logList.stream()
+                        .map(
+                                ua ->
+                                        PopularityRefreshRequestDto.UserActionLog.builder()
+                                                .userId(ua.getUser().getId().intValue())
+                                                .gatheringId(ua.getGathering().getId().intValue())
+                                                .status(ua.getStatus().name())
+                                                .build())
+                        .toList();
 
-        PopularityRefreshRequestDto request = PopularityRefreshRequestDto.builder().logList(clusteringPopularityDataList).build();
+        PopularityRefreshRequestDto request =
+                PopularityRefreshRequestDto.builder().logList(clusteringPopularityDataList).build();
 
         // 3) AI 호출 (response 로 뭘 하는게 아니므로 단순 호출만)
         aiApiClient.refreshPopularity(request);

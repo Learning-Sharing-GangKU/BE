@@ -22,6 +22,4 @@ public class ClusteringScheduler {
     public void refreshPopularity() {
         clusteringService.refreshPopularity();
     }
-
-
 }

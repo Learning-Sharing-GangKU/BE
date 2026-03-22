@@ -2,9 +2,8 @@ package com.gangku.be.domain;
 
 import com.gangku.be.constant.action.UserAction;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Table(name = "user_action_collection")
@@ -37,12 +36,11 @@ public class UserActionCollection {
         this.createdAt = LocalDateTime.now();
     }
 
-    public static UserActionCollection create(
-            User user, Gathering gathering, UserAction status) {
+    public static UserActionCollection create(User user, Gathering gathering, UserAction status) {
         return UserActionCollection.builder()
-                        .user(user)
-                        .gathering(gathering)
-                        .status(status)
-                        .build();
+                .user(user)
+                .gathering(gathering)
+                .status(status)
+                .build();
     }
 }

@@ -54,5 +54,4 @@ order by p1.gathering.date desc
     GROUP BY p.user.id
 """)
     List<Object[]> countApprovedParticipationGroupByUserId();
-
 }
