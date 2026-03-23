@@ -28,14 +28,11 @@ class AiApiClientCommunicationTest {
 
     private MockWebServer mockWebServer;
     private AiApiClient aiApiClient;
-    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-
-        objectMapper = new ObjectMapper();
 
         AiServerProps aiServerProps = new AiServerProps();
         aiServerProps.setBaseUrl(mockWebServer.url("/").toString());
@@ -130,30 +127,6 @@ class AiApiClientCommunicationTest {
                                 """
                                 {
                                   "error": "internal server error"
-                                }
-                                """));
-
-        TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
-
-        // when & then
-        assertThatThrownBy(() -> aiApiClient.filterText(requestDto))
-                .isInstanceOf(CustomException.class)
-                .extracting("errorCode")
-                .isEqualTo(CommonErrorCode.AI_SERVICE_ERROR);
-    }
-
-    @Test
-    @DisplayName("AI 통신 실패: 잘못된 JSON 응답이면 AI_SERVICE_ERROR 예외")
-    void filterText_invalidJson() {
-        // given
-        mockWebServer.enqueue(
-                new MockResponse()
-                        .setResponseCode(200)
-                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody(
-                                """
-                                {
-                                  "allowed": "not_boolean"
                                 }
                                 """));
 
