@@ -1,5 +1,6 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.dto.home.response.HomeResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,9 +14,9 @@ public class HomeService {
     @Transactional(readOnly = true)
     public HomeResponseDto getHome(Long userId, int page, int size) {
         return HomeResponseDto.builder()
-                .recommended(gatheringService.getRecommendedGatherings(userId, page, size))
-                .latest(gatheringService.getGatheringList(null, page, size, "latest"))
-                .popular(gatheringService.getGatheringList(null, page, size, "popular"))
+                .recommended(gatheringService.getGatheringList(userId, null, page, size, GatheringSort.RECOMMEND.getSort()))
+                .latest(gatheringService.getGatheringList(userId, null, page, size, GatheringSort.LATEST.getSort()))
+                .popular(gatheringService.getGatheringList(userId, null, page, size, GatheringSort.POPULAR.getSort()))
                 .build();
     }
 }

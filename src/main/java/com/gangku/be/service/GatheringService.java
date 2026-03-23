@@ -174,78 +174,24 @@ public class GatheringService {
         return aiApiClient.createIntro(introCreateRequestDto);
     }
 
-    /**
-     * 모임 목록 조회 - 홈 화면 및 카테고리 페이지에서 사용 - category, sort, size에 따라 정렬 및 필터링 - sort = latest →
-     * createdAt DESC - sort = popular → participantCount DESC
-     */
     @Transactional(readOnly = true)
     public GatheringListResponseDto getGatheringList(
-            String categoryName, int page, int size, String sort) {
+            Long userId, String categoryName, int page, int size, String sort) {
 
         Category category = findCategoryByName(categoryName);
         GatheringSort sortType = GatheringSort.from(sort);
 
-        Sort springSort =
+        Page<Gathering> gatheringPage =
                 switch (sortType) {
-                    case POPULAR ->
-                            Sort.by(Sort.Order.desc("participantCount"), Sort.Order.desc("id"));
-                    case LATEST -> Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
-                        /*
-                        위치가 정확한지는 모르겠지만 일단.
-                        (POST)http://127.0.0.1:8000/api/ai/v2/recommendations
-                        request 로 com.gangku.be.dto.gathering.request.GatheringRecommendAiRequest 이거 넘겨주면 됨
-                        그럼 response 로 List<gatheringId> 가 return
-                         */
+                    case LATEST, POPULAR -> getNormalGatheringPage(category, sortType, page, size);
+                    case RECOMMEND -> getRecommendedGatheringPage(userId, category, page, size);
                 };
 
-        Pageable pageable = PageRequest.of(page - 1, size, springSort);
-        Page<Gathering> gatheringPage;
-
-        gatheringPage = getGatheringPage(category, sortType, pageable);
-
-        String sortedByForSpec =
-                (sortType == GatheringSort.POPULAR)
-                        ? "participantCount,desc,id,desc"
-                        : "createdAt,desc,id,desc";
+        String sortedByForSpec = getSortedByForSpec(sortType);
 
         GatheringList gatheringList =
                 GatheringList.from(gatheringPage, sortedByForSpec, this::resolveGatheringImageUrl);
 
-        return GatheringListResponseDto.from(gatheringList);
-    }
-
-    @Transactional(readOnly = true)
-    public GatheringListResponseDto getRecommendedGatherings(Long userId, int page, int size) {
-
-        if (userId == null) {
-            return getGatheringList(null, page, size, "latest");
-        }
-
-        User user = findUserById(userId);
-
-        List<String> preferredCategories =
-                user.getPreferredCategories().stream()
-                        .map(pc -> pc.getCategory().getName())
-                        .toList();
-
-        List<Gathering> candidates =
-                gatheringRepository.findTop50ByStatusOrderByCreatedAtDesc(
-                        GatheringStatus.RECRUITING);
-
-        RecommendationRequestDto recommendationRequestDto =
-                RecommendationRequestDto.from(user, preferredCategories, candidates);
-        List<Long> recommendedIds =
-                aiApiClient.recommend(recommendationRequestDto).getGatheringsId();
-
-        if (recommendedIds == null || recommendedIds.isEmpty()) {
-            return getGatheringList(null, page, size, "latest");
-        }
-
-        Page<Gathering> gatheringPage = buildRecommendedPage(recommendedIds, page, size);
-
-        String sortedByForSpec = "aiRecommended,desc";
-        GatheringList gatheringList =
-                GatheringList.from(gatheringPage, sortedByForSpec, this::resolveGatheringImageUrl);
         return GatheringListResponseDto.from(gatheringList);
     }
 
@@ -282,10 +228,71 @@ public class GatheringService {
         return GatheringListResponseDto.from(gatheringList);
     }
 
-    /**
-     * recommendedIds 순서를 그대로 유지하면서, DB에서 Gathering을 조회해 Page로 만든다. - 삭제된 gatheringId가 섞여 있어도 null은
-     * 제거 - page/size에 맞춰 slice 후 PageImpl 생성
-     */
+    private Page<Gathering> getNormalGatheringPage(
+            Category category, GatheringSort sortType, int page, int size) {
+
+        Sort springSort =
+                switch (sortType) {
+                    case POPULAR ->
+                            Sort.by(Sort.Order.desc("participantCount"), Sort.Order.desc("id"));
+                    case LATEST -> Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+                    default -> throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
+                };
+
+        Pageable pageable = PageRequest.of(page - 1, size, springSort);
+        return getGatheringPage(category, sortType, pageable);
+    }
+
+    private Page<Gathering> getRecommendedGatheringPage(
+            Long userId, Category category, int page, int size) {
+
+        if (userId == null) {
+            return getNormalGatheringPage(category, GatheringSort.LATEST, page, size);
+        }
+
+        User user = findUserById(userId);
+
+        List<String> preferredCategories =
+                user.getPreferredCategories().stream()
+                        .map(pc -> pc.getCategory().getName())
+                        .toList();
+
+        List<Gathering> candidates = getRecommendationCandidates(category);
+
+        if (candidates.isEmpty()) {
+            return getNormalGatheringPage(category, GatheringSort.LATEST, page, size);
+        }
+
+        RecommendationRequestDto recommendationRequestDto =
+                RecommendationRequestDto.from(user, preferredCategories, candidates);
+
+        List<Long> recommendedIds =
+                aiApiClient.recommend(recommendationRequestDto).getGatheringsId();
+
+        if (recommendedIds == null || recommendedIds.isEmpty()) {
+            return getNormalGatheringPage(category, GatheringSort.LATEST, page, size);
+        }
+
+        return buildRecommendedPage(recommendedIds, page, size);
+    }
+
+    private List<Gathering> getRecommendationCandidates(Category category) {
+        if (category != null) {
+            return gatheringRepository.findTop50ByCategoryAndStatusOrderByCreatedAtDesc(
+                    category, GatheringStatus.RECRUITING);
+        }
+
+        return gatheringRepository.findTop50ByStatusOrderByCreatedAtDesc(
+                GatheringStatus.RECRUITING);
+    }
+
+    private String getSortedByForSpec(GatheringSort sortType) {
+        return switch (sortType) {
+            case POPULAR -> "participantCount,desc,id,desc";
+            case LATEST -> "createdAt,desc,id,desc";
+            case RECOMMEND -> "recommended,desc";
+        };
+    }
     private Page<Gathering> buildRecommendedPage(List<Long> recommendedIds, int page, int size) {
 
         // 1) DB 조회

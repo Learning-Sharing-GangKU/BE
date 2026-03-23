@@ -1,5 +1,6 @@
 package com.gangku.be.controller;
 
+import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
@@ -101,16 +102,15 @@ public class GatheringController {
         return ResponseEntity.ok(introCreateResponseDto);
     }
 
-    // 모임 리스트 조회
-    // 카테고리 페이지에서 사용
     @GetMapping
     public ResponseEntity<GatheringListResponseDto> getGatheringList(
+            @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
             @RequestParam(defaultValue = "3") @Max(value = 12) int size,
             @RequestParam(defaultValue = "latest") String sort) {
         GatheringListResponseDto gatheringListResponseDto =
-                gatheringService.getGatheringList(category, page, size, sort);
+                gatheringService.getGatheringList(userId, category, page, size, sort);
         return ResponseEntity.ok(gatheringListResponseDto);
     }
 }
