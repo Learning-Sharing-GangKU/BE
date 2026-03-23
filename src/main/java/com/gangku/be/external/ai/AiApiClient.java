@@ -6,13 +6,13 @@ import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.ai.request.PopularityRefreshRequestDto;
 import com.gangku.be.dto.ai.request.RecommendationRequestDto;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
-import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
-import com.gangku.be.model.ai.PopularityRefreshResponse;
 import com.gangku.be.dto.ai.response.RecommendationResponseDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
+import com.gangku.be.model.ai.ClusteringRefreshResponse;
+import com.gangku.be.model.ai.PopularityRefreshResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -43,16 +43,12 @@ public class AiApiClient {
 
     public ClusteringRefreshResponse refreshClustering(ClusteringRefreshRequestDto request) {
         return post(
-                aiServerProps.getRefreshClusteringPath(),
-                request,
-                ClusteringRefreshResponse.class);
+                aiServerProps.getRefreshClusteringPath(), request, ClusteringRefreshResponse.class);
     }
 
     public PopularityRefreshResponse refreshPopularity(PopularityRefreshRequestDto request) {
         return post(
-                aiServerProps.getRefreshPopularityPath(),
-                request,
-                PopularityRefreshResponse.class);
+                aiServerProps.getRefreshPopularityPath(), request, PopularityRefreshResponse.class);
     }
 
     private <T> T post(String uri, Object requestDto, Class<T> responseType) {
