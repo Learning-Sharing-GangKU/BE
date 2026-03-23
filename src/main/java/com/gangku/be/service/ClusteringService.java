@@ -5,8 +5,9 @@ import com.gangku.be.domain.UserActionCollection;
 import com.gangku.be.dto.ai.request.ClusteringRefreshRequestDto;
 import com.gangku.be.dto.ai.request.ClusteringRefreshRequestDto.ClusteringUserData;
 import com.gangku.be.dto.ai.request.PopularityRefreshRequestDto;
-import com.gangku.be.dto.ai.response.ClusteringRefreshResponseDto;
+import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.external.ai.AiApiClient;
+import com.gangku.be.model.ai.PopularityRefreshResponse;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserActionCollectionRepository;
 import com.gangku.be.repository.UserRepository;
@@ -65,14 +66,14 @@ public class ClusteringService {
                 ClusteringRefreshRequestDto.builder().users(clusteringUserDataList).build();
 
         // 3) AI 호출
-        ClusteringRefreshResponseDto response = aiApiClient.refreshClustering(request);
+        ClusteringRefreshResponse response = aiApiClient.refreshClustering(request);
 
         log.info(
                 "클러스터링 완료 - 유저수: {}, 클러스터수: {}, inertia: {}, 클러스터별 유저수: {}",
-                response.getNUsers(),
-                response.getNClusters(),
-                response.getInertia(),
-                response.getClusterSizes());
+                response.nUsers(),
+                response.nClusters(),
+                response.inertia(),
+                response.clusterSizes());
     }
 
     public void refreshPopularity() {
@@ -96,6 +97,13 @@ public class ClusteringService {
                 PopularityRefreshRequestDto.builder().logList(clusteringPopularityDataList).build();
 
         // 3) AI 호출 (response 로 뭘 하는게 아니므로 단순 호출만)
-        aiApiClient.refreshPopularity(request);
+        PopularityRefreshResponse response = aiApiClient.refreshPopularity(request);
+
+        log.info(
+                "클러스터링 완료 - 토탈 로그 수: {}, 클러스터수: {}, top N 수: {}, 클러스터별 Popularity: {}",
+                response.totalLogs(),
+                response.nClusters(),
+                response.topN(),
+                response.clusterPopularity());
     }
 }

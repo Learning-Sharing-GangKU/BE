@@ -6,9 +6,9 @@ import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.ai.request.PopularityRefreshRequestDto;
 import com.gangku.be.dto.ai.request.RecommendationRequestDto;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
-import com.gangku.be.dto.ai.response.ClusteringRefreshResponseDto;
+import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.dto.ai.response.IntroCreateResponseDto;
-import com.gangku.be.dto.ai.response.PopularityRefreshResponseDto;
+import com.gangku.be.model.ai.PopularityRefreshResponse;
 import com.gangku.be.dto.ai.response.RecommendationResponseDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.exception.CustomException;
@@ -41,18 +41,18 @@ public class AiApiClient {
                 aiServerProps.getRecommendationsPath(), request, RecommendationResponseDto.class);
     }
 
-    public ClusteringRefreshResponseDto refreshClustering(ClusteringRefreshRequestDto request) {
+    public ClusteringRefreshResponse refreshClustering(ClusteringRefreshRequestDto request) {
         return post(
                 aiServerProps.getRefreshClusteringPath(),
                 request,
-                ClusteringRefreshResponseDto.class);
+                ClusteringRefreshResponse.class);
     }
 
-    public PopularityRefreshResponseDto refreshPopularity(PopularityRefreshRequestDto request) {
+    public PopularityRefreshResponse refreshPopularity(PopularityRefreshRequestDto request) {
         return post(
                 aiServerProps.getRefreshPopularityPath(),
                 request,
-                PopularityRefreshResponseDto.class);
+                PopularityRefreshResponse.class);
     }
 
     private <T> T post(String uri, Object requestDto, Class<T> responseType) {

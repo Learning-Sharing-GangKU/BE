@@ -1,4 +1,4 @@
-package com.gangku.be.scheduler;
+package com.gangku.be.util.scheduler;
 
 import com.gangku.be.service.ClusteringService;
 import lombok.RequiredArgsConstructor;
