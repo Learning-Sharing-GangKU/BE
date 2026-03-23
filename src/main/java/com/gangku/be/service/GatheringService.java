@@ -251,13 +251,10 @@ public class GatheringService {
 
     /** 사용자별 모임 목록 조회 (role=host | guest) - host: 내가 만든 모임 - guest: 내가 참여한 모임 */
     @Transactional(readOnly = true)
-    public GatheringListResponseDto getUserGatherings(
+    public GatheringListResponseDto getUserGatheringList(
             Long userId, String role, int page, int size) {
 
-        User user =
-                userRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
 
         Page<Gathering> gatheringPage;
         String sortedByForSpec;
@@ -275,9 +272,8 @@ public class GatheringService {
             gatheringPage = participationRepository.findJoinedGatheringsByUserId(userId, pageable);
             sortedByForSpec = "joinedAt,desc";
         } else {
-            // role 값이 잘못 들어온 케이스
             throw new CustomException(
-                    CommonErrorCode.INVALID_REQUEST_PARAMETER); // 너희 프로젝트 파라미터 에러코드로 교체
+                    CommonErrorCode.INVALID_REQUEST_PARAMETER);
         }
 
         GatheringList gatheringList =
@@ -329,9 +325,9 @@ public class GatheringService {
         return fileUrlResolver.toPublicUrl(key);
     }
 
-    private User findUserById(Long hostId) {
+    private User findUserById(Long userId) {
         return userRepository
-                .findById(hostId)
+                .findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 

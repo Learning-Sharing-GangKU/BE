@@ -91,8 +91,8 @@ public class UserController {
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
             @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 50) int size) {
         GatheringListResponseDto response =
-                gatheringService.getUserGatherings(userId, role, page, size);
-        return ResponseEntity.ok().header("Cache-Control", "private, max-age=60").body(response);
+                gatheringService.getUserGatheringList(userId, role, page, size);
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("/{userId}")
