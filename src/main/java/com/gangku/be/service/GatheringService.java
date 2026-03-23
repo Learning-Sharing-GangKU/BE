@@ -138,9 +138,12 @@ public class GatheringService {
     }
 
     @Transactional(readOnly = true)
-    public GatheringDetailResponseDto getGatheringDetail(Long gatheringId, int page, int size) {
+    public GatheringDetailResponseDto getGatheringDetail(Long gatheringId, int page, int size, Long userId) {
 
         Gathering gathering = findGatheringById(gatheringId);
+        User user = findUserById(userId);
+
+        boolean joined = participationRepository.existsByUserAndGathering(user, gathering);
 
         Sort sort =
                 Sort.by(Sort.Direction.DESC, "joinedAt").and(Sort.by(Sort.Direction.DESC, "id"));
@@ -161,7 +164,7 @@ public class GatheringService {
             gatheringImageUrl = fileUrlResolver.toPublicUrl(gatheringKey);
         }
 
-        return GatheringDetailResponseDto.from(gathering, participantsPreview, gatheringImageUrl);
+        return GatheringDetailResponseDto.from(gathering, participantsPreview, gatheringImageUrl, joined);
     }
 
     // 외부 AI 호출만 -> Client로 위임

@@ -64,11 +64,12 @@ public class GatheringController {
     public ResponseEntity<GatheringDetailResponseDto> getGatheringDetail(
             @PathVariable String gatheringId,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
-            @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size) {
+            @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size,
+            @AuthenticationPrincipal Long userId) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
         GatheringDetailResponseDto gatheringDetailResponseDto =
-                gatheringService.getGatheringDetail(internalGatheringId, page, size);
+                gatheringService.getGatheringDetail(internalGatheringId, page, size, userId);
         return ResponseEntity.ok(gatheringDetailResponseDto);
     }
 
