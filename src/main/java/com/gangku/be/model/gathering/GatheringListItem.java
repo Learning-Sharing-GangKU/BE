@@ -10,11 +10,10 @@ public record GatheringListItem(
         String gatheringImageUrl,
         String category,
         String title,
-        String hostName,
-        int participantCount,
-        int capacity) {
+        String description,
+        String location,
+        int participantCount) {
     public static GatheringListItem from(Gathering gathering, String gatheringImageUrl) {
-        User host = gathering.getHost();
 
         String publicGatheringId =
                 PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
@@ -24,8 +23,8 @@ public record GatheringListItem(
                 gatheringImageUrl,
                 gathering.getCategory().getName(),
                 gathering.getTitle(),
-                host.getNickname(),
-                gathering.getParticipantCount(),
-                gathering.getCapacity());
+                gathering.getDescription(),
+                gathering.getLocation(),
+                gathering.getParticipantCount());
     }
 }
