@@ -83,7 +83,6 @@ public class UserController {
         return ResponseEntity.ok(updateReviewSettingResponseDto);
     }
 
-    /** 특정 사용자의 모임 목록 조회 - role=host → 내가 만든 모임 - role=guest → 내가 참여한 모임 */
     @GetMapping("/gatherings")
     public ResponseEntity<GatheringListResponseDto> getUserGatherings(
             @AuthenticationPrincipal Long userId,

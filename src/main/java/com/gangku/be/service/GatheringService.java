@@ -195,7 +195,6 @@ public class GatheringService {
         return GatheringListResponseDto.from(gatheringList);
     }
 
-    /** 사용자별 모임 목록 조회 (role=host | guest) - host: 내가 만든 모임 - guest: 내가 참여한 모임 */
     @Transactional(readOnly = true)
     public GatheringListResponseDto getUserGatheringList(
             Long userId, String role, int page, int size) {
