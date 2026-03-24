@@ -3,6 +3,7 @@ package com.gangku.be.service;
 import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.constant.auth.EmailConstants;
 import com.gangku.be.constant.auth.TokenProperty;
+import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.auth.LoginRequestDto;
 import com.gangku.be.exception.CustomException;
@@ -11,6 +12,7 @@ import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.auth.EmailVerificationConfirmResult;
 import com.gangku.be.model.auth.EmailVerificationSendResult;
 import com.gangku.be.model.auth.TokenPair;
+import com.gangku.be.model.common.PrefixedId;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.util.jwt.EmailVerificationJwt;
 import com.gangku.be.util.jwt.EmailVerificationJwt.EmailVerificationToken;
@@ -75,7 +77,9 @@ public class AuthService {
                 findUserByEmailAndPassword(
                         loginRequestDto.getEmail(), loginRequestDto.getPassword());
 
-        TokenPair tokenPair = generateToken(user.getId());
+        String publicUserId = PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
+
+        TokenPair tokenPair = generateToken(publicUserId);
 
         updateRefreshToken(
                 user, tokenPair.refreshToken(), TokenProperty.REFRESH_TOKEN.getExpirationInDays());
@@ -89,7 +93,9 @@ public class AuthService {
         User user = findUserFromRefreshToken(refreshToken);
         verifyRefreshToken(user, refreshToken);
 
-        TokenPair tokenPair = generateToken(user.getId());
+        String publicUserId = PrefixedId.of(ResourceType.USER, user.getId()).toExternal();
+
+        TokenPair tokenPair = generateToken(publicUserId);
 
         updateRefreshToken(
                 user, tokenPair.refreshToken(), TokenProperty.REFRESH_TOKEN.getExpirationInDays());
@@ -142,9 +148,9 @@ public class AuthService {
         return new EmailVerificationConfirmResult(true, sessionEmail);
     }
 
-    private TokenPair generateToken(Long userId) {
-        String accessToken = jwtTokenProvider.generateAccessToken(String.valueOf(userId));
-        String refreshToken = jwtTokenProvider.generateRefreshToken(String.valueOf(userId));
+    private TokenPair generateToken(String userId) {
+        String accessToken = jwtTokenProvider.generateAccessToken(userId);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
         return new TokenPair(accessToken, refreshToken);
     }
 

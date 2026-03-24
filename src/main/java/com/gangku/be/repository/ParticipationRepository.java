@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ParticipationRepository extends JpaRepository<Participation, Long> {
-    boolean existsByUserAndGathering(User user, Gathering gathering); // 중복 참가를 막음
+    boolean existsByUserAndGathering(User user, Gathering gathering);
 
     Optional<Participation> findByUserAndGathering(User user, Gathering gathering);
 

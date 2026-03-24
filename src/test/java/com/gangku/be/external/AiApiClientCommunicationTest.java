@@ -67,10 +67,10 @@ class AiApiClientCommunicationTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(
                                 """
-                                {
-                                  "allowed": true
-                                }
-                                """));
+                                        {
+                                          "allowed": true
+                                        }
+                                        """));
 
         TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
 
@@ -99,10 +99,10 @@ class AiApiClientCommunicationTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(
                                 """
-                                {
-                                  "allowed": false
-                                }
-                                """));
+                                        {
+                                          "allowed": false
+                                        }
+                                        """));
 
         TextFilterRequestDto requestDto = new TextFilterRequestDto("금칙어");
 

@@ -1,8 +1,10 @@
 package com.gangku.be.util.jwt;
 
 import com.gangku.be.constant.auth.TokenProperty;
+import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.model.common.PrefixedId;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -59,7 +61,8 @@ public class JwtTokenProvider {
             throw new CustomException(AuthErrorCode.INVALID_ACCESS_TOKEN);
         }
 
-        Long userId = Long.parseLong(claims.getSubject());
+        String subject = claims.getSubject();
+        Long userId = PrefixedId.parse(subject).require(ResourceType.USER);
 
         return new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
     }

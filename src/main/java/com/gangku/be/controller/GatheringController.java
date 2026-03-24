@@ -64,11 +64,12 @@ public class GatheringController {
     public ResponseEntity<GatheringDetailResponseDto> getGatheringDetail(
             @PathVariable String gatheringId,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
-            @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size) {
+            @RequestParam(defaultValue = "3") @Min(value = 1) @Max(value = 10) int size,
+            @AuthenticationPrincipal Long userId) {
         Long internalGatheringId = PrefixedId.parse(gatheringId).require(ResourceType.GATHERING);
 
         GatheringDetailResponseDto gatheringDetailResponseDto =
-                gatheringService.getGatheringDetail(internalGatheringId, page, size);
+                gatheringService.getGatheringDetail(internalGatheringId, page, size, userId);
         return ResponseEntity.ok(gatheringDetailResponseDto);
     }
 
@@ -100,16 +101,15 @@ public class GatheringController {
         return ResponseEntity.ok(introCreateResponseDto);
     }
 
-    // 모임 리스트 조회
-    // 카테고리 페이지에서 사용
     @GetMapping
     public ResponseEntity<GatheringListResponseDto> getGatheringList(
+            @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
             @RequestParam(defaultValue = "3") @Max(value = 12) int size,
             @RequestParam(defaultValue = "latest") String sort) {
         GatheringListResponseDto gatheringListResponseDto =
-                gatheringService.getGatheringList(category, page, size, sort);
+                gatheringService.getGatheringList(userId, category, page, size, sort);
         return ResponseEntity.ok(gatheringListResponseDto);
     }
 }

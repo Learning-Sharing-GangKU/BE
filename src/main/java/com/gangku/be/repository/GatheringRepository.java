@@ -95,6 +95,9 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
     // AI 후보용: 모집중인 방 중 최신 50개
     List<Gathering> findTop50ByStatusOrderByCreatedAtDesc(GatheringStatus status);
 
+    List<Gathering> findTop50ByCategoryAndStatusOrderByCreatedAtDesc(
+            Category category, GatheringStatus status);
+
     // AI가 추천해준 ID 리스트로 조회
     List<Gathering> findByIdIn(Collection<Long> ids);
 }
