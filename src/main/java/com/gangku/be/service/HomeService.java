@@ -14,9 +14,15 @@ public class HomeService {
     @Transactional(readOnly = true)
     public HomeResponseDto getHome(Long userId, int page, int size) {
         return HomeResponseDto.builder()
-                .recommended(gatheringService.getGatheringList(userId, null, page, size, GatheringSort.RECOMMEND.getSort()))
-                .latest(gatheringService.getGatheringList(userId, null, page, size, GatheringSort.LATEST.getSort()))
-                .popular(gatheringService.getGatheringList(userId, null, page, size, GatheringSort.POPULAR.getSort()))
+                .recommended(
+                        gatheringService.getGatheringList(
+                                userId, null, page, size, GatheringSort.RECOMMEND.getSort()))
+                .latest(
+                        gatheringService.getGatheringList(
+                                userId, null, page, size, GatheringSort.LATEST.getSort()))
+                .popular(
+                        gatheringService.getGatheringList(
+                                userId, null, page, size, GatheringSort.POPULAR.getSort()))
                 .build();
     }
 }

@@ -1,6 +1,5 @@
 package com.gangku.be.controller;
 
-import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.dto.ai.request.IntroCreateRequestDto;
 import com.gangku.be.dto.ai.response.IntroCreateResponseDto;

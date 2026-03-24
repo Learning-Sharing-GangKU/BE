@@ -1,6 +1,5 @@
 package com.gangku.be.dto.gathering.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.model.common.PrefixedId;

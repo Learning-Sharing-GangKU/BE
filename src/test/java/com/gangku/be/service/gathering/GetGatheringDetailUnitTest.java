@@ -95,7 +95,8 @@ public class GetGatheringDetailUnitTest {
 
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
         when(userRepository.findById(userId)).thenReturn(Optional.of(loginUser));
-        when(participationRepository.existsByUserAndGathering(loginUser, gathering)).thenReturn(true);
+        when(participationRepository.existsByUserAndGathering(loginUser, gathering))
+                .thenReturn(true);
         when(participationRepository.findByGatheringId(eq(gatheringId), any(Pageable.class)))
                 .thenReturn(participationPage);
         when(fileUrlResolver.toPublicUrl("gatherings/g1.png"))
@@ -156,7 +157,8 @@ public class GetGatheringDetailUnitTest {
 
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
         when(userRepository.findById(userId)).thenReturn(Optional.of(loginUser));
-        when(participationRepository.existsByUserAndGathering(loginUser, gathering)).thenReturn(false);
+        when(participationRepository.existsByUserAndGathering(loginUser, gathering))
+                .thenReturn(false);
         when(participationRepository.findByGatheringId(eq(gatheringId), any(Pageable.class)))
                 .thenReturn(participationPage);
 
@@ -190,7 +192,8 @@ public class GetGatheringDetailUnitTest {
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> gatheringService.getGatheringDetail(gatheringId, page, size, userId))
+        assertThatThrownBy(
+                        () -> gatheringService.getGatheringDetail(gatheringId, page, size, userId))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.GATHERING_NOT_FOUND);
@@ -226,7 +229,8 @@ public class GetGatheringDetailUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> gatheringService.getGatheringDetail(gatheringId, page, size, userId))
+        assertThatThrownBy(
+                        () -> gatheringService.getGatheringDetail(gatheringId, page, size, userId))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);

@@ -2,7 +2,6 @@ package com.gangku.be.model.gathering;
 
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.User;
 import com.gangku.be.model.common.PrefixedId;
 
 public record GatheringListItem(
