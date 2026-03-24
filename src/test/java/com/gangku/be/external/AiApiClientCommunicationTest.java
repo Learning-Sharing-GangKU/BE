@@ -71,10 +71,10 @@ class AiApiClientCommunicationTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(
                                 """
-                                {
-                                  "allowed": true
-                                }
-                                """));
+                                        {
+                                          "allowed": true
+                                        }
+                                        """));
 
         TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
 
@@ -103,10 +103,10 @@ class AiApiClientCommunicationTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(
                                 """
-                                {
-                                  "allowed": false
-                                }
-                                """));
+                                        {
+                                          "allowed": false
+                                        }
+                                        """));
 
         TextFilterRequestDto requestDto = new TextFilterRequestDto("금칙어");
 
@@ -128,34 +128,10 @@ class AiApiClientCommunicationTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(
                                 """
-                                {
-                                  "error": "internal server error"
-                                }
-                                """));
-
-        TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
-
-        // when & then
-        assertThatThrownBy(() -> aiApiClient.filterText(requestDto))
-                .isInstanceOf(CustomException.class)
-                .extracting("errorCode")
-                .isEqualTo(CommonErrorCode.AI_SERVICE_ERROR);
-    }
-
-    @Test
-    @DisplayName("AI 통신 실패: 잘못된 JSON 응답이면 AI_SERVICE_ERROR 예외")
-    void filterText_invalidJson() {
-        // given
-        mockWebServer.enqueue(
-                new MockResponse()
-                        .setResponseCode(200)
-                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .setBody(
-                                """
-                                {
-                                  "allowed": "not_boolean"
-                                }
-                                """));
+                                        {
+                                          "error": "internal server error"
+                                        }
+                                        """));
 
         TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
 

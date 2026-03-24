@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 public enum GatheringSort {
     LATEST("latest"),
-    POPULAR("popular");
-    //    RECOMMENDED("recommended")
+    POPULAR("popular"),
+    RECOMMEND("recommend");
 
     private final String sort;
 
