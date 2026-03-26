@@ -16,7 +16,7 @@ env:
   CODEDEPLOY_APP: ${{ secrets.CODEDEPLOY_APP }}
   CODEDEPLOY_GROUP: ${{ secrets.CODEDEPLOY_GROUP }}
   SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
-  ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
+  ECR_REPO_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
 
 jobs:
   deploy:
@@ -26,8 +26,26 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - name: Checkout main at the exact SHA
+      - name: Checkout main
         uses: actions/checkout@v4
+
+      - name: Validate Gradle Wrapper
+        run: |
+          if [ ! -f gradlew ]; then
+            echo "gradlew 파일이 없습니다."
+            exit 1
+          fi
+          chmod +x gradlew
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build Verify
+        run: ./gradlew clean bootJar -x test --no-daemon
 
       - name: Prepare tags
         id: prep
@@ -45,18 +63,32 @@ jobs:
 
       - name: Login to ECR
         run: |
-          aws ecr get-login-password --region $AWS_REGION \
-            | docker login --username AWS --password-stdin ${{ env.ECR_REPO_URI }}
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | docker login --username AWS --password-stdin "${{ env.ECR_REPO_URI }}"
 
       - name: Build image
         run: |
-          docker build -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" -f Dockerfile .
+          docker build \
+            -t "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" \
+            -f Dockerfile .
 
       - name: Push image to ECR
         run: |
           docker tag "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}" "${{ env.ECR_REPO_URI }}:prod"
           docker push "${{ env.ECR_REPO_URI }}:${{ steps.prep.outputs.IMAGE_SHA_TAG }}"
-          docker push "${{ env.ECR_REPO_URI }}:prod" || true
+          docker push "${{ env.ECR_REPO_URI }}:prod"
+
+      - name: Validate deployment files
+        run: |
+          if [ ! -f appspec.yml ]; then
+            echo "appspec.yml 파일이 없습니다."
+            exit 1
+          fi
+
+          if ! compgen -G "scripts/*.sh" > /dev/null; then
+            echo "scripts 디렉토리에 .sh 파일이 없습니다."
+            exit 1
+          fi
 
       - name: Build deployment bundle
         run: |
@@ -70,9 +102,10 @@ jobs:
           echo "SERVICE_PORT=${{ env.SERVICE_PORT }}" >> bundle/.env
           echo "AWS_REGION=${{ env.AWS_REGION }}" >> bundle/.env
 
-          zip -r be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip bundle
-          aws s3 cp be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip \
-            s3://${{ env.S3_BUCKET }}/be/prod/be-${{ steps.prep.outputs.SHORT_SHA }}.zip
+          ZIP_NAME="be-prod-${{ steps.prep.outputs.SHORT_SHA }}.zip"
+
+          zip -r "$ZIP_NAME" bundle
+          aws s3 cp "$ZIP_NAME" "s3://${{ env.S3_BUCKET }}/be/prod/be-${{ steps.prep.outputs.SHORT_SHA }}.zip"
 
       - name: Trigger CodeDeploy deployment
         id: create_deployment
@@ -80,18 +113,50 @@ jobs:
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name "${{ env.CODEDEPLOY_APP }}" \
             --deployment-group-name "${{ env.CODEDEPLOY_GROUP }}" \
-            --s3-location bucket=${{ env.S3_BUCKET }},key=be/prod/be-${{ steps.prep.outputs.SHORT_SHA}}.zip,bundleType=zip \
-            --description "be prod in-place ${GITHUB_SHA}" \
-            --output json | jq -r '.deploymentId')
-          if [ -z "$DEPLOYMENT_ID" ] || [ "$DEPLOYMENT_ID" == "null" ]; then
-            echo "Failed to get deployment ID."
+            --s3-location bucket=${{ env.S3_BUCKET }},key=be/prod/be-${{ steps.prep.outputs.SHORT_SHA }}.zip,bundleType=zip \
+            --description "be prod in-place ${{ github.sha }}" \
+            --query 'deploymentId' \
+            --output text)
+
+          if [ -z "$DEPLOYMENT_ID" ] || [ "$DEPLOYMENT_ID" = "None" ]; then
+            echo "Deployment ID를 가져오지 못했습니다."
             exit 1
           fi
+
           echo "Deployment started with ID: $DEPLOYMENT_ID"
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
 
       - name: Wait for deployment completion
+        id: wait_deploy
+        continue-on-error: true
         run: |
           echo "Waiting for deployment ${{ steps.create_deployment.outputs.DEPLOYMENT_ID }} to complete..."
-          aws deploy wait deployment-successful --deployment-id "${{ steps.create_deployment.outputs.DEPLOYMENT_ID }}"
+          aws deploy wait deployment-successful \
+            --deployment-id "${{ steps.create_deployment.outputs.DEPLOYMENT_ID }}"
           echo "Deployment ${{ steps.create_deployment.outputs.DEPLOYMENT_ID }} completed successfully."
+
+      - name: Show deployment failure details
+        if: steps.wait_deploy.outcome == 'failure'
+        run: |
+          DEPLOYMENT_ID="${{ steps.create_deployment.outputs.DEPLOYMENT_ID }}"
+
+          echo "Deployment failed. Fetching deployment details..."
+          aws deploy get-deployment \
+            --deployment-id "$DEPLOYMENT_ID" \
+            --output json
+
+          echo "Fetching deployment target details..."
+          TARGET_IDS=$(aws deploy list-deployment-targets \
+            --deployment-id "$DEPLOYMENT_ID" \
+            --query 'targetIds' \
+            --output text)
+
+          for TARGET_ID in $TARGET_IDS; do
+            echo "===== Target: $TARGET_ID ====="
+            aws deploy get-deployment-target \
+              --deployment-id "$DEPLOYMENT_ID" \
+              --target-id "$TARGET_ID" \
+              --output json
+          done
+
+          exit 1
