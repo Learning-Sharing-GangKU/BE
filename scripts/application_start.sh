@@ -1,24 +1,45 @@
 #!/bin/bash
 set -euxo pipefail
+
 cd "$(dirname "$0")/.."
 
-APP_IMAGE="$(grep '^APP_IMAGE=' .env | cut -d= -f2)"
-SERVICE_PORT="$(grep '^SERVICE_PORT=' .env | cut -d= -f2)"
+if [ ! -f .env ]; then
+  echo ".env 파일이 없습니다."
+  exit 1
+fi
 
-# 기존 컨테이너 정리
-sudo docker rm -f be-app || true
+APP_IMAGE="$(grep '^APP_IMAGE=' .env | cut -d= -f2-)"
+SERVICE_PORT="$(grep '^SERVICE_PORT=' .env | cut -d= -f2-)"
 
-# 컨테이너 실행
-sudo docker run -d \
+if [ -z "$APP_IMAGE" ]; then
+  echo "APP_IMAGE 값이 없습니다."
+  exit 1
+fi
+
+if [ -z "$SERVICE_PORT" ]; then
+  echo "SERVICE_PORT 값이 없습니다."
+  exit 1
+fi
+
+mkdir -p /opt/be-app/logs
+
+if ! docker network inspect app-net >/dev/null 2>&1; then
+  echo "Docker network 'app-net' 이 존재하지 않습니다."
+  exit 1
+fi
+
+docker rm -f be-app || true
+
+docker run -d \
   --name be-app \
   --network app-net \
   -p "${SERVICE_PORT}:${SERVICE_PORT}" \
   -e SERVER_PORT="${SERVICE_PORT}" \
+  -e SPRING_PROFILES_ACTIVE=prod \
   --env-file .env \
-  -e SPRING_PROFILES_ACTIVE="prod" \
   -v /opt/be-app/logs:/app/logs \
   --restart unless-stopped \
   "$APP_IMAGE"
 
-# 기동 여유
 sleep 10
+docker ps | grep be-app

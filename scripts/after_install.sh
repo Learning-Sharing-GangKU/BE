@@ -1,14 +1,29 @@
 #!/bin/bash
 set -euxo pipefail
+
 cd "$(dirname "$0")/.."
 
-# .env 에서 변수 읽기
-APP_IMAGE="$(grep '^APP_IMAGE=' .env | cut -d= -f2)"
-AWS_REGION="$(grep '^AWS_REGION=' .env | cut -d= -f2)"
+if [ ! -f .env ]; then
+  echo ".env 파일이 없습니다."
+  exit 1
+fi
 
-# ECR 로그인
+APP_IMAGE="$(grep '^APP_IMAGE=' .env | cut -d= -f2-)"
+AWS_REGION="$(grep '^AWS_REGION=' .env | cut -d= -f2-)"
+
+if [ -z "$APP_IMAGE" ]; then
+  echo "APP_IMAGE 값이 없습니다."
+  exit 1
+fi
+
+if [ -z "$AWS_REGION" ]; then
+  echo "AWS_REGION 값이 없습니다."
+  exit 1
+fi
+
+ECR_REGISTRY="$(echo "$APP_IMAGE" | cut -d/ -f1)"
+
 aws ecr get-login-password --region "$AWS_REGION" \
- | docker login --username AWS --password-stdin "$(echo "$APP_IMAGE" | awk -F: '{print $1}')"
+  | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
-# 최신 이미지 풀
-sudo docker pull "$APP_IMAGE"
+docker pull "$APP_IMAGE"
