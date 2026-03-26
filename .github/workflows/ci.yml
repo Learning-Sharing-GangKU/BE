@@ -10,16 +10,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate Gradle Wrapper
+        run: |
+          if [ ! -f gradlew ]; then
+            echo "gradlew 파일이 없습니다."
+            exit 1
+          fi
+          chmod +x gradlew
+
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
           cache: gradle
-
-      - name: Grant Gradle permission
-        run: |
-          if [ -f gradlew ]; then chmod +x gradlew; fi
 
       - name: Lint (Spotless)
         run: ./gradlew spotlessCheck --no-daemon
@@ -29,4 +33,7 @@ jobs:
 
       - name: Integration Test (Spring Boot Test)
         if: github.base_ref == 'main'
-        run: ./gradlew test -PincludeTags=integration --no-daemon --passWithNoTests
+        run: ./gradlew test -PincludeTags=integration --no-daemon
+
+      - name: Build Verify
+        run: ./gradlew build -x test --no-daemon
