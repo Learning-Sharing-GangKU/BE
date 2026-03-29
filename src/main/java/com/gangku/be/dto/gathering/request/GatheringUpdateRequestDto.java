@@ -1,8 +1,6 @@
 package com.gangku.be.dto.gathering.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gangku.be.constant.category.CategoryList;
-import com.gangku.be.exception.annotation.ValidEnum;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -21,7 +19,6 @@ public class GatheringUpdateRequestDto {
 
     private String gatheringImageObjectKey;
 
-    @ValidEnum(enumClass = CategoryList.class, ignoreCase = true)
     private String category;
 
     @Min(value = 1)
