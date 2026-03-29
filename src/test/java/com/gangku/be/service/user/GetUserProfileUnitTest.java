@@ -56,7 +56,6 @@ public class GetUserProfileUnitTest {
                         .preferredCategories(new ArrayList<>())
                         .build();
 
-        // 리뷰어 유저
         User reviewer =
                 User.builder()
                         .id(2L)
@@ -64,7 +63,6 @@ public class GetUserProfileUnitTest {
                         .profileImageObjectKey("profiles/user2.png")
                         .build();
 
-        // Review 엔티티는 다른 팀원이 만들었다고 했지만, 현재 공유된 엔티티 기준으로 빌더 사용
         Review review1 =
                 Review.builder()
                         .id(10L)
@@ -101,12 +99,10 @@ public class GetUserProfileUnitTest {
                         .updatedAt(LocalDateTime.now().minusDays(3))
                         .build();
 
-        // 선호카테고리는 User.preferredCategories를 통해 내려가므로 여기서는 0개로 둔다
-        // (선호카테고리 mapping은 도메인 구조에 따라 별도 fixture로 채워도 됨)
-
         Page<Review> reviewPage = new PageImpl<>(List.of(review1, review2, review3));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
         when(fileUrlResolver.toPublicUrl("profiles/user1.png"))
                 .thenReturn("https://cdn.example.com/profiles/user1.png");
         when(fileUrlResolver.toPublicUrl("profiles/user2.png"))
@@ -114,6 +110,7 @@ public class GetUserProfileUnitTest {
 
         when(reviewRepository.findByRevieweeId(eq(userId), any(Pageable.class)))
                 .thenReturn(reviewPage);
+        when(reviewRepository.findAverageRatingByRevieweeId(userId)).thenReturn(4.0);
 
         // when
         var result = userService.getUserProfile(userId);
@@ -124,9 +121,8 @@ public class GetUserProfileUnitTest {
         assertThat(result.getNickname()).isEqualTo("진지충");
         assertThat(result.getProfileImageUrl())
                 .isEqualTo("https://cdn.example.com/profiles/user1.png");
-        assertThat(result.getReviewsPublic()).isTrue();
+        assertThat(result.getReviewPublic()).isTrue();
 
-        // reviewsPreview 검증 (data/meta 구조만 간단 검증)
         assertThat(result.getReviewsPreview()).isNotNull();
         assertThat(result.getReviewsPreview().data()).hasSize(3);
         assertThat(result.getReviewsPreview().data().get(0).reviewerNickname()).isEqualTo("승우");
@@ -134,6 +130,7 @@ public class GetUserProfileUnitTest {
 
         verify(userRepository, times(1)).findById(userId);
         verify(reviewRepository, times(1)).findByRevieweeId(eq(userId), any(Pageable.class));
+        verify(reviewRepository, times(1)).findAverageRatingByRevieweeId(userId);
         verify(fileUrlResolver, atLeastOnce()).toPublicUrl(anyString());
         verifyNoMoreInteractions(userRepository, reviewRepository, fileUrlResolver);
     }
