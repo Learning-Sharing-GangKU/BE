@@ -1,4 +1,4 @@
-package com.gangku.be.dto.gathering.request;
+package com.gangku.be.dto.ai.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Max;
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class GatheringIntroRequestDto {
+public class IntroCreateRequestDto {
 
     @NotBlank
     @Size(min = 1, max = 30)

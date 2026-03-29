@@ -2,15 +2,22 @@ package com.gangku.be.service;
 
 import com.gangku.be.constant.user.UserReviewSort;
 import com.gangku.be.domain.*;
+import com.gangku.be.domain.Category;
+import com.gangku.be.domain.Participation;
+import com.gangku.be.domain.PreferredCategory;
+import com.gangku.be.domain.User;
+import com.gangku.be.dto.ai.request.TextFilterRequestDto;
+import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.dto.review.ReviewListResponseDto;
 import com.gangku.be.dto.user.SignUpRequestDto;
+import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.dto.user.UserProfileResponseDto;
 import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
 import com.gangku.be.dto.user.UserProfileUpdateResponseDto;
-import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.model.review.ReviewCursor;
 import com.gangku.be.model.review.ReviewCursorCodec;
 import com.gangku.be.model.review.ReviewPageables;
@@ -19,6 +26,7 @@ import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +54,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ReviewRepository reviewRepository;
 
+    private final AiApiClient aiApiClient;
+    private final AiTextFilterMapper aiTextFilterMapper;
+
     public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
 
         validateEmailVerification(sessionId, signUpRequestDto.getEmail());
@@ -56,17 +67,7 @@ public class UserService {
         // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
-        /*
-        여기서 회원가입 DB로 처리 하기 전에
-        request = {
-            scenario = "nickname"
-            text = signUpRequestDto.getNickname()
-        }
-        으로 (POST)http://127.0.0.1:8000/api/ai/v1/text/filter으로 보내줘여됨(url 주소 확인 바람.)
-
-        유저 프로필 수정 없다고 하셨으니깐(제가 잘 모르고 있는 걸 수도 있음)
-        따로 주석처리 안 할게요
-         */
+        validateNicknameAllowedFromSignUp(signUpRequestDto);
 
         // 4) DB에 저장
         User newUser =
@@ -145,6 +146,8 @@ public class UserService {
 
         validateUserProfileOwner(currentUserId, user);
 
+        validateNickNameAllowedFromProfileUpdate(requestDto);
+
         updateProfileFields(user, requestDto);
 
         if (requestDto.getPreferredCategories() != null) {
@@ -162,7 +165,7 @@ public class UserService {
 
         return UserProfileUpdateResponseDto.from(savedUser, profileImageUrl, preferredCategories);
     }
-  
+
     @Transactional
     public UpdateReviewSettingResponseDto updateReviewSetting(
             Long targetUserId, Long currentUserId, Boolean reviewSetting) {
@@ -269,7 +272,11 @@ public class UserService {
         String verified = (String) sessionData.get("verified");
         String sessionEmail = (String) sessionData.get("email");
 
-        if (!"1".equals(verified) || !email.equals(sessionEmail)) {
+        if (!email.equals(sessionEmail)) {
+            throw new CustomException(AuthErrorCode.INVALID_EMAIL_VERIFICATION_SESSION);
+        }
+
+        if (!"1".equals(verified)) {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
         }
     }
@@ -288,7 +295,7 @@ public class UserService {
 
     private void assignPreferredCategories(List<String> preferredCategories, User newUser) {
 
-        if (preferredCategories == null || preferredCategories.isEmpty()) {
+        if (preferredCategories != null && preferredCategories.isEmpty()) {
             return;
         }
 
@@ -332,14 +339,38 @@ public class UserService {
 
     private void validateReviewVisibility(Long currentUserId, User targetUser) {
         boolean isOwner = targetUser.getId().equals(currentUserId);
-        boolean isPublic = Boolean.TRUE.equals(targetUser.getReviewsPublic());
+        boolean isPublic = Boolean.TRUE.equals(targetUser.getReviewPublic());
 
         if (!isOwner && !isPublic) {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_VIEW_REVIEW);
         }
     }
-  
+
     private void updateUserReviewsPublic(Boolean reviewSetting, User user) {
-        user.changeReviewsPublic(reviewSetting);
+        user.changeReviewPublic(reviewSetting);
+    }
+
+    private void validateNickNameAllowedFromProfileUpdate(
+            UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+        if (userProfileUpdateRequestDto.getNickname() != null
+                && !userProfileUpdateRequestDto.getNickname().isBlank()) {
+            TextFilterRequestDto textFilterRequestDto =
+                    aiTextFilterMapper.fromProfileUpdate(userProfileUpdateRequestDto);
+            TextFilterResponseDto textFilterResponseDto =
+                    aiApiClient.filterText(textFilterRequestDto);
+
+            if (!textFilterResponseDto.isAllowed()) {
+                throw new CustomException(UserErrorCode.INVALID_NICKNAME);
+            }
+        }
+    }
+
+    private void validateNicknameAllowedFromSignUp(SignUpRequestDto signUpRequestDto) {
+        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromSignUp(signUpRequestDto);
+        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
+
+        if (!textFilterResponseDto.isAllowed()) {
+            throw new CustomException(UserErrorCode.INVALID_NICKNAME);
+        }
     }
 }

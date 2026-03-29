@@ -86,7 +86,7 @@ public class GetUserGatheringsUnitTest {
 
         // when
         GatheringListResponseDto response =
-                gatheringService.getUserGatherings(userId, role, page, size);
+                gatheringService.getUserGatheringList(userId, role, page, size);
 
         // then
         assertThat(response).isNotNull();
@@ -151,7 +151,7 @@ public class GetUserGatheringsUnitTest {
 
         // when
         GatheringListResponseDto response =
-                gatheringService.getUserGatherings(userId, role, page, size);
+                gatheringService.getUserGatheringList(userId, role, page, size);
 
         // then
         assertThat(response).isNotNull();
@@ -180,7 +180,7 @@ public class GetUserGatheringsUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // when
-        assertThatThrownBy(() -> gatheringService.getUserGatherings(userId, role, page, size))
+        assertThatThrownBy(() -> gatheringService.getUserGatheringList(userId, role, page, size))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
@@ -211,7 +211,7 @@ public class GetUserGatheringsUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         // when
-        assertThatThrownBy(() -> gatheringService.getUserGatherings(userId, role, page, size))
+        assertThatThrownBy(() -> gatheringService.getUserGatheringList(userId, role, page, size))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(CommonErrorCode.INVALID_REQUEST_PARAMETER);

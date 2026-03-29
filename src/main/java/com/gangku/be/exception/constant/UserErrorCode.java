@@ -25,6 +25,8 @@ public enum UserErrorCode implements ErrorCode {
             HttpStatus.FORBIDDEN.value()),
 
     // --- 리뷰 더보기 ---
+    NO_PERMISSION_TO_VIEW_REVIEW(
+            "NO_PERMISSION_TO_VIEW_REVIEW", "이 사용자의 리뷰를 볼 권한이 없습니다.", HttpStatus.FORBIDDEN.value()),
     NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION(
             "NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION",
             "다른 유저 정보에 접근할 권한이 없습니다.",
@@ -34,6 +36,8 @@ public enum UserErrorCode implements ErrorCode {
             "NO_PERMISSION_TO_VIEW_REVIEW",
             "이 사용자의 리뷰를 볼 권한이 없습니다.",
             HttpStatus.FORBIDDEN.value());
+    // --- 금칙어 / 비속어 검출 ---
+    INVALID_NICKNAME("INVALID_NICKNAME", "닉네임에 부적잘한 단어가 들어가있습니다.", HttpStatus.BAD_REQUEST.value());
 
     private final String code;
     private final String message;

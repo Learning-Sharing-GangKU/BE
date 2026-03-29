@@ -20,6 +20,7 @@ public class GatheringDetailResponseDto {
     private String gatheringImageUrl;
     private String category;
     private int capacity;
+    private int participantCount;
     private LocalDateTime date;
     private String location;
     private String openChatUrl;
@@ -27,13 +28,15 @@ public class GatheringDetailResponseDto {
     private String status;
     private HostSummary host;
     private ParticipantsPreview participantsPreview;
+    private boolean joined;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public static GatheringDetailResponseDto from(
             Gathering gathering,
             ParticipantsPreview participantsPreview,
-            String gatheringImageUrl) {
+            String gatheringImageUrl,
+            boolean joined) {
         HostSummary host = HostSummary.from(gathering.getHost());
 
         String publicId = PrefixedId.of(ResourceType.GATHERING, gathering.getId()).toExternal();
@@ -44,6 +47,7 @@ public class GatheringDetailResponseDto {
                 .gatheringImageUrl(gatheringImageUrl)
                 .category(gathering.getCategory().getName())
                 .capacity(gathering.getCapacity())
+                .participantCount(gathering.getParticipantCount())
                 .date(gathering.getDate())
                 .location(gathering.getLocation())
                 .openChatUrl(gathering.getOpenChatUrl())
@@ -51,6 +55,7 @@ public class GatheringDetailResponseDto {
                 .status(gathering.getStatus().toString())
                 .host(host)
                 .participantsPreview(participantsPreview)
+                .joined(joined)
                 .createdAt(gathering.getCreatedAt())
                 .updatedAt(gathering.getUpdatedAt())
                 .build();

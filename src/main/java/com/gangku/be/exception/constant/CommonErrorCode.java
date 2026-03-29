@@ -12,7 +12,11 @@ public enum CommonErrorCode implements ErrorCode {
     INTERNAL_SERVER_ERROR(
             "INTERNAL_SERVER_ERROR",
             "서버 내부에 오류가 발생했습니다.",
-            HttpStatus.INTERNAL_SERVER_ERROR.value());
+            HttpStatus.INTERNAL_SERVER_ERROR.value()),
+    AI_VALIDATION_ERROR(
+            "AI_VALIDATION_ERROR", "AI와의 데이터 형식과 맞지 않습니다.", HttpStatus.BAD_REQUEST.value()),
+    AI_SERVICE_ERROR(
+            "AI_SERVICE_ERROR", "AI 서버 내부에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
 
     private final String code;
     private final String message;

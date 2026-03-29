@@ -29,7 +29,7 @@ public class GatheringCreateRequestDto {
     @Future
     @JsonFormat(
             shape = JsonFormat.Shape.STRING,
-            pattern = "yyyy-MM-dd'T'HH:mm:ssX",
+            pattern = "yyyy-MM-dd'T'HH:mm:ss",
             timezone = "Asia/Seoul")
     private LocalDateTime date;
 

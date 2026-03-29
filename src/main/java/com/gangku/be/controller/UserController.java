@@ -15,12 +15,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+@Slf4j
 @RestController
 @Validated
 @RequestMapping("/api/v1/users")
@@ -75,7 +77,6 @@ public class UserController {
         return ResponseEntity.ok(updateReviewSettingResponseDto);
     }
 
-    /** 특정 사용자의 모임 목록 조회 - role=host → 내가 만든 모임 - role=guest → 내가 참여한 모임 */
     @GetMapping("/gatherings")
     public ResponseEntity<GatheringListResponseDto> getUserGatherings(
             @AuthenticationPrincipal Long userId,
@@ -83,8 +84,8 @@ public class UserController {
             @RequestParam(defaultValue = "1") @Min(value = 1) int page,
             @RequestParam(defaultValue = "10") @Min(value = 1) @Max(value = 50) int size) {
         GatheringListResponseDto response =
-                gatheringService.getUserGatherings(userId, role, page, size);
-        return ResponseEntity.ok().header("Cache-Control", "private, max-age=60").body(response);
+                gatheringService.getUserGatheringList(userId, role, page, size);
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("/{userId}")

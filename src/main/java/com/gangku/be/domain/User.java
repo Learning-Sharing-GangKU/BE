@@ -38,8 +38,8 @@ public class User {
     @Column(name = "profile_image_object_key", length = 255)
     private String profileImageObjectKey;
 
-    @Column(name = "reviews_public")
-    private Boolean reviewsPublic;
+    @Column(name = "review_public")
+    private Boolean reviewPublic;
 
     @Column(name = "refresh_token")
     private String refreshToken;
@@ -52,6 +52,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -97,8 +98,8 @@ public class User {
         if (enrollNumber != null) this.enrollNumber = enrollNumber;
     }
 
-    public void changeReviewsPublic(Boolean reviewsPublic) {
-        this.reviewsPublic = reviewsPublic;
+    public void changeReviewPublic(Boolean reviewPublic) {
+        this.reviewPublic = reviewPublic;
     }
 
     public static User create(

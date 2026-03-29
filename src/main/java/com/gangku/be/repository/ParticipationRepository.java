@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ParticipationRepository extends JpaRepository<Participation, Long> {
-    boolean existsByUserAndGathering(User user, Gathering gathering); // 중복 참가를 막음
+    boolean existsByUserAndGathering(User user, Gathering gathering);
 
     Optional<Participation> findByUserAndGathering(User user, Gathering gathering);
 
@@ -44,4 +44,14 @@ where p1.user.id = :reviewerId
 order by p1.gathering.date desc
 """)
     List<Long> findFinishedCommonGatheringIds(Long reviewerId, Long revieweeId);
+
+    // user 마다 지금까지 방 참여한 횟수 count 용
+    @Query(
+            """
+    SELECT p.user.id, COUNT(p)
+    FROM Participation p
+    WHERE p.status = 'APPROVED'
+    GROUP BY p.user.id
+""")
+    List<Object[]> countApprovedParticipationGroupByUserId();
 }
