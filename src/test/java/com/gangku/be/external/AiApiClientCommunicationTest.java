@@ -3,7 +3,6 @@ package com.gangku.be.external;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gangku.be.config.ai.AiServerProps;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
@@ -28,14 +27,11 @@ class AiApiClientCommunicationTest {
 
     private MockWebServer mockWebServer;
     private AiApiClient aiApiClient;
-    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-
-        objectMapper = new ObjectMapper();
 
         AiServerProps aiServerProps = new AiServerProps();
         aiServerProps.setBaseUrl(mockWebServer.url("/").toString());
@@ -128,10 +124,10 @@ class AiApiClientCommunicationTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(
                                 """
-                                        {
-                                          "error": "internal server error"
-                                        }
-                                        """));
+                                {
+                                  "error": "internal server error"
+                                }
+                                """));
 
         TextFilterRequestDto requestDto = new TextFilterRequestDto("테스트");
 
