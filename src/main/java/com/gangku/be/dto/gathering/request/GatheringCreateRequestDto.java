@@ -18,8 +18,7 @@ public class GatheringCreateRequestDto {
 
     private String gatheringImageObjectKey;
 
-    @NotBlank
-    private String category;
+    @NotBlank private String category;
 
     @Min(value = 1)
     @Max(value = 100)

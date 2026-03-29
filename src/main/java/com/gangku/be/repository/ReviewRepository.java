@@ -39,8 +39,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             @Param("id") Long id,
             Pageable pageable);
 
-
-    @Query("""
+    @Query(
+            """
         select avg(r.rating)
         from Review r
         where r.reviewee.id = :revieweeId

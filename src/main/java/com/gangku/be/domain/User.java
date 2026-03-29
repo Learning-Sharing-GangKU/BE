@@ -118,7 +118,7 @@ public class User {
                 .gender(gender)
                 .enrollNumber(enrollNumber)
                 .profileImageObjectKey(profileImageObjectKey)
-                .reviewsPublic(true)
+                .reviewPublic(true)
                 .build();
     }
 }

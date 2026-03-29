@@ -20,7 +20,7 @@ public class UserProfileResponseDto {
     private Integer enrollNumber;
     private List<String> preferredCategories;
     private Double averageRating;
-    private Boolean reviewsPublic;
+    private Boolean reviewPublic;
     private ReviewsPreview reviewsPreview;
 
     public static UserProfileResponseDto from(
@@ -39,7 +39,7 @@ public class UserProfileResponseDto {
                 .enrollNumber(user.getEnrollNumber())
                 .preferredCategories(preferredCategories)
                 .averageRating(averageRating)
-                .reviewsPublic(user.getReviewsPublic())
+                .reviewPublic(user.getReviewPublic())
                 .reviewsPreview(reviewsPreview)
                 .build();
     }
