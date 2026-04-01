@@ -70,12 +70,11 @@ public class JwtTokenProvider {
     public Long extractUserIdFromRefreshToken(String refreshToken) {
         Claims claims = parseClaims(refreshToken, AuthErrorCode.INVALID_REFRESH_TOKEN);
 
-        String type = claims.get("type").toString();
-        if (!"refresh".equals(type)) {
+        if (!"refresh".equals(claims.get("type"))) {
             throw new CustomException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        return Long.parseLong(claims.getSubject());
+        return PrefixedId.parse(claims.getSubject()).require(ResourceType.USER);
     }
 
     private Claims parseClaims(String token, AuthErrorCode invalidTokenErrorCode) {
