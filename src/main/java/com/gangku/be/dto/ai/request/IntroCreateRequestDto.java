@@ -22,8 +22,7 @@ public class IntroCreateRequestDto {
     @Size(min = 1, max = 30)
     private String title;
 
-    @NotBlank
-    private String category;
+    @NotBlank private String category;
 
     @Min(value = 1)
     @Max(value = 100)
