@@ -64,7 +64,8 @@ public class SecurityConfig {
                                         .requestMatchers(
                                                 HttpMethod.GET,
                                                 "/api/v1/categories",
-                                                "/api/v1/home")
+                                                "/api/v1/home",
+                                                "/api/v1/gatherings")
                                         .permitAll()
 
                                         // 이미지 업로드 (회원 가입 시 이용)
