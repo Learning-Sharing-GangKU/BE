@@ -56,7 +56,16 @@ public class User {
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private List<Participation> participations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reviewer", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Review> writtenReviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reviewee", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Review> receivedReviews = new ArrayList<>();
 
     // 자동 시간 설정을 위한 콜백 메서드
     @PrePersist
