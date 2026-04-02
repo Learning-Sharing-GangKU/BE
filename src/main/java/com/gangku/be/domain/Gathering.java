@@ -89,7 +89,7 @@ public class Gathering {
     public void decreaseParticipantCount() {
         this.participantCount--;
 
-        if (this.participantCount < this.capacity) {
+        if (this.getStatus() != GatheringStatus.FINISHED && this.participantCount < this.capacity) {
             this.status = GatheringStatus.RECRUITING;
         }
     }
