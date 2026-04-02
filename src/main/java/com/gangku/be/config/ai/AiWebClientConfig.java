@@ -1,7 +1,6 @@
 package com.gangku.be.config.ai;
 
 import io.netty.channel.ChannelOption;
-import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -25,9 +24,10 @@ public class AiWebClientConfig {
                 HttpClient.create()
                         .option(
                                 ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                                aiServerProps.getConnectTimeoutMillis())
-                        .responseTimeout(
-                                Duration.ofMillis(aiServerProps.getResponseTimeoutMillis()));
+                                aiServerProps.getConnectTimeoutMillis());
+        //                        .responseTimeout(
+        //
+        // Duration.ofMillis(aiServerProps.getResponseTimeoutMillis()));
 
         return WebClient.builder()
                 .baseUrl(aiServerProps.getBaseUrl())
