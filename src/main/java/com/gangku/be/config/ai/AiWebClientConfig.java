@@ -25,9 +25,9 @@ public class AiWebClientConfig {
                 HttpClient.create()
                         .option(
                                 ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                                aiServerProps.getConnectTimeoutMillis())
-                        .responseTimeout(
-                                Duration.ofMillis(aiServerProps.getResponseTimeoutMillis()));
+                                aiServerProps.getConnectTimeoutMillis());
+//                        .responseTimeout(
+//                                Duration.ofMillis(aiServerProps.getResponseTimeoutMillis()));
 
         return WebClient.builder()
                 .baseUrl(aiServerProps.getBaseUrl())
