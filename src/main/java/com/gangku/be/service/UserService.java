@@ -134,8 +134,10 @@ public class UserService {
 
         Double averageRating = reviewRepository.findAverageRatingByRevieweeId(userId);
         Double roundedAverageRating = roundToOneDecimalPlace(averageRating);
+        Long reviewCount = reviewRepository.countByRevieweeId(userId);
+
         return UserProfileResponseDto.from(
-                user, profileImageUrl, preferredCategories, roundedAverageRating, reviewsPreview);
+                user, profileImageUrl, preferredCategories, roundedAverageRating, reviewCount, reviewsPreview);
     }
 
     @Transactional
