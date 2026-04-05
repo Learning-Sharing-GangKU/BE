@@ -48,7 +48,7 @@ public class ReviewService {
 
         validateNotDuplicatedReview(gatheringId, reviewerId, revieweeId);
 
-//        validateReviewCommentAllowed(reviewCreateRequestDto);
+        //        validateReviewCommentAllowed(reviewCreateRequestDto);
 
         Review review =
                 Review.create(

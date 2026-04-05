@@ -29,7 +29,6 @@ import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -145,7 +144,12 @@ public class UserService {
         Long reviewCount = reviewRepository.countByRevieweeId(userId);
 
         return UserProfileResponseDto.from(
-                user, profileImageUrl, preferredCategories, roundedAverageRating, reviewCount, reviewsPreview);
+                user,
+                profileImageUrl,
+                preferredCategories,
+                roundedAverageRating,
+                reviewCount,
+                reviewsPreview);
     }
 
     @Transactional
