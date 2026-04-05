@@ -67,7 +67,7 @@ public class GatheringService {
 
         Category category = findCategoryByName(gatheringCreateRequestDto.getCategory());
 
-        //        validateGatheringContentFromGatheringCreate(gatheringCreateRequestDto);
+                validateGatheringContentFromGatheringCreate(gatheringCreateRequestDto);
 
         // 엔티티 생성
         Gathering gathering =
