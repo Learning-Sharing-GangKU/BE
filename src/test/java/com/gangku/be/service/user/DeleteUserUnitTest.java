@@ -36,10 +36,7 @@ public class DeleteUserUnitTest {
         Long targetUserId = 1L;
         Long currentUserId = 1L;
 
-        User user = User.builder()
-                .id(targetUserId)
-                .participations(new ArrayList<>())
-                .build();
+        User user = User.builder().id(targetUserId).participations(new ArrayList<>()).build();
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
         when(participationRepository.findAllByUser(user)).thenReturn(Collections.emptyList());
