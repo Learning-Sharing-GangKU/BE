@@ -366,7 +366,8 @@ public class GatheringService {
         if (gatheringUpdateRequestDto.getGatheringImageObjectKey() != null)
             gathering.setGatheringImageObjectKey(
                     gatheringUpdateRequestDto.getGatheringImageObjectKey());
-        if (gatheringUpdateRequestDto.getCategory() != null)
+        if (gatheringUpdateRequestDto.getCategory() != null
+                && !gatheringUpdateRequestDto.getCategory().isBlank())
             gathering.setCategory(findCategoryByName(gatheringUpdateRequestDto.getCategory()));
         if (gatheringUpdateRequestDto.getCapacity() != null)
             gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
