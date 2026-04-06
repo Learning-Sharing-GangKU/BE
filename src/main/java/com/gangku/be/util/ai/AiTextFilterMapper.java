@@ -30,29 +30,31 @@ public class AiTextFilterMapper {
             GatheringCreateRequestDto gatheringCreateRequestDto) {
         return new TextFilterRequestDto(
                 joinText(
-                                gatheringCreateRequestDto.getTitle().trim(),
-                                gatheringCreateRequestDto.getDescription())
-                        .trim());
+                                gatheringCreateRequestDto.getTitle(),
+                                gatheringCreateRequestDto.getDescription()));
     }
 
     public TextFilterRequestDto fromGatheringUpdate(
             GatheringUpdateRequestDto gatheringUpdateRequestDto) {
+
+
         return new TextFilterRequestDto(
                 joinText(
-                                gatheringUpdateRequestDto.getTitle().trim(),
-                                gatheringUpdateRequestDto.getDescription())
-                        .trim());
+                                gatheringUpdateRequestDto.getTitle(),
+                                gatheringUpdateRequestDto.getDescription()));
     }
 
     private String joinText(String title, String description) {
+        String safeTitle = title == null ? "" : title.trim();
+        String safeDescription = description == null ? "" : description.trim();
 
-        if (title.isBlank()) {
-            return description;
+        if (safeTitle.isBlank()) {
+            return safeDescription;
         }
-        if (description.isBlank()) {
-            return title;
+        if (safeDescription.isBlank()) {
+            return safeTitle;
         }
 
-        return title + FIELD_SEPARATOR + description;
+        return safeTitle + FIELD_SEPARATOR + safeDescription;
     }
 }

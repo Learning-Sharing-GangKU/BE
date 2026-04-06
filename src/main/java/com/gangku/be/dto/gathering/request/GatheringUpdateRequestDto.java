@@ -14,7 +14,7 @@ import lombok.*;
 @AllArgsConstructor
 public class GatheringUpdateRequestDto {
 
-    @Size(min = 1, max = 30)
+    @Size(min = 2, max = 30)
     private String title;
 
     private String gatheringImageObjectKey;
