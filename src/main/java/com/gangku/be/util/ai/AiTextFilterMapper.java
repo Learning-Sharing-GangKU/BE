@@ -30,18 +30,17 @@ public class AiTextFilterMapper {
             GatheringCreateRequestDto gatheringCreateRequestDto) {
         return new TextFilterRequestDto(
                 joinText(
-                                gatheringCreateRequestDto.getTitle(),
-                                gatheringCreateRequestDto.getDescription()));
+                        gatheringCreateRequestDto.getTitle(),
+                        gatheringCreateRequestDto.getDescription()));
     }
 
     public TextFilterRequestDto fromGatheringUpdate(
             GatheringUpdateRequestDto gatheringUpdateRequestDto) {
 
-
         return new TextFilterRequestDto(
                 joinText(
-                                gatheringUpdateRequestDto.getTitle(),
-                                gatheringUpdateRequestDto.getDescription()));
+                        gatheringUpdateRequestDto.getTitle(),
+                        gatheringUpdateRequestDto.getDescription()));
     }
 
     private String joinText(String title, String description) {
