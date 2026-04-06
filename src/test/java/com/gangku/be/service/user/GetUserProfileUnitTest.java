@@ -111,6 +111,7 @@ public class GetUserProfileUnitTest {
         when(reviewRepository.findByRevieweeId(eq(userId), any(Pageable.class)))
                 .thenReturn(reviewPage);
         when(reviewRepository.findAverageRatingByRevieweeId(userId)).thenReturn(4.0);
+        when(reviewRepository.countByRevieweeId(userId)).thenReturn(3L);
 
         // when
         var result = userService.getUserProfile(userId);
@@ -131,6 +132,7 @@ public class GetUserProfileUnitTest {
         verify(userRepository, times(1)).findById(userId);
         verify(reviewRepository, times(1)).findByRevieweeId(eq(userId), any(Pageable.class));
         verify(reviewRepository, times(1)).findAverageRatingByRevieweeId(userId);
+        verify(reviewRepository, times(1)).countByRevieweeId(userId);
         verify(fileUrlResolver, atLeastOnce()).toPublicUrl(anyString());
         verifyNoMoreInteractions(userRepository, reviewRepository, fileUrlResolver);
     }

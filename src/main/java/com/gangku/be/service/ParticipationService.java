@@ -62,9 +62,7 @@ public class ParticipationService {
         validateGatheringStatus(gathering);
 
         // 양방향 동기화
-        participation.unlink();
-
-        gathering.decreaseParticipantCount();
+        participation.withdraw();
 
         // DB에서 참여 정보 삭제
         participationRepository.delete(participation);

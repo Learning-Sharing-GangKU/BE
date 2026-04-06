@@ -67,6 +67,10 @@ public class User {
     @Builder.Default
     private List<Review> receivedReviews = new ArrayList<>();
 
+    @OneToMany(mappedBy = "host", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Gathering> hostedGatherings = new ArrayList<>();
+
     // 자동 시간 설정을 위한 콜백 메서드
     @PrePersist
     protected void onCreate() {

@@ -14,6 +14,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Page<Review> findByRevieweeId(Long revieweeId, Pageable pageable);
 
+    Long countByRevieweeId(Long revieweeId);
+
     @Query(
             """
             select r

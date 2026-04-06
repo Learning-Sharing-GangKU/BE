@@ -16,7 +16,7 @@ public class UserProfileUpdateRequestDto {
 
     private String profileImageObjectKey;
 
-    @Size(min = 1, max = 20)
+    @Size(min = 2, max = 20)
     private String nickname;
 
     @Min(14)

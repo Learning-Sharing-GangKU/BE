@@ -67,7 +67,7 @@ public class Participation {
         gathering.getParticipations().add(this);
     }
 
-    public void unlink() {
+    private void unlink() {
         this.user.getParticipations().remove(this);
         this.gathering.getParticipations().remove(this);
     }

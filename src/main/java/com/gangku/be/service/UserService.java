@@ -23,12 +23,12 @@ import com.gangku.be.model.review.ReviewCursorCodec;
 import com.gangku.be.model.review.ReviewPageables;
 import com.gangku.be.model.review.ReviewsPreview;
 import com.gangku.be.repository.CategoryRepository;
+import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +47,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final ParticipationRepository participationRepository;
     private final PreferredCategoryRepository preferredCategoryRepository;
 
     private final FileUrlResolver fileUrlResolver;
@@ -97,11 +98,17 @@ public class UserService {
 
         validateUserPrincipal(currentUserId, user);
 
-        List<Participation> participations = new ArrayList<>(user.getParticipations());
+        List<Participation> participations = participationRepository.findAllByUser(user);
 
         for (Participation participation : participations) {
-            participation.withdraw();
+            Gathering gathering = participation.getGathering();
+
+            if (!gathering.getHost().getId().equals(user.getId())) {
+                gathering.decreaseParticipantCount();
+            }
         }
+
+        participationRepository.deleteAll(participations);
 
         userRepository.delete(user);
     }
@@ -134,8 +141,15 @@ public class UserService {
 
         Double averageRating = reviewRepository.findAverageRatingByRevieweeId(userId);
         Double roundedAverageRating = roundToOneDecimalPlace(averageRating);
+        Long reviewCount = reviewRepository.countByRevieweeId(userId);
+
         return UserProfileResponseDto.from(
-                user, profileImageUrl, preferredCategories, roundedAverageRating, reviewsPreview);
+                user,
+                profileImageUrl,
+                preferredCategories,
+                roundedAverageRating,
+                reviewCount,
+                reviewsPreview);
     }
 
     @Transactional

@@ -6,9 +6,11 @@ import static org.mockito.Mockito.*;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -23,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class DeleteUserUnitTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private ParticipationRepository participationRepository;
 
     @InjectMocks private UserService userService;
 
@@ -36,14 +39,18 @@ public class DeleteUserUnitTest {
         User user = User.builder().id(targetUserId).participations(new ArrayList<>()).build();
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(participationRepository.findAllByUser(user)).thenReturn(Collections.emptyList());
 
         // when
         userService.deleteUser(targetUserId, currentUserId);
 
         // then
-        verify(userRepository).delete(user);
         verify(userRepository, times(1)).findById(targetUserId);
-        verifyNoMoreInteractions(userRepository);
+        verify(participationRepository, times(1)).findAllByUser(user);
+        verify(participationRepository, times(1)).deleteAll(Collections.emptyList());
+        verify(userRepository, times(1)).delete(user);
+
+        verifyNoMoreInteractions(userRepository, participationRepository);
     }
 
     @Test
