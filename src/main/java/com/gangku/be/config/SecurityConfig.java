@@ -10,10 +10,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -29,6 +32,7 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final Environment environment;
 
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
@@ -36,7 +40,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        boolean isLocal = Arrays.asList(environment.getActiveProfiles()).contains("local");
+
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -46,39 +52,43 @@ public class SecurityConfig {
                                 ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)
                                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers("/error")
-                                        .permitAll()
-                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
-                                        .permitAll()
-                                        .requestMatchers(PathRequest.toH2Console())
-                                        .permitAll()
+                        auth -> {
+                            auth.requestMatchers("/error").permitAll()
+                                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 
-                                        // 인증 및 회원가입 관련
-                                        .requestMatchers("/api/v1/auth/**")
-                                        .permitAll()
-                                        .requestMatchers(HttpMethod.POST, "/api/v1/users")
-                                        .permitAll()
+                            if (isLocal) {
+                                auth.requestMatchers(PathRequest.toH2Console()).permitAll();
+                            }
 
-                                        // 공개 데이터 - GET만 허용
-                                        .requestMatchers(
-                                                HttpMethod.GET,
-                                                "/api/v1/categories",
-                                                "/api/v1/home",
-                                                "/api/v1/gatherings")
-                                        .permitAll()
+                            auth
+                                    // 인증 및 회원가입 관련
+                                    .requestMatchers("/api/v1/auth/**").permitAll()
+                                    .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
 
-                                        // 이미지 업로드 (회원 가입 시 이용)
-                                        .requestMatchers(
-                                                HttpMethod.POST, "/api/v1/objects/presigned-url/**")
-                                        .permitAll()
+                                    // 공개 데이터 - GET만 허용
+                                    .requestMatchers(
+                                            HttpMethod.GET,
+                                            "/api/v1/categories",
+                                            "/api/v1/home",
+                                            "/api/v1/gatherings")
+                                    .permitAll()
 
-                                        // 이외에는 로그인 필요
-                                        .anyRequest()
-                                        .authenticated())
+                                    // 이미지 업로드 (회원 가입 시 이용)
+                                    .requestMatchers(
+                                            HttpMethod.POST, "/api/v1/objects/presigned-url/**")
+                                    .permitAll()
+
+                                    // 이외에는 로그인 필요
+                                    .anyRequest().authenticated();
+                        })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .headers(h -> h.frameOptions(fo -> fo.sameOrigin()))
-                .build();
+                .headers(h -> {
+                    if (isLocal) {
+                        h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin);
+                    }
+                });
+
+        return http.build();
     }
 
     @Bean
