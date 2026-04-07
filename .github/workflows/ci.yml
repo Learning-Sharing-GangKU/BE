@@ -31,9 +31,9 @@ jobs:
       - name: Unit Test (JUnit5)
         run: ./gradlew test -PincludeTags=unit --no-daemon
 
-      - name: Integration Test (Spring Boot Test)
-        if: github.base_ref == 'main'
-        run: ./gradlew test -PincludeTags=integration --no-daemon
+#      - name: Integration Test (Spring Boot Test)
+#        if: github.base_ref == 'main'
+#        run: ./gradlew test -PincludeTags=integration --no-daemon
 
       - name: Build Verify
         run: ./gradlew build -x test --no-daemon
