@@ -32,7 +32,7 @@ app:
     from: ${MAIL_FROM}
     verification:
       token-ttl-minutes: 10
-      session-ttl-minutes: 60
+      session-ttl-minutes: 10
   cdn:
     base-url: ${CDN_BASE_URL}
 
@@ -52,4 +52,10 @@ assets:
 
 ai:
   server:
-    base-url: ${AI_SERVER_BASE_URL}
+    connect-timeout-millis: 3000
+    response-timeout-millis: 5000
+    intro-path: /api/ai/v1/intro
+    text-filter-path: /api/ai/v2/text/filter
+    recommendations-path: /api/ai/v2/recommendations
+    refresh-clustering-path: /api/ai/v2/refresh/clustering
+    refresh-popularity-path: /api/ai/v2/refresh/popularity

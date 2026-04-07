@@ -2,22 +2,20 @@ package com.gangku.be.service;
 
 import com.gangku.be.domain.Category;
 import com.gangku.be.repository.CategoryRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @Transactional(readOnly = true)
     public List<String> getAllCategories() {
-        return categoryRepository.findAllByOrderByNameAsc()
-                .stream()
+        return categoryRepository.findAllByOrderByNameAsc().stream()
                 .map(Category::getName)
                 .toList();
     }

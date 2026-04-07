@@ -1,10 +1,11 @@
 package com.gangku.be.domain;
 
+import com.gangku.be.constant.gathering.GatheringStatus;
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
 @Table(name = "gatherings")
@@ -41,7 +42,7 @@ public class Gathering {
 
     @Column(name = "participant_count", nullable = false)
     @Builder.Default
-    private Integer participantCount = 0;
+    private Integer participantCount = 1;
 
     @Column(nullable = false)
     private LocalDateTime date;
@@ -54,11 +55,7 @@ public class Gathering {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Status status;
-
-    public enum Status {
-        RECRUITING, FULL, FINISHED
-    }
+    private GatheringStatus status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -66,8 +63,7 @@ public class Gathering {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // cascade 로 모임 삭제 시 참여자도 삭제 , orphanRemoval=true 로 연관 끊기면 DB에서 제거
-    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Participation> participations = new ArrayList<>();
 
@@ -82,27 +78,24 @@ public class Gathering {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 양방향 연관관계 편의 메서드
-    public void addParticipation(Participation participation) {
-        participations.add(participation);
-        participation.setGathering(this);
-
+    public void increaseParticipantCount() {
         this.participantCount++;
 
         if (this.participantCount >= this.capacity) {
-            this.status = Status.FULL;
+            this.status = GatheringStatus.FULL;
         }
     }
 
-    public void removeParticipation(Participation participation) {
-        participations.remove(participation);
-        participation.setGathering(null);
-
+    public void decreaseParticipantCount() {
         this.participantCount--;
 
-        if (this.participantCount < this.capacity) {
-            this.status = Status.RECRUITING;
+        if (this.getStatus() != GatheringStatus.FINISHED && this.participantCount < this.capacity) {
+            this.status = GatheringStatus.RECRUITING;
         }
+    }
+
+    public void changeStatusAsFinished() {
+        this.status = GatheringStatus.FINISHED;
     }
 
     public static Gathering create(
@@ -114,8 +107,7 @@ public class Gathering {
             Integer capacity,
             LocalDateTime date,
             String location,
-            String openChatUrl
-    ) {
+            String openChatUrl) {
         return Gathering.builder()
                 .host(host)
                 .category(category)
@@ -123,11 +115,10 @@ public class Gathering {
                 .description(description)
                 .gatheringImageObjectKey(gatheringImageObjectKey)
                 .capacity(capacity)
-                .participantCount(1)
                 .date(date)
                 .location(location)
                 .openChatUrl(openChatUrl)
-                .status(Status.RECRUITING)
+                .status(GatheringStatus.RECRUITING)
                 .build();
     }
 }

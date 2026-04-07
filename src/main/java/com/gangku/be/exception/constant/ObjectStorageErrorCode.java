@@ -9,13 +9,9 @@ public enum ObjectStorageErrorCode implements ErrorCode {
     INVALID_FILE_TYPE(
             "INVALID_FILE_TYPE",
             "지원하지 않은 파일 형식입니다. (허용: jpg, jpeg, png)",
-            HttpStatus.BAD_REQUEST.value()
-    ),
-    UPLOAD_FORBIDDEN(
-            "UPLOAD_FORBIDDEN",
-            "해당 사용자에게 업로드 권한이 없습니다.",
-            HttpStatus.FORBIDDEN.value()
-    );
+            HttpStatus.BAD_REQUEST.value()),
+    NO_PERMISSION_TO_UPLOAD(
+            "NO_PERMISSION_TO_UPLOAD", "해당 사용자에게 업로드 권한이 없습니다.", HttpStatus.FORBIDDEN.value());
 
     private final String code;
     private final String message;

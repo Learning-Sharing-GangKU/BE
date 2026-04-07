@@ -1,34 +1,25 @@
 package com.gangku.be.controller;
 
-import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
-import com.gangku.be.service.GatheringService;
-import java.util.HashMap;
-import java.util.Map;
+import com.gangku.be.dto.home.response.HomeResponseDto;
+import com.gangku.be.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @RequestMapping("/api/v1/home")
 @RequiredArgsConstructor
 public class HomeController {
 
-    private final GatheringService gatheringService;
+    private final HomeService homeService;
 
     @GetMapping()
-    public ResponseEntity<Map<String, GatheringListResponseDto>> getHomeGatherings(
-            @AuthenticationPrincipal(expression = "id") Long userId
-    ) {
-
-        Map<String, GatheringListResponseDto> result = new HashMap<>();
-
-        result.put("recommended", gatheringService.getRecommendedGatherings(userId, 1, 3));
-        result.put("latest", gatheringService.getGatheringList(null, 1, 3, "latest"));
-        result.put("popular", gatheringService.getGatheringList(null, 1, 3, "popular"));
-
-        return ResponseEntity.ok(result);
+    public ResponseEntity<HomeResponseDto> getHomeGatherings(@AuthenticationPrincipal Long userId) {
+        return ResponseEntity.ok(homeService.getHome(userId, 1, 3));
     }
 }

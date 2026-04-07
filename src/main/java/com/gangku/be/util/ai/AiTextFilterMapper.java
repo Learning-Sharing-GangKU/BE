@@ -1,0 +1,59 @@
+package com.gangku.be.util.ai;
+
+import com.gangku.be.dto.ai.request.TextFilterRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
+import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
+import com.gangku.be.dto.review.ReviewCreateRequestDto;
+import com.gangku.be.dto.user.SignUpRequestDto;
+import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
+import org.springframework.stereotype.Component;
+
+@Component
+public class AiTextFilterMapper {
+
+    private static final String FIELD_SEPARATOR = "|||";
+
+    public TextFilterRequestDto fromSignUp(SignUpRequestDto signUpRequestDto) {
+        return new TextFilterRequestDto(signUpRequestDto.getNickname().trim());
+    }
+
+    public TextFilterRequestDto fromProfileUpdate(
+            UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+        return new TextFilterRequestDto(userProfileUpdateRequestDto.getNickname().trim());
+    }
+
+    public TextFilterRequestDto fromReviewCreate(ReviewCreateRequestDto reviewCreateRequestDto) {
+        return new TextFilterRequestDto(reviewCreateRequestDto.getComment().trim());
+    }
+
+    public TextFilterRequestDto fromGatheringCreate(
+            GatheringCreateRequestDto gatheringCreateRequestDto) {
+        return new TextFilterRequestDto(
+                joinText(
+                        gatheringCreateRequestDto.getTitle(),
+                        gatheringCreateRequestDto.getDescription()));
+    }
+
+    public TextFilterRequestDto fromGatheringUpdate(
+            GatheringUpdateRequestDto gatheringUpdateRequestDto) {
+
+        return new TextFilterRequestDto(
+                joinText(
+                        gatheringUpdateRequestDto.getTitle(),
+                        gatheringUpdateRequestDto.getDescription()));
+    }
+
+    private String joinText(String title, String description) {
+        String safeTitle = title == null ? "" : title.trim();
+        String safeDescription = description == null ? "" : description.trim();
+
+        if (safeTitle.isBlank()) {
+            return safeDescription;
+        }
+        if (safeDescription.isBlank()) {
+            return safeTitle;
+        }
+
+        return safeTitle + FIELD_SEPARATOR + safeDescription;
+    }
+}

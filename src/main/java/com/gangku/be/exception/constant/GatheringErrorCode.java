@@ -4,47 +4,17 @@ import com.gangku.be.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum GatheringErrorCode implements ErrorCode {
-
-    INVALID_FIELD_VALUE(
-            "INVALID_FIELD_VALUE",
-            "필드의 형식이 올바르지 않습니다.",
-            HttpStatus.BAD_REQUEST.value()
-    ),
-    UNAUTHORIZED(
-            "UNAUTHORIZED",
-            "인증이 필요합니다. 유효한 액세스 토큰을 제공해주세요.",
-            HttpStatus.UNAUTHORIZED.value()
-    ),
-    FORBIDDEN(
-            "FORBIDDEN",
-            "해당 모임을 수정할 권한이 없습니다.",
-            HttpStatus.FORBIDDEN.value()
-    ),
-    GATHERING_NOT_FOUND(
-            "GATHERING_NOT_FOUND",
-            "해당 모임을 찾을 수 없습니다.",
-            HttpStatus.NOT_FOUND.value()
-    ),
-    AI_SERVICE_UNAVAILABLE(
-            "AI_SERVICE_UNAVAILABLE",
-            "AI 모델 서버와의 통신에 실패했습니다.",
-            HttpStatus.INTERNAL_SERVER_ERROR.value()
-    ),
-    INVALID_KEYWORD_FORMAT(
-            "INVALID_KEYWORD_FORMAT",
-            "키워드의 형식이 잘못되었습니다.",
-            HttpStatus.BAD_REQUEST.value()
-    ),
-    INVALID_PARAMETER_FORMAT(
-            "INVALID_PARAMETER_FORMAT",
-            "파라미터의 형식이 올바르지 않습니다.",
-            HttpStatus.BAD_REQUEST.value()
-    ),
-    CATEGORY_NOT_FOUND(
-            "CATEGORY_NOT_FOUND",
-            "해당 카테고리를 찾을 수 없습니다.",
-            HttpStatus.NOT_FOUND.value()
-    );
+    NO_PERMISSION_TO_MANIPULATE_GATHERING(
+            "NO_PERMISSION_TO_MANIPULATE_GATHERING",
+            "해당 모임의 호스트가 아닙니다.",
+            HttpStatus.FORBIDDEN.value()),
+    GATHERING_NOT_FOUND("GATHERING_NOT_FOUND", "해당 모임을 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value()),
+    ALREADY_FINISHED_GATHERING(
+            "ALREADY_FINISHED_GATHERING", "이미 종료된 모임입니다.", HttpStatus.CONFLICT.value()),
+    INVALID_GATHERING_CONTENT(
+            "INVALID_GATHERING_CONTENT",
+            "모임 이름 혹은 설명에 부적잘한 단어가 들어가있습니다.",
+            HttpStatus.BAD_REQUEST.value());
 
     private final String code;
     private final String message;

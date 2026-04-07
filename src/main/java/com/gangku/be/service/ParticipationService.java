@@ -1,8 +1,9 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.gathering.GatheringStatus;
+import com.gangku.be.constant.participation.ParticipationRole;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
-import com.gangku.be.domain.Participation.Role;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
@@ -15,13 +16,13 @@ import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.util.object.FileUrlResolver;
+import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,82 +36,85 @@ public class ParticipationService {
     @Transactional
     public ParticipationResponseDto joinParticipation(Long gatheringId, Long userId) {
 
-        // 401 Unauthorized 는 JwtAuthFilter에서 처리
-
         Gathering gathering = findGatheringById(gatheringId);
         User user = findUserById(userId);
 
         validateConflict(user, gathering);
 
-        Participation participation = Participation.create(user, gathering, Role.GUEST);
-        gathering.addParticipation(participation);
+        Participation participation =
+                Participation.create(user, gathering, ParticipationRole.GUEST);
+
+        gathering.increaseParticipantCount();
+
         participationRepository.save(participation);
-        // 이거 테스트 해보고 지울 수 있으면 지우자
-//        gatheringRepository.save(gathering);
 
         return ParticipationResponseDto.from(participation, gathering, user);
     }
 
-    // 침여 취소 메서드
     @Transactional
     public void cancelParticipation(Long gatheringId, Long userId) {
 
         Gathering gathering = findGatheringById(gatheringId);
         User user = findUserById(userId);
 
-        // 참여자 정보 확인
         Participation participation = verifyUserInParticipation(user, gathering);
 
-        // 모임 객체에서 Participation 제거 (양방향일 경우)
-        gathering.removeParticipation(participation);
+        validateGatheringStatus(gathering);
+
+        // 양방향 동기화
+        participation.withdraw();
 
         // DB에서 참여 정보 삭제
         participationRepository.delete(participation);
     }
 
     @Transactional(readOnly = true)
-    public ParticipantsPreviewResponseDto getParticipants(Long gatheringId, int page, int size, String sortParam) {
+    public ParticipantsPreviewResponseDto getParticipants(Long gatheringId, int page, int size) {
 
-        findGatheringById(gatheringId); // 404 찾기 위해 추가
+        findGatheringById(gatheringId);
 
-        String dirStr = validateParamsFormatAndParseSortParam(page, size, sortParam);
-
-        Sort.Direction direction = dirStr.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, "joinedAt").and(Sort.by(direction, "id"));
+        Sort sort =
+                Sort.by(Sort.Direction.DESC, "joinedAt").and(Sort.by(Sort.Direction.DESC, "id"));
 
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         Page<Participation> participationPage =
                 participationRepository.findByGatheringId(gatheringId, pageable);
 
-        String sortedBy = "joinedAt," + dirStr + ",id," + dirStr;
+        String sortedByForSpec = "joinedAt,desc";
 
-        ParticipantsPreview participantsPreview = ParticipantsPreview.from(
-                participationPage,
-                page,
-                size,
-                sortedBy,
-                user -> {
-                    String key = user.getProfileImageObjectKey();
-                    if (key == null || key.isBlank()) {
-                        return null;
-                    }
-                    return fileUrlResolver.toPublicUrl(key);
-                }
-        );
+        ParticipantsPreview participantsPreview =
+                ParticipantsPreview.from(
+                        participationPage, sortedByForSpec, this::resolveProfileImageUrl);
 
         return ParticipantsPreviewResponseDto.from(participantsPreview);
     }
 
+    private String resolveProfileImageUrl(User user) {
+        String key = user.getProfileImageObjectKey();
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        return fileUrlResolver.toPublicUrl(key);
+    }
+
     private Participation verifyUserInParticipation(User user, Gathering gathering) {
-        Participation participation = participationRepository
-                .findByUserAndGathering(user, gathering)
-                .orElseThrow(() -> new CustomException(ParticipationErrorCode.ALREADY_LEFT));
+        Participation participation =
+                participationRepository
+                        .findByUserAndGathering(user, gathering)
+                        .orElseThrow(
+                                () -> new CustomException(ParticipationErrorCode.ALREADY_LEFT));
 
         if (gathering.getHost().getId().equals(user.getId())) {
             throw new CustomException(ParticipationErrorCode.HOST_CANNOT_LEAVE);
         }
         return participation;
+    }
+
+    private void validateGatheringStatus(Gathering gathering) {
+        if (gathering.getStatus().equals(GatheringStatus.FINISHED)) {
+            throw new CustomException(ParticipationErrorCode.GATHERING_IS_FINISHED);
+        }
     }
 
     private void validateConflict(User user, Gathering gathering) {
@@ -121,31 +125,19 @@ public class ParticipationService {
         if (gathering.getParticipantCount() >= gathering.getCapacity()) {
             throw new CustomException(ParticipationErrorCode.CAPACITY_FULL);
         }
+
+        validateGatheringStatus(gathering);
     }
 
     private User findUserById(Long userId) {
-        return userRepository.findById(userId)
+        return userRepository
+                .findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private Gathering findGatheringById(Long gatheringId) {
-        return gatheringRepository.findById(gatheringId)
+        return gatheringRepository
+                .findById(gatheringId)
                 .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
-    }
-
-    private String validateParamsFormatAndParseSortParam(int page, int size, String sortParam) {
-        if  (page < 1 || size < 1 || size > 10) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
-        }
-
-        String[] parts = sortParam.split(",");
-        String property = (parts.length > 0 && !parts[0].isBlank()) ? parts[0] : "joinedAt";
-        String dirStr = (parts.length > 1) ? parts[1].toLowerCase() : "asc";
-
-        if (!property.equals("joinedAt")) {
-            throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
-        }
-
-        return dirStr;
     }
 }

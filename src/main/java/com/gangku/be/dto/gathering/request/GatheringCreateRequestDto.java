@@ -1,12 +1,11 @@
 package com.gangku.be.dto.gathering.request;
 
-import jakarta.validation.Valid;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -14,31 +13,34 @@ import java.time.LocalDateTime;
 public class GatheringCreateRequestDto {
 
     @NotBlank
-    @Size(min = 1, max = 30, message = "제목은 1자 이상 30자 이하여야 합니다.")
+    @Size(min = 1, max = 30)
     private String title;
 
-    @Valid
     private String gatheringImageObjectKey;
 
-    @NotBlank
-    private String category;
+    @NotBlank private String category;
 
     @Min(value = 1)
     @Max(value = 100)
-    private int capacity;
+    private Integer capacity;
 
     @NotNull
+    @Future
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss",
+            timezone = "Asia/Seoul")
     private LocalDateTime date;
 
     @NotBlank
-    @Size(min = 1, max = 30, message = "장소는 1자 이상 30자 이하여야 합니다.")
+    @Size(min = 1, max = 30)
     private String location;
 
     @NotBlank
-    @Pattern(regexp = "^https://.*", message = "오픈채팅 URL은 https로 시작해야 합니다.")
+    @Pattern(regexp = "^https://.*")
     private String openChatUrl;
 
     @NotBlank
-    @Size(max = 800, message = "소개글은 최대 800자까지 작성 가능합니다.")
+    @Size(max = 800)
     private String description;
 }

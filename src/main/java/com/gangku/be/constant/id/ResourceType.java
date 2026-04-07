@@ -1,12 +1,13 @@
 package com.gangku.be.constant.id;
 
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.constant.ParticipationErrorCode;
+import com.gangku.be.exception.constant.CommonErrorCode;
 
 public enum ResourceType {
     USER("usr_"),
     GATHERING("gath_"),
-    PARTICIPATION("part_");
+    PARTICIPATION("part_"),
+    REVIEW("rev_");
 
     private final String prefix;
 
@@ -24,6 +25,6 @@ public enum ResourceType {
                 return resourceType;
             }
         }
-        throw new CustomException(ParticipationErrorCode.INVALID_PARAMETER_FORMAT);
+        throw new CustomException(CommonErrorCode.INVALID_REQUEST_PARAMETER);
     }
 }

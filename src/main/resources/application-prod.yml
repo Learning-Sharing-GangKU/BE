@@ -18,8 +18,15 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+  h2:
+    console:
+      enabled: false
 
 app:
   s3:
     env-prefix: prod
   base-url: ${APP_BASE_URL}
+
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL}

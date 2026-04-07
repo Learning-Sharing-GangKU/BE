@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PresignRequestDto {
+
     @NotBlank private String fileName;
+
     @NotBlank private String fileType;
 }

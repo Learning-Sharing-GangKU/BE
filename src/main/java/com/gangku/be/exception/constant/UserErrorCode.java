@@ -4,33 +4,36 @@ import com.gangku.be.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum UserErrorCode implements ErrorCode {
-
-    // --- 회원가입 ---
-    USER_NOT_FOUND(
-            "USER_NOT_FOUND",
-            "사용자를 찾을 수 없습니다.",
-            HttpStatus.NOT_FOUND.value()
-    ),
-    INVALID_EMAIL_FORMAT(
-            "INVALID_EMAIL_FORMAT",
-            "이메일 형식이 올바르지 않습니다.",
-            HttpStatus.BAD_REQUEST.value()
-    ),
-    PASSWORD_TOO_WEAK(
-            "PASSWORD_TOO_WEAK",
-            "비밀번호 규칙을 확인해주세요.",
-            HttpStatus.BAD_REQUEST.value()
-    ),
-    EMAIL_ALREADY_EXISTS(
-            "EMAIL_ALREADY_EXISTS",
-            "이미 사용 중인 이메일입니다.",
-            HttpStatus.CONFLICT.value()
-    ),
+    USER_NOT_FOUND("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value()),
+    EMAIL_CONFLICT("EMAIL_CONFLICT", "이미 가입된 이메일이 있습니다.", HttpStatus.CONFLICT.value()),
+    INVALID_CREDENTIAL(
+            "INVALID_CREDENTIAL", "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED.value()),
+    EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT.value()),
     NICKNAME_ALREADY_EXISTS(
-            "NICKNAME_ALREADY_EXISTS",
-            "이미 사용 중인 닉네임입니다.",
-            HttpStatus.CONFLICT.value()
-    );
+            "NICKNAME_ALREADY_EXISTS", "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT.value()),
+
+    // --- 회원탈퇴 ---
+    NO_PERMISSION_TO_CANCEL_MEMBERSHIP(
+            "NO_PERMISSION_TO_CANCEL_MEMBERSHIP",
+            "회원탈퇴를 할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value()),
+
+    // --- 프로필 수정 ---
+    NO_PERMISSION_TO_UPDATE_PROFILE(
+            "NO_PERMISSION_TO_UPDATE_PROFILE",
+            "해당 프로필을 수정할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value()),
+
+    // --- 리뷰 더보기 ---
+    NO_PERMISSION_TO_VIEW_REVIEW(
+            "NO_PERMISSION_TO_VIEW_REVIEW", "이 사용자의 리뷰를 볼 권한이 없습니다.", HttpStatus.FORBIDDEN.value()),
+    NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION(
+            "NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION",
+            "다른 유저 정보에 접근할 권한이 없습니다.",
+            HttpStatus.FORBIDDEN.value()),
+
+    // --- 금칙어 / 비속어 검출 ---
+    INVALID_NICKNAME("INVALID_NICKNAME", "닉네임에 부적잘한 단어가 들어가있습니다.", HttpStatus.BAD_REQUEST.value());
 
     private final String code;
     private final String message;

@@ -11,15 +11,11 @@ public class S3Config {
 
     @Bean
     S3Client s3Client(AwsAppProps props) {
-        return S3Client.builder()
-                .region(Region.of(props.getS3().getRegion()))
-                .build();
+        return S3Client.builder().region(Region.of(props.getS3().getRegion())).build();
     }
 
     @Bean
     S3Presigner s3Presigner(AwsAppProps props) {
-        return S3Presigner.builder()
-                .region(Region.of(props.getS3().getRegion()))
-                .build();
+        return S3Presigner.builder().region(Region.of(props.getS3().getRegion())).build();
     }
 }

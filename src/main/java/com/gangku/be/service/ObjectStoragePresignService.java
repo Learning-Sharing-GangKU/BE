@@ -7,18 +7,18 @@ import com.gangku.be.dto.object.PresignResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.ObjectStorageErrorCode;
 import com.gangku.be.util.object.FileUrlResolver;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-
 import java.time.Duration;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Locale;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +29,7 @@ public class ObjectStoragePresignService {
     private final AssetPolicyProps assetPolicyProps;
     private final FileUrlResolver fileUrlResolver;
 
+    @Transactional
     public PresignResponseDto presign(PresignRequestDto presignRequestDto) {
 
         // 1) MIME major → category 선택 (현재는 이미지만 저장하지만, 확장성 고려)
@@ -41,15 +42,14 @@ public class ObjectStoragePresignService {
         String key = buildKey(fileType, presignRequestDto.getFileName());
 
         // 4) PutObjectRequest
-        PresignedPutObjectRequest presignedPutObjectRequest = generatePresignedPutUrl(
-                presignRequestDto, key);
+        PresignedPutObjectRequest presignedPutObjectRequest =
+                generatePresignedPutUrl(presignRequestDto, key);
 
         return new PresignResponseDto(
                 key,
                 presignedPutObjectRequest.url().toString(),
                 fileUrlResolver.toPublicUrl(key),
-                awsAppProps.getS3().getTtlSeconds()
-        );
+                awsAppProps.getS3().getTtlSeconds());
     }
 
     private String getFileTypeFromRequest(PresignRequestDto presignRequestDto) {
@@ -64,23 +64,29 @@ public class ObjectStoragePresignService {
 
     private void validateFileType(PresignRequestDto presignRequestDto, String fileType) {
         assetPolicyProps.getCategories().stream()
-                .filter(c -> c.getType().equalsIgnoreCase(fileType)
-                        && c.getAllowedContentTypes().contains(presignRequestDto.getFileType()))
+                .filter(
+                        c ->
+                                c.getType().equalsIgnoreCase(fileType)
+                                        && c.getAllowedContentTypes()
+                                                .contains(presignRequestDto.getFileType()))
                 .findAny()
                 .orElseThrow(() -> new CustomException(ObjectStorageErrorCode.INVALID_FILE_TYPE));
     }
 
-    private PresignedPutObjectRequest generatePresignedPutUrl(PresignRequestDto presignRequestDto, String key) {
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(awsAppProps.getS3().getBucket())
-                .key(key)
-                .contentType(presignRequestDto.getFileType())
-                .build();
+    private PresignedPutObjectRequest generatePresignedPutUrl(
+            PresignRequestDto presignRequestDto, String key) {
+        PutObjectRequest putObjectRequest =
+                PutObjectRequest.builder()
+                        .bucket(awsAppProps.getS3().getBucket())
+                        .key(key)
+                        .contentType(presignRequestDto.getFileType())
+                        .build();
 
-        PutObjectPresignRequest putObjectPresignRequest = PutObjectPresignRequest.builder()
-                .putObjectRequest(putObjectRequest)
-                .signatureDuration(Duration.ofSeconds(awsAppProps.getS3().getTtlSeconds()))
-                .build();
+        PutObjectPresignRequest putObjectPresignRequest =
+                PutObjectPresignRequest.builder()
+                        .putObjectRequest(putObjectRequest)
+                        .signatureDuration(Duration.ofSeconds(awsAppProps.getS3().getTtlSeconds()))
+                        .build();
 
         return s3Presigner.presignPutObject(putObjectPresignRequest);
     }
@@ -88,10 +94,15 @@ public class ObjectStoragePresignService {
     private String buildKey(String categoryPrefix, String fileName) {
         YearMonth ym = YearMonth.now(ZoneId.of("Asia/Seoul"));
         String ext = extOf(fileName);
-        return String.format("%s/%s/%s/%04d/%02d/%s.%s",
-                awsAppProps.getS3().getBasePrefix(), categoryPrefix, awsAppProps.getS3().getEnvPrefix(),
-                ym.getYear(), ym.getMonthValue(), UUID.randomUUID(), ext
-        );
+        return String.format(
+                "%s/%s/%s/%04d/%02d/%s.%s",
+                awsAppProps.getS3().getBasePrefix(),
+                categoryPrefix,
+                awsAppProps.getS3().getEnvPrefix(),
+                ym.getYear(),
+                ym.getMonthValue(),
+                UUID.randomUUID(),
+                ext);
     }
 
     private String extOf(String name) {

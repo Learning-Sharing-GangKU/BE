@@ -1,15 +1,17 @@
 package com.gangku.be.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
+import lombok.*;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-@Table(name = "users")  // 예약어 피하기 위해 users 사용
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "users")
 public class User {
 
     @Id
@@ -36,9 +38,8 @@ public class User {
     @Column(name = "profile_image_object_key", length = 255)
     private String profileImageObjectKey;
 
-    private Boolean emailVerified;
-
-    private Boolean reviewsPublic;
+    @Column(name = "review_public")
+    private Boolean reviewPublic;
 
     @Column(name = "refresh_token")
     private String refreshToken;
@@ -50,11 +51,27 @@ public class User {
 
     private LocalDateTime updatedAt;
 
-    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PreferredCategory> preferredCategories = new ArrayList<>();
 
-    //자동 시간 설정을 위한 콜백 메서드
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Participation> participations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reviewer", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Review> writtenReviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reviewee", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Review> receivedReviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "host", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
+    private List<Gathering> hostedGatherings = new ArrayList<>();
+
+    // 자동 시간 설정을 위한 콜백 메서드
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -78,7 +95,24 @@ public class User {
 
     public void addPreferredCategory(PreferredCategory preferredCategory) {
         this.preferredCategories.add(preferredCategory);
-        preferredCategory.setUser(this);
+        preferredCategory.assignUser(this);
+    }
+
+    public void updateProfile(
+            String profileImageObjectKey,
+            String nickname,
+            Integer age,
+            String gender,
+            Integer enrollNumber) {
+        if (profileImageObjectKey != null) this.profileImageObjectKey = profileImageObjectKey;
+        if (nickname != null) this.nickname = nickname;
+        if (age != null) this.age = age;
+        if (gender != null) this.gender = gender;
+        if (enrollNumber != null) this.enrollNumber = enrollNumber;
+    }
+
+    public void changeReviewPublic(Boolean reviewPublic) {
+        this.reviewPublic = reviewPublic;
     }
 
     public static User create(
@@ -88,8 +122,7 @@ public class User {
             Integer age,
             String gender,
             Integer enrollNumber,
-            String profileImageObjectKey
-    ) {
+            String profileImageObjectKey) {
         return User.builder()
                 .email(email)
                 .password(encodedPassword)
@@ -98,8 +131,7 @@ public class User {
                 .gender(gender)
                 .enrollNumber(enrollNumber)
                 .profileImageObjectKey(profileImageObjectKey)
-                .emailVerified(false)
-                .reviewsPublic(true)
+                .reviewPublic(true)
                 .build();
     }
 }
