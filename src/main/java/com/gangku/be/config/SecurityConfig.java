@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -53,8 +52,10 @@ public class SecurityConfig {
                                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(
                         auth -> {
-                            auth.requestMatchers("/error").permitAll()
-                                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                            auth.requestMatchers("/error")
+                                    .permitAll()
+                                    .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                    .permitAll();
 
                             if (isLocal) {
                                 auth.requestMatchers(PathRequest.toH2Console()).permitAll();
@@ -62,8 +63,10 @@ public class SecurityConfig {
 
                             auth
                                     // 인증 및 회원가입 관련
-                                    .requestMatchers("/api/v1/auth/**").permitAll()
-                                    .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                                    .requestMatchers("/api/v1/auth/**")
+                                    .permitAll()
+                                    .requestMatchers(HttpMethod.POST, "/api/v1/users")
+                                    .permitAll()
 
                                     // 공개 데이터 - GET만 허용
                                     .requestMatchers(
@@ -79,14 +82,16 @@ public class SecurityConfig {
                                     .permitAll()
 
                                     // 이외에는 로그인 필요
-                                    .anyRequest().authenticated();
+                                    .anyRequest()
+                                    .authenticated();
                         })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .headers(h -> {
-                    if (isLocal) {
-                        h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin);
-                    }
-                });
+                .headers(
+                        h -> {
+                            if (isLocal) {
+                                h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin);
+                            }
+                        });
 
         return http.build();
     }
