@@ -17,31 +17,33 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
     // 카테고리가 없는 최신순
     @Query(
             value = """
-        SELECT g
-        FROM Gathering g
-        JOIN FETCH g.host
-    """,
+    SELECT g
+    FROM Gathering g
+    JOIN FETCH g.host
+    WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""",
             countQuery = """
-        SELECT COUNT(g)
-        FROM Gathering g
-    """)
+    SELECT COUNT(g)
+    FROM Gathering g
+    WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""")
     Page<Gathering> findLatestGatherings(Pageable pageable);
 
     // 카테고리가 있는 최신순
     @Query(
-            value =
-                    """
-        SELECT g
-        FROM Gathering g
-        JOIN FETCH g.host
-        WHERE g.category = :category
-    """,
-            countQuery =
-                    """
-        SELECT COUNT(g)
-        FROM Gathering g
-        WHERE g.category = :category
-    """)
+            value = """
+    SELECT g
+    FROM Gathering g
+    JOIN FETCH g.host
+    WHERE g.category = :category
+      AND g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""",
+            countQuery = """
+    SELECT COUNT(g)
+    FROM Gathering g
+    WHERE g.category = :category
+      AND g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""")
     Page<Gathering> findLatestGatheringsByCategory(
             @Param("category") Category category, Pageable pageable);
 
@@ -51,27 +53,30 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
     SELECT g
     FROM Gathering g
     JOIN FETCH g.host
-  """,
+    WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""",
             countQuery = """
-    SELECT COUNT(g) FROM Gathering g
-  """)
+    SELECT COUNT(g)
+    FROM Gathering g
+    WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""")
     Page<Gathering> findPopularGatherings(Pageable pageable);
 
     // 카테고리가 있는 인기순
     @Query(
-            value =
-                    """
+            value = """
     SELECT g
     FROM Gathering g
     JOIN FETCH g.host
     WHERE g.category = :category
-  """,
-            countQuery =
-                    """
+      AND g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""",
+            countQuery = """
     SELECT COUNT(g)
     FROM Gathering g
     WHERE g.category = :category
-  """)
+      AND g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
+""")
     Page<Gathering> findPopularGatheringsByCategory(
             @Param("category") Category category, Pageable pageable);
 
@@ -92,10 +97,9 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
     """)
     Page<Gathering> findByHostId(@Param("host") User host, Pageable pageable);
 
-    // AI 후보용: 모집중인 방 중 최신 50개
-    List<Gathering> findTop50ByStatusOrderByCreatedAtDesc(GatheringStatus status);
+    List<Gathering> findTop50ByStatusNotOrderByCreatedAtDesc(GatheringStatus status);
 
-    List<Gathering> findTop50ByCategoryAndStatusOrderByCreatedAtDesc(
+    List<Gathering> findTop50ByCategoryAndStatusNotOrderByCreatedAtDesc(
             Category category, GatheringStatus status);
 
     // AI가 추천해준 ID 리스트로 조회
