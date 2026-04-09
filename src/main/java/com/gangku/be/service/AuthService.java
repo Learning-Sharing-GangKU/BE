@@ -8,6 +8,7 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.auth.LoginRequestDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
+import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.auth.EmailVerificationConfirmResult;
 import com.gangku.be.model.auth.EmailVerificationSendResult;
@@ -19,6 +20,8 @@ import com.gangku.be.util.jwt.EmailVerificationJwt.EmailVerificationToken;
 import com.gangku.be.util.jwt.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
@@ -34,6 +37,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -191,16 +195,22 @@ public class AuthService {
                 baseUrl + EmailConstants.VERIFICATION_PATH + emailVerificationToken.token();
 
         String emailBody =
-                EmailConstants.VERIFICATION_BODY_TEMPLATE.formatted(
+                EmailConstants.VERIFICATION_HTML_TEMPLATE.formatted(
                         verificationUrl, emailVerificationProps.getSessionTtlMinutes());
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setFrom(fromEmailAddress);
-        mailMessage.setTo(email);
-        mailMessage.setSubject(EmailConstants.VERIFICATION_SUBJECT);
-        mailMessage.setText(emailBody);
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
 
-        javaMailSender.send(mailMessage);
+        try {
+            helper.setFrom(fromEmailAddress);
+            helper.setTo(email);
+            helper.setSubject(EmailConstants.VERIFICATION_SUBJECT);
+            helper.setText(emailBody, true);
+
+            javaMailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            throw new CustomException(CommonErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private void markEmailAsVerified(String email) {
