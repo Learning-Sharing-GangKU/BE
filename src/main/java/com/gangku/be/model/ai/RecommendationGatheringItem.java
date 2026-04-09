@@ -12,10 +12,10 @@ public record RecommendationGatheringItem(
         Integer capacity,
         Integer participantCount,
         @JsonFormat(
-                shape = JsonFormat.Shape.STRING,
-                pattern = "yyyy-MM-dd'T'HH:mm:ss",
-                timezone = "Asia/Seoul")
-        LocalDateTime createdAt) {
+                        shape = JsonFormat.Shape.STRING,
+                        pattern = "yyyy-MM-dd'T'HH:mm:ss",
+                        timezone = "Asia/Seoul")
+                LocalDateTime createdAt) {
 
     public static RecommendationGatheringItem from(Gathering gathering) {
         User host = gathering.getHost();

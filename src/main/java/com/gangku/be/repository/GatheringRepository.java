@@ -16,13 +16,15 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
 
     // 카테고리가 없는 최신순
     @Query(
-            value = """
+            value =
+                    """
     SELECT g
     FROM Gathering g
     JOIN FETCH g.host
     WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
 """,
-            countQuery = """
+            countQuery =
+                    """
     SELECT COUNT(g)
     FROM Gathering g
     WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
@@ -31,14 +33,16 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
 
     // 카테고리가 있는 최신순
     @Query(
-            value = """
+            value =
+                    """
     SELECT g
     FROM Gathering g
     JOIN FETCH g.host
     WHERE g.category = :category
       AND g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
 """,
-            countQuery = """
+            countQuery =
+                    """
     SELECT COUNT(g)
     FROM Gathering g
     WHERE g.category = :category
@@ -49,13 +53,15 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
 
     // 카테고리가 없는 인기순
     @Query(
-            value = """
+            value =
+                    """
     SELECT g
     FROM Gathering g
     JOIN FETCH g.host
     WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
 """,
-            countQuery = """
+            countQuery =
+                    """
     SELECT COUNT(g)
     FROM Gathering g
     WHERE g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
@@ -64,14 +70,16 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
 
     // 카테고리가 있는 인기순
     @Query(
-            value = """
+            value =
+                    """
     SELECT g
     FROM Gathering g
     JOIN FETCH g.host
     WHERE g.category = :category
       AND g.status <> com.gangku.be.constant.gathering.GatheringStatus.FINISHED
 """,
-            countQuery = """
+            countQuery =
+                    """
     SELECT COUNT(g)
     FROM Gathering g
     WHERE g.category = :category
