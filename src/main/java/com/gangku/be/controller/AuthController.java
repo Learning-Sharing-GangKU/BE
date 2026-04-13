@@ -97,7 +97,6 @@ public class AuthController {
                     @Pattern(regexp = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")
                     String emailVerificationToken) {
         try {
-            System.out.println(baseUrl);
             authService.consumeEmailVerification(emailVerificationToken);
 
             return ResponseEntity.status(HttpStatus.FOUND)
