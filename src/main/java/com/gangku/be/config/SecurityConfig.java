@@ -69,7 +69,8 @@ public class SecurityConfig {
                                     .permitAll()
 
                                     // 이메일 성공 및 실패 정적 파일 서빙인데, 로컬에서 테스트 용으로 열어둠
-                                    .requestMatchers("/email/verification/**").permitAll()
+                                    .requestMatchers("/email/verification/**")
+                                    .permitAll()
 
                                     // 공개 데이터 - GET만 허용
                                     .requestMatchers(
