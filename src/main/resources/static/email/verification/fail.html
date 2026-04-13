@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>이메일 인증 실패</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fb;
+      font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: #1f2937;
+    }
+
+    .wrapper {
+      width: 100%;
+      min-height: 100vh;
+      padding: 32px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 600px;
+      background-color: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(67, 56, 202, 0.12);
+    }
+
+    .header {
+      background-color: #4338CA;
+      padding: 36px 24px;
+      text-align: center;
+    }
+
+    .brand {
+      font-size: 30px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      margin: 0;
+    }
+
+    .brand-sub {
+      margin-top: 10px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .content {
+      padding: 40px 32px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 26px;
+      line-height: 1.4;
+      color: #111827;
+    }
+
+    .desc {
+      margin: 0 0 14px;
+      font-size: 16px;
+      line-height: 1.8;
+      color: #374151;
+    }
+
+    .info-box {
+      margin: 0;
+      padding: 16px 18px;
+      background-color: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #B91C1C;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .content {
+        padding: 32px 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="card">
+    <div class="header">
+      <div class="brand">GangKU</div>
+      <div class="brand-sub">모임에서 시작되는 새로운 연결</div>
+    </div>
+
+    <div class="content">
+      <h1>이메일 인증에 실패했습니다</h1>
+
+      <p class="desc">
+        안녕하세요, <strong style="color:#4338CA;">GangKU</strong>입니다.<br />
+        이메일 인증을 완료하지 못했습니다.
+      </p>
+
+      <div class="info-box">
+        인증 링크가 유효하지 않거나 이미 만료되었습니다.<br />
+        회원가입 페이지로 돌아가 다시 인증을 진행해주세요.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
