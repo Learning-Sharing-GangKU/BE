@@ -13,7 +13,7 @@ public enum GatheringErrorCode implements ErrorCode {
             "ALREADY_FINISHED_GATHERING", "이미 종료된 모임입니다.", HttpStatus.CONFLICT.value()),
     INVALID_GATHERING_CONTENT(
             "INVALID_GATHERING_CONTENT",
-            "모임 이름 혹은 설명에 부적잘한 단어가 들어가있습니다.",
+            "모임 이름 혹은 설명(키워드)에 부적잘한 단어가 들어가있습니다.",
             HttpStatus.BAD_REQUEST.value());
 
     private final String code;

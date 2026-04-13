@@ -11,10 +11,12 @@ import com.gangku.be.dto.ai.response.RecommendationResponseDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
+import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.model.ai.PopularityRefreshResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -74,7 +76,22 @@ public class AiApiClient {
                                                                         .AI_VALIDATION_ERROR);
                                                     }))
                     .onStatus(
-                            status -> status.is5xxServerError(),
+                            status -> status.value() == 400,
+                            response ->
+                                    response.bodyToMono(String.class)
+                                            .defaultIfEmpty("")
+                                            .map(
+                                                    body -> {
+                                                        log.warn(
+                                                                "AI 서버 400 오류. uri={}, body={}",
+                                                                uri,
+                                                                body);
+                                                        return new CustomException(
+                                                                GatheringErrorCode
+                                                                        .INVALID_GATHERING_CONTENT);
+                                                    }))
+                    .onStatus(
+                            HttpStatusCode::is5xxServerError,
                             response ->
                                     response.bodyToMono(String.class)
                                             .defaultIfEmpty("")
