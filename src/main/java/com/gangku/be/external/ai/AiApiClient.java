@@ -89,9 +89,7 @@ public class AiApiClient {
                                                         return new CustomException(
                                                                 GatheringErrorCode
                                                                         .INVALID_GATHERING_CONTENT);
-                                                    }
-                                            )
-                    )
+                                                    }))
                     .onStatus(
                             HttpStatusCode::is5xxServerError,
                             response ->
