@@ -278,12 +278,12 @@ public class GatheringService {
 
     private List<Gathering> getRecommendationCandidates(Category category) {
         if (category != null) {
-            return gatheringRepository.findTop50ByCategoryAndStatusOrderByCreatedAtDesc(
-                    category, GatheringStatus.RECRUITING);
+            return gatheringRepository.findTop50ByCategoryAndStatusNotOrderByCreatedAtDesc(
+                    category, GatheringStatus.FINISHED);
         }
 
-        return gatheringRepository.findTop50ByStatusOrderByCreatedAtDesc(
-                GatheringStatus.RECRUITING);
+        return gatheringRepository.findTop50ByStatusNotOrderByCreatedAtDesc(
+                GatheringStatus.FINISHED);
     }
 
     private String getSortedByForSpec(GatheringSort sortType) {
