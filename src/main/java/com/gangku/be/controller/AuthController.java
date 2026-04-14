@@ -6,6 +6,7 @@ import com.gangku.be.dto.auth.EmailVerificationRequestDto;
 import com.gangku.be.dto.auth.EmailVerificationResponseDto;
 import com.gangku.be.dto.auth.LoginRequestDto;
 import com.gangku.be.dto.auth.LoginResponseDto;
+import com.gangku.be.exception.CustomException;
 import com.gangku.be.model.auth.EmailVerificationConfirmResult;
 import com.gangku.be.model.auth.EmailVerificationSendResult;
 import com.gangku.be.model.auth.TokenPair;
@@ -15,9 +16,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import java.net.URI;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -30,6 +34,9 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
@@ -89,8 +96,18 @@ public class AuthController {
                     @NotBlank
                     @Pattern(regexp = "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")
                     String emailVerificationToken) {
-        authService.consumeEmailVerification(emailVerificationToken);
-        return ResponseEntity.noContent().build();
+        try {
+            authService.consumeEmailVerification(emailVerificationToken);
+
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(baseUrl + "/email/verification/success.html"))
+                    .build();
+
+        } catch (CustomException e) {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(baseUrl + "/email/verification/fail.html"))
+                    .build();
+        }
     }
 
     @PostMapping("/email/verification/confirm")
