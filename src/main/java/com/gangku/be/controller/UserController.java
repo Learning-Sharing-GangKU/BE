@@ -90,8 +90,7 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponseDto> getUserProfile(
-            @PathVariable String userId,
-            @AuthenticationPrincipal Long currentUserId) {
+            @PathVariable String userId, @AuthenticationPrincipal Long currentUserId) {
         Long internalUserId = PrefixedId.parse(userId).require(ResourceType.USER);
         UserProfileResponseDto response = userService.getUserProfile(internalUserId, currentUserId);
 
