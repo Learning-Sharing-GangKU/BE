@@ -20,7 +20,10 @@ public class GatheringResponseDto {
     private String category;
     private int capacity;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private LocalDateTime date;
 
     private String location;
@@ -29,10 +32,16 @@ public class GatheringResponseDto {
     private String status;
     private String hostId;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private LocalDateTime createdAt;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private LocalDateTime updatedAt;
 
     public static GatheringResponseDto from(Gathering gathering, String gatheringImageUrl) {

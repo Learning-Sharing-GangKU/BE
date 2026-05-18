@@ -28,8 +28,8 @@ public class GatheringUpdateRequestDto {
     @Future
     @JsonFormat(
             shape = JsonFormat.Shape.STRING,
-            pattern = "yyyy-MM-dd'T'HH:mm:ss",
-            timezone = "Asia/Seoul")
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private LocalDateTime date;
 
     @Size(min = 1, max = 30)
