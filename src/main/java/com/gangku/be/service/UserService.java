@@ -114,15 +114,21 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserProfileResponseDto getUserProfile(Long userId) {
+    public UserProfileResponseDto getUserProfile(Long userId, Long currentUserId) {
 
         User user = findUserById(userId);
         String profileImageUrl = resolveImageUrl(user.getProfileImageObjectKey());
-
         List<String> preferredCategories =
                 user.getPreferredCategories().stream()
                         .map(pc -> pc.getCategory().getName())
                         .toList();
+
+        Long reviewCount = reviewRepository.countByRevieweeId(userId);
+
+        if (!isReviewVisible(currentUserId, user)) {
+            return UserProfileResponseDto.from(
+                    user, profileImageUrl, preferredCategories, null, reviewCount, null);
+        }
 
         // 정렬 정책 고정
         UserReviewSort reviewSort = UserReviewSort.CREATED_AT_DESC;
@@ -141,7 +147,6 @@ public class UserService {
 
         Double averageRating = reviewRepository.findAverageRatingByRevieweeId(userId);
         Double roundedAverageRating = roundToOneDecimalPlace(averageRating);
-        Long reviewCount = reviewRepository.countByRevieweeId(userId);
 
         return UserProfileResponseDto.from(
                 user,
@@ -351,11 +356,14 @@ public class UserService {
         }
     }
 
-    private void validateReviewVisibility(Long currentUserId, User targetUser) {
-        boolean isOwner = targetUser.getId().equals(currentUserId);
+    private boolean isReviewVisible(Long currentUserId, User targetUser) {
+        boolean isOwner = currentUserId != null && targetUser.getId().equals(currentUserId);
         boolean isPublic = Boolean.TRUE.equals(targetUser.getReviewPublic());
+        return isOwner || isPublic;
+    }
 
-        if (!isOwner && !isPublic) {
+    private void validateReviewVisibility(Long currentUserId, User targetUser) {
+        if (!isReviewVisible(currentUserId, targetUser)) {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_VIEW_REVIEW);
         }
     }
