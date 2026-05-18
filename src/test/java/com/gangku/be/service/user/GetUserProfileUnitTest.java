@@ -64,27 +64,39 @@ public class GetUserProfileUnitTest {
     }
 
     private Page<Review> buildReviewPage(User target, User reviewer) {
-        Review review1 = Review.builder()
-                .id(10L).reviewer(reviewer).reviewee(target)
-                .gathering(Gathering.builder().id(100L).build())
-                .rating(5).content("좋았어요")
-                .createdAt(LocalDateTime.now().minusDays(1))
-                .updatedAt(LocalDateTime.now().minusDays(1))
-                .build();
-        Review review2 = Review.builder()
-                .id(9L).reviewer(reviewer).reviewee(target)
-                .gathering(Gathering.builder().id(100L).build())
-                .rating(4).content("괜찮았어요")
-                .createdAt(LocalDateTime.now().minusDays(2))
-                .updatedAt(LocalDateTime.now().minusDays(2))
-                .build();
-        Review review3 = Review.builder()
-                .id(8L).reviewer(reviewer).reviewee(target)
-                .gathering(Gathering.builder().id(100L).build())
-                .rating(3).content("그냥 그래요")
-                .createdAt(LocalDateTime.now().minusDays(3))
-                .updatedAt(LocalDateTime.now().minusDays(3))
-                .build();
+        Review review1 =
+                Review.builder()
+                        .id(10L)
+                        .reviewer(reviewer)
+                        .reviewee(target)
+                        .gathering(Gathering.builder().id(100L).build())
+                        .rating(5)
+                        .content("좋았어요")
+                        .createdAt(LocalDateTime.now().minusDays(1))
+                        .updatedAt(LocalDateTime.now().minusDays(1))
+                        .build();
+        Review review2 =
+                Review.builder()
+                        .id(9L)
+                        .reviewer(reviewer)
+                        .reviewee(target)
+                        .gathering(Gathering.builder().id(100L).build())
+                        .rating(4)
+                        .content("괜찮았어요")
+                        .createdAt(LocalDateTime.now().minusDays(2))
+                        .updatedAt(LocalDateTime.now().minusDays(2))
+                        .build();
+        Review review3 =
+                Review.builder()
+                        .id(8L)
+                        .reviewer(reviewer)
+                        .reviewee(target)
+                        .gathering(Gathering.builder().id(100L).build())
+                        .rating(3)
+                        .content("그냥 그래요")
+                        .createdAt(LocalDateTime.now().minusDays(3))
+                        .updatedAt(LocalDateTime.now().minusDays(3))
+                        .build();
         return new PageImpl<>(List.of(review1, review2, review3));
     }
 
