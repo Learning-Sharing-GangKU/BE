@@ -157,7 +157,7 @@ public class CreateGatheringUnitTest {
                         "statics/image/prod/2025/11/efe6-a7d.jpg",
                         "study",
                         12,
-                        LocalDateTime.of(2025, 10, 1, 10, 0),
+                        LocalDateTime.of(2025, 10, 1, 1, 0),
                         "공학관 301",
                         "https://open.kakao.com/o/abcdef",
                         "기초부터 차근차근 알고리즘을 공부합니다.");
@@ -194,12 +194,12 @@ public class CreateGatheringUnitTest {
                         "statics/image/prod/2025/11/efe6-a7d.jpg",
                         "study",
                         12,
-                        LocalDateTime.of(2025, 10, 1, 10, 0),
+                        LocalDateTime.of(2025, 10, 1, 1, 0),
                         "공학관 301",
                         "https://open.kakao.com/o/abcdef",
                         "기초부터 차근차근 알고리즘을 공부합니다.");
 
-        User host = User.builder().id(hostId).build();
+        User host = User.builder().id(hostId).participations(new ArrayList<>()).build();
 
         when(userRepository.findById(hostId)).thenReturn(Optional.of(host));
         when(categoryRepository.findByName("study")).thenReturn(Optional.empty());
@@ -234,12 +234,12 @@ public class CreateGatheringUnitTest {
                         "statics/image/prod/2025/11/efe6-a7d.jpg",
                         "study",
                         12,
-                        LocalDateTime.of(2025, 10, 1, 10, 0),
+                        LocalDateTime.of(2025, 10, 1, 1, 0),
                         "공학관 301",
                         "https://open.kakao.com/o/abcdef",
                         "부적절한 설명");
 
-        User host = User.builder().id(hostId).build();
+        User host = User.builder().id(hostId).participations(new ArrayList<>()).build();
         Category category = mock(Category.class);
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);

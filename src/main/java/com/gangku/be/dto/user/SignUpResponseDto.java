@@ -1,5 +1,6 @@
 package com.gangku.be.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
 import com.gangku.be.model.common.PrefixedId;
@@ -22,6 +23,11 @@ public class SignUpResponseDto {
     private final String gender;
     private final Integer enrollNumber;
     private final List<String> preferredCategories;
+
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private final LocalDateTime createdAt;
 
     public static SignUpResponseDto from(User user, String profileImageUrl) {

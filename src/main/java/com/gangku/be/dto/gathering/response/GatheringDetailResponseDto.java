@@ -1,5 +1,6 @@
 package com.gangku.be.dto.gathering.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.model.common.PrefixedId;
@@ -21,7 +22,13 @@ public class GatheringDetailResponseDto {
     private String category;
     private int capacity;
     private int participantCount;
+
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private LocalDateTime date;
+
     private String location;
     private String openChatUrl;
     private String description;
@@ -29,7 +36,17 @@ public class GatheringDetailResponseDto {
     private HostSummary host;
     private ParticipantsPreview participantsPreview;
     private boolean joined;
+
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private LocalDateTime createdAt;
+
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            timezone = "UTC")
     private LocalDateTime updatedAt;
 
     public static GatheringDetailResponseDto from(
