@@ -63,6 +63,7 @@ public class UserService {
         return userCommandService.saveUser(signUpRequestDto, sessionId);
     }
 
+    @Transactional
     public void deleteUser(Long targetUserId, Long currentUserId) {
 
         User user = findUserById(targetUserId);
