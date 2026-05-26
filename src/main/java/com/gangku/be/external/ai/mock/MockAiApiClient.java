@@ -1,11 +1,11 @@
 package com.gangku.be.external.ai.mock;
 
 import com.gangku.be.config.ai.AiServerProps;
-import com.gangku.be.dto.ai.request.*;
-import com.gangku.be.dto.ai.response.*;
+import com.gangku.be.dto.ai.request.TextFilterRequestDto;
+import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.external.ai.AiApiClient;
-import com.gangku.be.model.ai.*;
 import java.lang.reflect.Field;
+import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -23,7 +23,8 @@ public class MockAiApiClient extends AiApiClient {
     }
 
     @Override
-    public TextFilterResponseDto filterText(TextFilterRequestDto request) {
+    public CompletableFuture<TextFilterResponseDto> filterTextAsync(
+            TextFilterRequestDto request) {
         delay();
 
         try {
@@ -31,7 +32,7 @@ public class MockAiApiClient extends AiApiClient {
             Field field = TextFilterResponseDto.class.getDeclaredField("allowed");
             field.setAccessible(true);
             field.set(response, true);
-            return response;
+            return CompletableFuture.completedFuture(response);
         } catch (Exception e) {
             throw new RuntimeException("Mock 생성 실패", e);
         }
