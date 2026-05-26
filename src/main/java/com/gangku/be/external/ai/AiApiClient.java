@@ -14,6 +14,7 @@ import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.model.ai.PopularityRefreshResponse;
+import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -110,6 +111,9 @@ public class AiApiClient {
         } catch (WebClientException e) {
             log.error("AI 서버 통신 실패. uri={}, message={}", uri, e.getMessage(), e);
             throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
+        } catch (TimeoutException e) {
+            log.error("AI 서버 응답 시간 초과. uri={}, message={}", uri, e.getMessage(), e);
+            throw new CustomException(CommonErrorCode.AI_TIMEOUT_ERROR);
         }
     }
 }

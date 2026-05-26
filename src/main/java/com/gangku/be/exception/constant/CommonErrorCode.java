@@ -15,6 +15,7 @@ public enum CommonErrorCode implements ErrorCode {
             HttpStatus.INTERNAL_SERVER_ERROR.value()),
     AI_VALIDATION_ERROR(
             "AI_VALIDATION_ERROR", "AI와의 데이터 형식과 맞지 않습니다.", HttpStatus.BAD_REQUEST.value()),
+    AI_TIMEOUT_ERROR("AI_TIMEOUT_ERROR", "AI 서버와의 통신이 원활하게 이루어지지 않았습니다.", HttpStatus.GATEWAY_TIMEOUT.value()),
     AI_SERVICE_ERROR(
             "AI_SERVICE_ERROR", "AI 서버 내부에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
 
