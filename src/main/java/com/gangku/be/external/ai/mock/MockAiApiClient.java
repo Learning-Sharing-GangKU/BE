@@ -23,8 +23,7 @@ public class MockAiApiClient extends AiApiClient {
     }
 
     @Override
-    public CompletableFuture<TextFilterResponseDto> filterTextAsync(
-            TextFilterRequestDto request) {
+    public CompletableFuture<TextFilterResponseDto> filterTextAsync(TextFilterRequestDto request) {
         delay();
 
         try {

@@ -109,8 +109,7 @@ public class UpdateGatheringCommandUnitTest {
         verify(gatheringRepository, times(1)).save(gathering);
         verify(fileUrlResolver, times(1)).toPublicUrl("statics/image/prod/2025/11/new.jpg");
 
-        verifyNoMoreInteractions(
-                gatheringRepository, categoryRepository, fileUrlResolver);
+        verifyNoMoreInteractions(gatheringRepository, categoryRepository, fileUrlResolver);
         verifyNoInteractions(userRepository, participationRepository);
     }
 
@@ -136,7 +135,9 @@ public class UpdateGatheringCommandUnitTest {
 
         // when & then
         assertThatThrownBy(
-                () -> gatheringCommandService.updateGathering(gatheringId, userId, requestDto))
+                        () ->
+                                gatheringCommandService.updateGathering(
+                                        gatheringId, userId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.GATHERING_NOT_FOUND);
@@ -172,7 +173,9 @@ public class UpdateGatheringCommandUnitTest {
 
         // when & then
         assertThatThrownBy(
-                () -> gatheringCommandService.updateGathering(gatheringId, userId, requestDto))
+                        () ->
+                                gatheringCommandService.updateGathering(
+                                        gatheringId, userId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.NO_PERMISSION_TO_MANIPULATE_GATHERING);
@@ -203,21 +206,16 @@ public class UpdateGatheringCommandUnitTest {
 
         GatheringUpdateRequestDto requestDto =
                 new GatheringUpdateRequestDto(
-                        "제목 수정",
-                        null,
-                        "study",
-                        null,
-                        null,
-                        null,
-                        null,
-                        "설명 수정");
+                        "제목 수정", null, "study", null, null, null, null, "설명 수정");
 
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
         when(categoryRepository.findByName("study")).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(
-                () -> gatheringCommandService.updateGathering(gatheringId, userId, requestDto))
+                        () ->
+                                gatheringCommandService.updateGathering(
+                                        gatheringId, userId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);

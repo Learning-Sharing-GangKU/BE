@@ -43,13 +43,14 @@ public class CreateReviewCommandUnitTest {
         ReviewCreateRequestDto requestDto = new ReviewCreateRequestDto(4, "좋았어요!");
 
         when(reviewRepository.save(any(Review.class)))
-                .thenAnswer(inv -> {
-                    Review r = inv.getArgument(0);
-                    Field f = Review.class.getDeclaredField("id");
-                    f.setAccessible(true);
-                    f.set(r, 1L);
-                    return r;
-                });
+                .thenAnswer(
+                        inv -> {
+                            Review r = inv.getArgument(0);
+                            Field f = Review.class.getDeclaredField("id");
+                            f.setAccessible(true);
+                            f.set(r, 1L);
+                            return r;
+                        });
 
         // when
         ReviewCreateResponseDto response =

@@ -70,7 +70,7 @@ public class CreateReviewUnitTest {
                 .thenReturn(List.of(gatheringId));
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
-                gatheringId, reviewerId, revieweeId))
+                        gatheringId, reviewerId, revieweeId))
                 .thenReturn(false);
         when(aiTextFilterMapper.fromReviewCreate(requestDto)).thenReturn(textFilterRequestDto);
         when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
@@ -94,11 +94,17 @@ public class CreateReviewUnitTest {
                 .existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId);
         verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
         verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
-        verify(reviewCommandService, times(1)).saveReview(reviewer, reviewee, gathering, requestDto);
+        verify(reviewCommandService, times(1))
+                .saveReview(reviewer, reviewee, gathering, requestDto);
 
         verifyNoMoreInteractions(
-                userRepository, participationRepository, gatheringRepository,
-                reviewRepository, aiTextFilterMapper, aiApiClient, reviewCommandService);
+                userRepository,
+                participationRepository,
+                gatheringRepository,
+                reviewRepository,
+                aiTextFilterMapper,
+                aiApiClient,
+                reviewCommandService);
     }
 
     @Test
@@ -117,8 +123,13 @@ public class CreateReviewUnitTest {
                 .isEqualTo(ReviewErrorCode.INVALID_REVIEW_TARGET);
 
         verifyNoInteractions(
-                userRepository, participationRepository, gatheringRepository,
-                reviewRepository, aiApiClient, aiTextFilterMapper, reviewCommandService);
+                userRepository,
+                participationRepository,
+                gatheringRepository,
+                reviewRepository,
+                aiApiClient,
+                aiTextFilterMapper,
+                reviewCommandService);
     }
 
     @Test
@@ -144,7 +155,7 @@ public class CreateReviewUnitTest {
                 .thenReturn(List.of(gatheringId));
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
-                gatheringId, reviewerId, revieweeId))
+                        gatheringId, reviewerId, revieweeId))
                 .thenReturn(false);
         when(aiTextFilterMapper.fromReviewCreate(requestDto)).thenReturn(textFilterRequestDto);
         when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
@@ -168,8 +179,12 @@ public class CreateReviewUnitTest {
 
         verifyNoInteractions(reviewCommandService);
         verifyNoMoreInteractions(
-                userRepository, participationRepository, gatheringRepository,
-                reviewRepository, aiTextFilterMapper, aiApiClient);
+                userRepository,
+                participationRepository,
+                gatheringRepository,
+                reviewRepository,
+                aiTextFilterMapper,
+                aiApiClient);
     }
 
     @Test
@@ -193,8 +208,12 @@ public class CreateReviewUnitTest {
         verify(userRepository, never()).findById(revieweeId);
 
         verifyNoInteractions(
-                participationRepository, gatheringRepository,
-                reviewRepository, aiApiClient, aiTextFilterMapper, reviewCommandService);
+                participationRepository,
+                gatheringRepository,
+                reviewRepository,
+                aiApiClient,
+                aiTextFilterMapper,
+                reviewCommandService);
         verifyNoMoreInteractions(userRepository);
     }
 
@@ -222,8 +241,12 @@ public class CreateReviewUnitTest {
         verify(userRepository, times(1)).findById(revieweeId);
 
         verifyNoInteractions(
-                participationRepository, gatheringRepository,
-                reviewRepository, aiApiClient, aiTextFilterMapper, reviewCommandService);
+                participationRepository,
+                gatheringRepository,
+                reviewRepository,
+                aiApiClient,
+                aiTextFilterMapper,
+                reviewCommandService);
         verifyNoMoreInteractions(userRepository);
     }
 
@@ -256,8 +279,11 @@ public class CreateReviewUnitTest {
                 .findFinishedCommonGatheringIds(reviewerId, revieweeId);
 
         verifyNoInteractions(
-                gatheringRepository, reviewRepository,
-                aiApiClient, aiTextFilterMapper, reviewCommandService);
+                gatheringRepository,
+                reviewRepository,
+                aiApiClient,
+                aiTextFilterMapper,
+                reviewCommandService);
         verifyNoMoreInteractions(userRepository, participationRepository);
     }
 
@@ -317,7 +343,7 @@ public class CreateReviewUnitTest {
                 .thenReturn(List.of(gatheringId));
         when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
-                gatheringId, reviewerId, revieweeId))
+                        gatheringId, reviewerId, revieweeId))
                 .thenReturn(true);
 
         // when & then

@@ -86,7 +86,8 @@ public class SecurityConfig {
                                     .permitAll()
 
                                     // 부하테스트용
-                                    .requestMatchers("/actuator/**").permitAll()
+                                    .requestMatchers("/actuator/**")
+                                    .permitAll()
 
                                     // 이외에는 로그인 필요
                                     .anyRequest()

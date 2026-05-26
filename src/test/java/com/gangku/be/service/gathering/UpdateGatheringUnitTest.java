@@ -79,14 +79,7 @@ public class UpdateGatheringUnitTest {
 
         GatheringUpdateRequestDto requestDto =
                 new GatheringUpdateRequestDto(
-                        "금칙어 제목",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        "금칙어 설명");
+                        "금칙어 제목", null, null, null, null, null, null, "금칙어 설명");
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);

@@ -54,11 +54,7 @@ public class RegisterUserUnitTest {
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
 
-        User expectedUser =
-                User.builder()
-                        .email("test@example.com")
-                        .nickname("정상닉네임")
-                        .build();
+        User expectedUser = User.builder().email("test@example.com").nickname("정상닉네임").build();
 
         when(stringRedisTemplate.opsForHash()).thenReturn(hashOperations);
         when(hashOperations.entries(sessionKey))
@@ -85,8 +81,12 @@ public class RegisterUserUnitTest {
         verify(userCommandService, times(1)).saveUser(requestDto, sessionId);
 
         verifyNoMoreInteractions(
-                userRepository, aiTextFilterMapper, aiApiClient,
-                userCommandService, hashOperations, stringRedisTemplate);
+                userRepository,
+                aiTextFilterMapper,
+                aiApiClient,
+                userCommandService,
+                hashOperations,
+                stringRedisTemplate);
     }
 
     @Test
@@ -217,6 +217,10 @@ public class RegisterUserUnitTest {
 
         verifyNoInteractions(userCommandService);
         verifyNoMoreInteractions(
-                userRepository, stringRedisTemplate, aiTextFilterMapper, aiApiClient, hashOperations);
+                userRepository,
+                stringRedisTemplate,
+                aiTextFilterMapper,
+                aiApiClient,
+                hashOperations);
     }
 }

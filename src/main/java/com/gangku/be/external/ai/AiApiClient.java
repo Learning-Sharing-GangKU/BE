@@ -61,8 +61,7 @@ public class AiApiClient {
     }
 
     @Async("aiTaskExecutor")
-    public CompletableFuture<TextFilterResponseDto> filterTextAsync(
-            TextFilterRequestDto request) {
+    public CompletableFuture<TextFilterResponseDto> filterTextAsync(TextFilterRequestDto request) {
         return CompletableFuture.completedFuture(
                 post(aiServerProps.getTextFilterPath(), request, TextFilterResponseDto.class));
     }
@@ -71,21 +70,30 @@ public class AiApiClient {
     public CompletableFuture<RecommendationResponseDto> recommendAsync(
             RecommendationRequestDto request) {
         return CompletableFuture.completedFuture(
-                post(aiServerProps.getRecommendationsPath(), request, RecommendationResponseDto.class));
+                post(
+                        aiServerProps.getRecommendationsPath(),
+                        request,
+                        RecommendationResponseDto.class));
     }
 
     @Async("aiTaskExecutor")
     public CompletableFuture<ClusteringRefreshResponse> refreshClusteringAsync(
             ClusteringRefreshRequestDto request) {
         return CompletableFuture.completedFuture(
-                post(aiServerProps.getRefreshClusteringPath(), request, ClusteringRefreshResponse.class));
+                post(
+                        aiServerProps.getRefreshClusteringPath(),
+                        request,
+                        ClusteringRefreshResponse.class));
     }
 
     @Async("aiTaskExecutor")
     public CompletableFuture<PopularityRefreshResponse> refreshPopularityAsync(
             PopularityRefreshRequestDto request) {
         return CompletableFuture.completedFuture(
-                post(aiServerProps.getRefreshPopularityPath(), request, PopularityRefreshResponse.class));
+                post(
+                        aiServerProps.getRefreshPopularityPath(),
+                        request,
+                        PopularityRefreshResponse.class));
     }
 
     private <T> T getResult(CompletableFuture<T> future) {
@@ -114,31 +122,45 @@ public class AiApiClient {
                             response ->
                                     response.bodyToMono(String.class)
                                             .defaultIfEmpty("")
-                                            .map(body -> {
-                                                log.warn("AI 서버 422 오류. uri={}, body={}", uri, body);
-                                                return new CustomException(
-                                                        CommonErrorCode.AI_VALIDATION_ERROR);
-                                            }))
+                                            .map(
+                                                    body -> {
+                                                        log.warn(
+                                                                "AI 서버 422 오류. uri={}, body={}",
+                                                                uri,
+                                                                body);
+                                                        return new CustomException(
+                                                                CommonErrorCode
+                                                                        .AI_VALIDATION_ERROR);
+                                                    }))
                     .onStatus(
                             status -> status.value() == 400,
                             response ->
                                     response.bodyToMono(String.class)
                                             .defaultIfEmpty("")
-                                            .map(body -> {
-                                                log.warn("AI 서버 400 오류. uri={}, body={}", uri, body);
-                                                return new CustomException(
-                                                        GatheringErrorCode.INVALID_GATHERING_CONTENT);
-                                            }))
+                                            .map(
+                                                    body -> {
+                                                        log.warn(
+                                                                "AI 서버 400 오류. uri={}, body={}",
+                                                                uri,
+                                                                body);
+                                                        return new CustomException(
+                                                                GatheringErrorCode
+                                                                        .INVALID_GATHERING_CONTENT);
+                                                    }))
                     .onStatus(
                             HttpStatusCode::is5xxServerError,
                             response ->
                                     response.bodyToMono(String.class)
                                             .defaultIfEmpty("")
-                                            .map(body -> {
-                                                log.error("AI 서버 5xx 오류. uri={}, body={}", uri, body);
-                                                return new CustomException(
-                                                        CommonErrorCode.AI_SERVICE_ERROR);
-                                            }))
+                                            .map(
+                                                    body -> {
+                                                        log.error(
+                                                                "AI 서버 5xx 오류. uri={}, body={}",
+                                                                uri,
+                                                                body);
+                                                        return new CustomException(
+                                                                CommonErrorCode.AI_SERVICE_ERROR);
+                                                    }))
                     .bodyToMono(responseType)
                     .block();
 

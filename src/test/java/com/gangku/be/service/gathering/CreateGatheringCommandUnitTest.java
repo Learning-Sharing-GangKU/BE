@@ -67,13 +67,14 @@ public class CreateGatheringCommandUnitTest {
         when(userRepository.findById(hostId)).thenReturn(Optional.of(host));
         when(categoryRepository.findByName("study")).thenReturn(Optional.of(category));
         when(gatheringRepository.save(any(Gathering.class)))
-                .thenAnswer(inv -> {
-                    Gathering g = inv.getArgument(0);
-                    Field idField = Gathering.class.getDeclaredField("id");
-                    idField.setAccessible(true);
-                    idField.set(g, 12345L);
-                    return g;
-                });
+                .thenAnswer(
+                        inv -> {
+                            Gathering g = inv.getArgument(0);
+                            Field idField = Gathering.class.getDeclaredField("id");
+                            idField.setAccessible(true);
+                            idField.set(g, 12345L);
+                            return g;
+                        });
         when(fileUrlResolver.toPublicUrl("statics/image/prod/2025/11/efe6-a7d.jpg"))
                 .thenReturn("https://cdn.example.com/gatherings/2025/09/cover-uuid.jpg");
 
@@ -94,8 +95,11 @@ public class CreateGatheringCommandUnitTest {
         verify(fileUrlResolver, times(1)).toPublicUrl("statics/image/prod/2025/11/efe6-a7d.jpg");
 
         verifyNoMoreInteractions(
-                userRepository, categoryRepository, gatheringRepository,
-                participationRepository, fileUrlResolver);
+                userRepository,
+                categoryRepository,
+                gatheringRepository,
+                participationRepository,
+                fileUrlResolver);
     }
 
     @Test

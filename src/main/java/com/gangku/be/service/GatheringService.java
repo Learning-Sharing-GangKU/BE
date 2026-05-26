@@ -73,7 +73,8 @@ public class GatheringService {
 
         validateGatheringContentFromGatheringUpdate(gatheringUpdateRequestDto);
 
-        return gatheringCommandService.updateGathering(gatheringId, userId, gatheringUpdateRequestDto);
+        return gatheringCommandService.updateGathering(
+                gatheringId, userId, gatheringUpdateRequestDto);
     }
 
     // 모임 삭제 메서드

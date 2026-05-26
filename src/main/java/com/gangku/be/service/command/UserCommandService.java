@@ -8,13 +8,12 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.*;
 import com.gangku.be.util.object.FileUrlResolver;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -85,12 +84,13 @@ public class UserCommandService {
 
         List<PreferredCategory> preferredCategoryList =
                 categories.stream()
-                        .map(category -> {
-                            PreferredCategory preferredCategory = new PreferredCategory();
-                            preferredCategory.assignCategory(category);
-                            newUser.addPreferredCategory(preferredCategory);
-                            return preferredCategory;
-                        })
+                        .map(
+                                category -> {
+                                    PreferredCategory preferredCategory = new PreferredCategory();
+                                    preferredCategory.assignCategory(category);
+                                    newUser.addPreferredCategory(preferredCategory);
+                                    return preferredCategory;
+                                })
                         .toList();
 
         preferredCategoryRepository.saveAll(preferredCategoryList);
@@ -104,7 +104,8 @@ public class UserCommandService {
 
     private void updateProfileFields(User user, UserProfileUpdateRequestDto requestDto) {
         if (requestDto.getNickname() != null
-                && userRepository.existsByNicknameAndIdNot(requestDto.getNickname(), user.getId())) {
+                && userRepository.existsByNicknameAndIdNot(
+                        requestDto.getNickname(), user.getId())) {
             throw new CustomException(UserErrorCode.NICKNAME_ALREADY_EXISTS);
         }
         user.updateProfile(

@@ -9,9 +9,9 @@ import com.gangku.be.dto.gathering.request.GatheringCreateRequestDto;
 import com.gangku.be.dto.gathering.request.GatheringUpdateRequestDto;
 import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
+import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -32,22 +32,22 @@ public class GatheringCommandService {
     private final FileUrlResolver fileUrlResolver;
 
     @Transactional
-    public GatheringResponseDto saveGathering(
-            GatheringCreateRequestDto request, Long hostId) {
+    public GatheringResponseDto saveGathering(GatheringCreateRequestDto request, Long hostId) {
 
         User host = findUserById(hostId);
         Category category = findCategoryByName(request.getCategory());
 
-        Gathering gathering = Gathering.create(
-                host,
-                category,
-                request.getTitle(),
-                request.getDescription(),
-                request.getGatheringImageObjectKey(),
-                request.getCapacity(),
-                request.getDate(),
-                request.getLocation(),
-                request.getOpenChatUrl());
+        Gathering gathering =
+                Gathering.create(
+                        host,
+                        category,
+                        request.getTitle(),
+                        request.getDescription(),
+                        request.getGatheringImageObjectKey(),
+                        request.getCapacity(),
+                        request.getDate(),
+                        request.getLocation(),
+                        request.getOpenChatUrl());
 
         Gathering savedGathering = gatheringRepository.save(gathering);
 
@@ -100,21 +100,15 @@ public class GatheringCommandService {
     }
 
     private void updateRequestBody(GatheringUpdateRequestDto request, Gathering gathering) {
-        if (request.getTitle() != null)
-            gathering.setTitle(request.getTitle());
+        if (request.getTitle() != null) gathering.setTitle(request.getTitle());
         if (request.getGatheringImageObjectKey() != null)
             gathering.setGatheringImageObjectKey(request.getGatheringImageObjectKey());
         if (request.getCategory() != null && !request.getCategory().isBlank())
             gathering.setCategory(findCategoryByName(request.getCategory()));
-        if (request.getCapacity() != null)
-            gathering.setCapacity(request.getCapacity());
-        if (request.getDate() != null)
-            gathering.setDate(request.getDate());
-        if (request.getLocation() != null)
-            gathering.setLocation(request.getLocation());
-        if (request.getOpenChatUrl() != null)
-            gathering.setOpenChatUrl(request.getOpenChatUrl());
-        if (request.getDescription() != null)
-            gathering.setDescription(request.getDescription());
+        if (request.getCapacity() != null) gathering.setCapacity(request.getCapacity());
+        if (request.getDate() != null) gathering.setDate(request.getDate());
+        if (request.getLocation() != null) gathering.setLocation(request.getLocation());
+        if (request.getOpenChatUrl() != null) gathering.setOpenChatUrl(request.getOpenChatUrl());
+        if (request.getDescription() != null) gathering.setDescription(request.getDescription());
     }
 }

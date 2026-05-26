@@ -79,7 +79,13 @@ public class RegisterUserCommandUnitTest {
 
         SignUpRequestDto requestDto =
                 new SignUpRequestDto(
-                        "test@example.com", "plain-password", "정상닉네임", 24, "MALE", 20, null,
+                        "test@example.com",
+                        "plain-password",
+                        "정상닉네임",
+                        24,
+                        "MALE",
+                        20,
+                        null,
                         List.of("SPORTS", "MUSIC"));
 
         Category sports = mock(Category.class);
@@ -104,7 +110,10 @@ public class RegisterUserCommandUnitTest {
         verify(preferredCategoryRepository, times(1)).saveAll(anyList());
 
         verifyNoMoreInteractions(
-                passwordEncoder, userRepository, stringRedisTemplate,
-                categoryRepository, preferredCategoryRepository);
+                passwordEncoder,
+                userRepository,
+                stringRedisTemplate,
+                categoryRepository,
+                preferredCategoryRepository);
     }
 }

@@ -57,7 +57,8 @@ public class CreateGatheringUnitTest {
         when(aiTextFilterMapper.fromGatheringCreate(requestDto)).thenReturn(textFilterRequestDto);
         when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
         when(textFilterResponseDto.isAllowed()).thenReturn(true);
-        when(gatheringCommandService.saveGathering(requestDto, hostId)).thenReturn(expectedResponse);
+        when(gatheringCommandService.saveGathering(requestDto, hostId))
+                .thenReturn(expectedResponse);
 
         // when
         GatheringResponseDto response = gatheringService.createGathering(requestDto, hostId);

@@ -64,7 +64,8 @@ public class UpdateUserProfileUnitTest {
 
         verify(aiTextFilterMapper, times(1)).fromProfileUpdate(requestDto);
         verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
-        verify(userCommandService, times(1)).updateUserProfile(targetUserId, currentUserId, requestDto);
+        verify(userCommandService, times(1))
+                .updateUserProfile(targetUserId, currentUserId, requestDto);
 
         verifyNoMoreInteractions(aiTextFilterMapper, aiApiClient, userCommandService);
     }
@@ -77,8 +78,7 @@ public class UpdateUserProfileUnitTest {
         Long currentUserId = 1L;
 
         UserProfileUpdateRequestDto requestDto =
-                new UserProfileUpdateRequestDto(
-                        null, "금칙어닉네임", 24, "MALE", 20, List.of("SPORTS"));
+                new UserProfileUpdateRequestDto(null, "금칙어닉네임", 24, "MALE", 20, List.of("SPORTS"));
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
@@ -89,7 +89,9 @@ public class UpdateUserProfileUnitTest {
 
         // when & then
         assertThatThrownBy(
-                () -> userService.updateUserProfile(targetUserId, currentUserId, requestDto))
+                        () ->
+                                userService.updateUserProfile(
+                                        targetUserId, currentUserId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.INVALID_NICKNAME);

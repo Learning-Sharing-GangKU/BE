@@ -118,8 +118,9 @@ public class UpdateUserProfileCommandUnitTest {
 
         // when & then
         assertThatThrownBy(
-                () -> userCommandService.updateUserProfile(
-                        targetUserId, currentUserId, requestDto))
+                        () ->
+                                userCommandService.updateUserProfile(
+                                        targetUserId, currentUserId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
@@ -145,15 +146,15 @@ public class UpdateUserProfileCommandUnitTest {
                         .build();
 
         UserProfileUpdateRequestDto requestDto =
-                new UserProfileUpdateRequestDto(
-                        null, "새로운닉네임", 24, "MALE", 20, List.of("SPORTS"));
+                new UserProfileUpdateRequestDto(null, "새로운닉네임", 24, "MALE", 20, List.of("SPORTS"));
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
 
         // when & then
         assertThatThrownBy(
-                () -> userCommandService.updateUserProfile(
-                        targetUserId, currentUserId, requestDto))
+                        () ->
+                                userCommandService.updateUserProfile(
+                                        targetUserId, currentUserId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_UPDATE_PROFILE);
@@ -180,16 +181,16 @@ public class UpdateUserProfileCommandUnitTest {
                         .build();
 
         UserProfileUpdateRequestDto requestDto =
-                new UserProfileUpdateRequestDto(
-                        null, "중복닉네임", 24, "MALE", 20, null);
+                new UserProfileUpdateRequestDto(null, "중복닉네임", 24, "MALE", 20, null);
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
         when(userRepository.existsByNicknameAndIdNot("중복닉네임", targetUserId)).thenReturn(true);
 
         // when & then
         assertThatThrownBy(
-                () -> userCommandService.updateUserProfile(
-                        targetUserId, currentUserId, requestDto))
+                        () ->
+                                userCommandService.updateUserProfile(
+                                        targetUserId, currentUserId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NICKNAME_ALREADY_EXISTS);
