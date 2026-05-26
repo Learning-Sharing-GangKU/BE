@@ -2,9 +2,7 @@ package com.gangku.be.service;
 
 import com.gangku.be.constant.user.UserReviewSort;
 import com.gangku.be.domain.*;
-import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Participation;
-import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
@@ -22,11 +20,10 @@ import com.gangku.be.model.review.ReviewCursor;
 import com.gangku.be.model.review.ReviewCursorCodec;
 import com.gangku.be.model.review.ReviewPageables;
 import com.gangku.be.model.review.ReviewsPreview;
-import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.service.command.UserCommandService;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
@@ -36,60 +33,34 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
     private final ParticipationRepository participationRepository;
-    private final PreferredCategoryRepository preferredCategoryRepository;
 
     private final FileUrlResolver fileUrlResolver;
     private final StringRedisTemplate stringRedisTemplate;
-    private final PasswordEncoder passwordEncoder;
     private final ReviewRepository reviewRepository;
 
     private final AiApiClient aiApiClient;
     private final AiTextFilterMapper aiTextFilterMapper;
 
+    private final UserCommandService userCommandService;
+
     public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
 
         validateEmailVerification(sessionId, signUpRequestDto.getEmail());
-
-        // 중복된 이메일 예외처리
         validateEmailConflict(signUpRequestDto.getEmail());
-
-        // 중복된 닉네임 예외처리
         validateNicknameConflict(signUpRequestDto.getNickname());
 
         validateNicknameAllowedFromSignUp(signUpRequestDto);
 
-        // 4) DB에 저장
-        User newUser =
-                User.create(
-                        signUpRequestDto.getEmail(),
-                        passwordEncoder.encode(signUpRequestDto.getPassword()),
-                        signUpRequestDto.getNickname(),
-                        signUpRequestDto.getAge(),
-                        signUpRequestDto.getGender(),
-                        signUpRequestDto.getEnrollNumber(),
-                        signUpRequestDto.getProfileImageObjectKey());
-
-        userRepository.save(newUser);
-
-        stringRedisTemplate.delete("auth:signup:session:" + sessionId);
-
-        if (signUpRequestDto.getPreferredCategories() != null) {
-            assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
-        }
-
-        return newUser;
+        return userCommandService.saveUser(signUpRequestDto, sessionId);
     }
 
     public void deleteUser(Long targetUserId, Long currentUserId) {
@@ -157,32 +128,12 @@ public class UserService {
                 reviewsPreview);
     }
 
-    @Transactional
     public UserProfileUpdateResponseDto updateUserProfile(
             Long targetUserId, Long currentUserId, UserProfileUpdateRequestDto requestDto) {
 
-        User user = findUserById(targetUserId);
-
-        validateUserProfileOwner(currentUserId, user);
-
         validateNickNameAllowedFromProfileUpdate(requestDto);
 
-        updateProfileFields(user, requestDto);
-
-        if (requestDto.getPreferredCategories() != null) {
-            replacePreferredCategories(user, requestDto.getPreferredCategories());
-        }
-
-        User savedUser = userRepository.save(user);
-
-        String profileImageUrl = resolveImageUrl(savedUser.getProfileImageObjectKey());
-
-        List<String> preferredCategories =
-                savedUser.getPreferredCategories().stream()
-                        .map(pc -> pc.getCategory().getName())
-                        .toList();
-
-        return UserProfileUpdateResponseDto.from(savedUser, profileImageUrl, preferredCategories);
+        return userCommandService.updateUserProfile(targetUserId, currentUserId, requestDto);
     }
 
     @Transactional
@@ -247,32 +198,12 @@ public class UserService {
         return fileUrlResolver.toPublicUrl(key);
     }
 
-    private void updateProfileFields(User user, UserProfileUpdateRequestDto requestDto) {
-        if (requestDto.getNickname() != null
-                && userRepository.existsByNicknameAndIdNot(
-                        requestDto.getNickname(), user.getId())) {
-            throw new CustomException(UserErrorCode.NICKNAME_ALREADY_EXISTS);
-        }
-        user.updateProfile(
-                requestDto.getProfileImageObjectKey(),
-                requestDto.getNickname(),
-                requestDto.getAge(),
-                requestDto.getGender(),
-                requestDto.getEnrollNumber());
-    }
-
     // 반올림 메서드
     private Double roundToOneDecimalPlace(Double value) {
         if (value == null) {
             return null;
         }
         return Math.round(value * 10) / 10.0;
-    }
-
-    private void replacePreferredCategories(User user, List<String> preferredCategories) {
-        user.getPreferredCategories().clear();
-        userRepository.flush();
-        assignPreferredCategories(preferredCategories, user);
     }
 
     /** --- 검증 및 반환 헬퍼 메서드 --- */
@@ -312,32 +243,6 @@ public class UserService {
         }
     }
 
-    private void assignPreferredCategories(List<String> preferredCategories, User newUser) {
-
-        if (preferredCategories != null && preferredCategories.isEmpty()) {
-            return;
-        }
-
-        List<String> distinctCategories = preferredCategories.stream().distinct().toList();
-
-        List<Category> categories = categoryRepository.findByNameIn(distinctCategories);
-
-        List<PreferredCategory> preferredCategoryList =
-                categories.stream()
-                        .map(
-                                category -> {
-                                    PreferredCategory preferredCategory = new PreferredCategory();
-                                    preferredCategory.assignCategory(category);
-
-                                    newUser.addPreferredCategory(preferredCategory);
-
-                                    return preferredCategory;
-                                })
-                        .toList();
-
-        preferredCategoryRepository.saveAll(preferredCategoryList);
-    }
-
     private User findUserById(Long userId) {
         return userRepository
                 .findById(userId)
@@ -347,12 +252,6 @@ public class UserService {
     private void validateUserPrincipal(Long currentUserId, User user) {
         if (!user.getId().equals(currentUserId)) {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
-        }
-    }
-
-    private void validateUserProfileOwner(Long currentUserId, User user) {
-        if (!user.getId().equals(currentUserId)) {
-            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_UPDATE_PROFILE);
         }
     }
 
