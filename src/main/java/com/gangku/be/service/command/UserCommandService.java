@@ -1,5 +1,6 @@
 package com.gangku.be.service.command;
 
+import com.gangku.be.constant.auth.RedisKeys;
 import com.gangku.be.domain.*;
 import com.gangku.be.dto.user.SignUpRequestDto;
 import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
@@ -41,7 +42,7 @@ public class UserCommandService {
 
         userRepository.save(newUser);
 
-        stringRedisTemplate.delete("auth:signup:session:" + sessionId);
+        stringRedisTemplate.delete(RedisKeys.signupSessionKey(sessionId));
 
         if (signUpRequestDto.getPreferredCategories() != null) {
             assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
