@@ -98,7 +98,8 @@ public class UserService {
 
         validateUserPrincipal(currentUserId, user);
 
-        List<Participation> participations = participationRepository.findAllByUser(user);
+        List<Participation> participations =
+                participationRepository.findAllByUserWithGatheringAndHost(user);
 
         for (Participation participation : participations) {
             Gathering gathering = participation.getGathering();

@@ -55,5 +55,13 @@ order by p1.gathering.date desc
 """)
     List<Object[]> countApprovedParticipationGroupByUserId();
 
-    List<Participation> findAllByUser(User user);
+    @Query(
+            """
+    SELECT p
+    FROM Participation p
+    JOIN FETCH p.gathering g
+    JOIN FETCH g.host
+    WHERE p.user = :user
+""")
+    List<Participation> findAllByUserWithGatheringAndHost(@Param("user") User user);
 }
