@@ -14,9 +14,13 @@ import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.model.ai.PopularityRefreshResponse;
+import io.netty.handler.timeout.TimeoutException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -29,28 +33,81 @@ public class AiApiClient {
     private final WebClient aiWebClient;
     private final AiServerProps aiServerProps;
 
-    public IntroCreateResponseDto createIntro(IntroCreateRequestDto introCreateRequestDto) {
-        return post(
-                aiServerProps.getIntroPath(), introCreateRequestDto, IntroCreateResponseDto.class);
+    public IntroCreateResponseDto createIntro(IntroCreateRequestDto request) {
+        return getResult(createIntroAsync(request));
     }
 
     public TextFilterResponseDto filterText(TextFilterRequestDto request) {
-        return post(aiServerProps.getTextFilterPath(), request, TextFilterResponseDto.class);
+        return getResult(filterTextAsync(request));
     }
 
     public RecommendationResponseDto recommend(RecommendationRequestDto request) {
-        return post(
-                aiServerProps.getRecommendationsPath(), request, RecommendationResponseDto.class);
+        return getResult(recommendAsync(request));
     }
 
     public ClusteringRefreshResponse refreshClustering(ClusteringRefreshRequestDto request) {
-        return post(
-                aiServerProps.getRefreshClusteringPath(), request, ClusteringRefreshResponse.class);
+        return getResult(refreshClusteringAsync(request));
     }
 
     public PopularityRefreshResponse refreshPopularity(PopularityRefreshRequestDto request) {
-        return post(
-                aiServerProps.getRefreshPopularityPath(), request, PopularityRefreshResponse.class);
+        return getResult(refreshPopularityAsync(request));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<IntroCreateResponseDto> createIntroAsync(
+            IntroCreateRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(aiServerProps.getIntroPath(), request, IntroCreateResponseDto.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<TextFilterResponseDto> filterTextAsync(TextFilterRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(aiServerProps.getTextFilterPath(), request, TextFilterResponseDto.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<RecommendationResponseDto> recommendAsync(
+            RecommendationRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(
+                        aiServerProps.getRecommendationsPath(),
+                        request,
+                        RecommendationResponseDto.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<ClusteringRefreshResponse> refreshClusteringAsync(
+            ClusteringRefreshRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(
+                        aiServerProps.getRefreshClusteringPath(),
+                        request,
+                        ClusteringRefreshResponse.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<PopularityRefreshResponse> refreshPopularityAsync(
+            PopularityRefreshRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(
+                        aiServerProps.getRefreshPopularityPath(),
+                        request,
+                        PopularityRefreshResponse.class));
+    }
+
+    private <T> T getResult(CompletableFuture<T> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof CustomException customException) {
+                throw customException;
+            }
+            throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
+        }
     }
 
     private <T> T post(String uri, Object requestDto, Class<T> responseType) {
@@ -110,6 +167,9 @@ public class AiApiClient {
         } catch (WebClientException e) {
             log.error("AI 서버 통신 실패. uri={}, message={}", uri, e.getMessage(), e);
             throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
+        } catch (TimeoutException e) {
+            log.error("AI 서버 응답 시간 초과. uri={}, message={}", uri, e.getMessage(), e);
+            throw new CustomException(CommonErrorCode.AI_TIMEOUT_ERROR);
         }
     }
 }

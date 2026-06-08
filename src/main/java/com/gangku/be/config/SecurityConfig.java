@@ -85,6 +85,10 @@ public class SecurityConfig {
                                             HttpMethod.POST, "/api/v1/objects/presigned-url/**")
                                     .permitAll()
 
+                                    // 부하테스트용
+                                    .requestMatchers("/actuator/**")
+                                    .permitAll()
+
                                     // 이외에는 로그인 필요
                                     .anyRequest()
                                     .authenticated();
