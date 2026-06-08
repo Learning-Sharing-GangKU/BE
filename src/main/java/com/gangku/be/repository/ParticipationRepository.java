@@ -16,7 +16,22 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     Optional<Participation> findByUserAndGathering(User user, Gathering gathering);
 
-    Page<Participation> findByGatheringId(Long gatheringId, Pageable pageable);
+    @Query(
+            value =
+                    """
+        SELECT p
+        FROM Participation p
+        JOIN FETCH p.user
+        WHERE p.gathering.id = :gatheringId
+    """,
+            countQuery =
+                    """
+        SELECT COUNT(p)
+        FROM Participation p
+        WHERE p.gathering.id = :gatheringId
+    """)
+    Page<Participation> findByGatheringIdWithUser(
+            @Param("gatheringId") Long gatheringId, Pageable pageable);
 
     @Query(
             """

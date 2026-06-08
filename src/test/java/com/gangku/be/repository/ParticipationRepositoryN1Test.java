@@ -10,6 +10,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.hibernate.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -32,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 class ParticipationRepositoryN1Test {
 
     @Autowired private EntityManagerFactory emf;
+    @Autowired private ParticipationRepository participationRepository;
 
     /**
      * Propagation.NOT_SUPPORTED: @DataJpaTest가 붙여주는 클래스 레벨 @Transactional을 이 메서드에서만 비활성화한다.
@@ -86,6 +91,131 @@ class ParticipationRepositoryN1Test {
                     .as("JOIN FETCH 적용 시 쿼리는 정확히 1번이어야 한다 (N+1 없음)")
                     .isEqualTo(1);
 
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * findByGatheringIdWithUser: Participation.user를 JOIN FETCH → 쿼리 상수 개수
+     *
+     * <p>한 모임에 게스트 3명이 참여한 상태에서 findByGatheringIdWithUser()를 호출했을 때,
+     * user를 JOIN FETCH 하여 각 참가자의 user 접근에 추가 쿼리가 발생하지 않는지 검증한다.
+     * Page 반환이므로 데이터 쿼리 1개 + count 쿼리 1개 = 최대 2개를 기대한다.
+     */
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @DisplayName("findByGatheringIdWithUser: user를 JOIN FETCH → 참가자 수 무관 상수 쿼리")
+    void findByGatheringIdWithUser_issuesConstantQueries() {
+        // ── 1. SETUP: 한 모임에 게스트 3명 참여 ─────────────────────────────
+        long gatheringId = persistGatheringWith3Guests();
+
+        // ── 2. Hibernate Statistics 초기화 ───────────────────────────────
+        EntityManager em = emf.createEntityManager();
+        Statistics stats = em.unwrap(Session.class).getSessionFactory().getStatistics();
+        stats.setStatisticsEnabled(true);
+        stats.clear();
+        em.close();
+
+        try {
+            // ── 3. 조회 (영속성 컨텍스트 외부 — Spring Data는 새 트랜잭션) ──
+            Pageable pageable =
+                    PageRequest.of(
+                            0,
+                            10,
+                            Sort.by(Sort.Direction.DESC, "joinedAt")
+                                    .and(Sort.by(Sort.Direction.DESC, "id")));
+
+            Page<Participation> page =
+                    participationRepository.findByGatheringIdWithUser(gatheringId, pageable);
+
+            // ── 4. user 연관 필드 접근 (LAZY라면 추가 쿼리 발생) ────────────
+            for (Participation p : page.getContent()) {
+                String key = p.getUser().getProfileImageObjectKey(); // LAZY 시 N번 추가
+                Long userId = p.getUser().getId();
+                assertThat(userId).isNotNull();
+            }
+
+            // ── 5. 쿼리 수 검증 ────────────────────────────────────────────
+            // Page 조회: 데이터 쿼리(1) + count 쿼리(1) = 2개 (참가자 수 N에 무관)
+            assertThat(page.getContent()).hasSize(3);
+            assertThat(stats.getPrepareStatementCount())
+                    .as("JOIN FETCH 적용 시 쿼리는 참가자 수(N)에 비례하지 않아야 한다 — 데이터+count = 최대 2")
+                    .isLessThanOrEqualTo(2);
+
+        } finally {
+            // nothing to close — Spring Data managed its own EntityManager
+        }
+    }
+
+    /**
+     * 테스트용 데이터를 별도 트랜잭션에서 영속화하고 gatheringId를 반환한다.
+     *
+     * <ul>
+     *   <li>host 1명
+     *   <li>guest 3명
+     *   <li>모임 1개 (host 소유)
+     *   <li>guest 3명 → 모임에 GUEST 참여
+     * </ul>
+     */
+    private long persistGatheringWith3Guests() {
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+        try {
+            User host =
+                    User.create(
+                            "host@n1gathering.com",
+                            "encodedPw",
+                            "gatheringHost",
+                            null,
+                            null,
+                            null,
+                            null);
+            em.persist(host);
+
+            Category cat = new Category();
+            cat.setName("n1-gathering-category");
+            em.persist(cat);
+
+            Gathering gathering =
+                    Gathering.create(
+                            host,
+                            cat,
+                            "참가자 N+1 테스트 모임",
+                            "쿼리 카운트 검증용",
+                            null,
+                            10,
+                            LocalDateTime.now().plusDays(1),
+                            "서울",
+                            "openchat-gathering-n1-" + System.nanoTime());
+            em.persist(gathering);
+
+            for (int i = 1; i <= 3; i++) {
+                User guest =
+                        User.create(
+                                "guest" + i + "@n1gathering.com",
+                                "encodedPw",
+                                "guestUser" + i,
+                                null,
+                                null,
+                                null,
+                                null);
+                em.persist(guest);
+
+                Participation participation =
+                        Participation.create(
+                                guest,
+                                gathering,
+                                com.gangku.be.constant.participation.ParticipationRole.GUEST);
+                em.persist(participation);
+            }
+
+            tx.commit();
+            return gathering.getId();
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
         } finally {
             em.close();
         }
