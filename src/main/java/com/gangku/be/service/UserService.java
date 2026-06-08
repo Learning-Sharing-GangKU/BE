@@ -1,5 +1,6 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.auth.RedisKeys;
 import com.gangku.be.constant.user.UserReviewSort;
 import com.gangku.be.domain.*;
 import com.gangku.be.domain.Category;
@@ -83,7 +84,7 @@ public class UserService {
 
         userRepository.save(newUser);
 
-        stringRedisTemplate.delete("auth:signup:session:" + sessionId);
+        stringRedisTemplate.delete(RedisKeys.signupSessionKey(sessionId));
 
         if (signUpRequestDto.getPreferredCategories() != null) {
             assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
@@ -282,7 +283,7 @@ public class UserService {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-        String sessionKey = "auth:signup:session:" + sessionId;
+        String sessionKey = RedisKeys.signupSessionKey(sessionId);
         Map<Object, Object> sessionData = stringRedisTemplate.opsForHash().entries(sessionKey);
 
         if (sessionData.isEmpty()) {
