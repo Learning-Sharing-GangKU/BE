@@ -1,7 +1,6 @@
 package com.gangku.be.service;
 
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.Review;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
@@ -16,10 +15,10 @@ import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.service.command.ReviewCommandService;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,37 +28,25 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final GatheringRepository gatheringRepository;
     private final ParticipationRepository participationRepository;
-
     private final AiApiClient aiApiClient;
     private final AiTextFilterMapper aiTextFilterMapper;
+    private final ReviewCommandService reviewCommandService; // 추가
 
-    @Transactional
     public ReviewCreateResponseDto createReview(
             Long reviewerId, Long revieweeId, ReviewCreateRequestDto reviewCreateRequestDto) {
 
         validateDifferentUser(reviewerId, revieweeId);
 
         User reviewer = findUserById(reviewerId);
-
         User reviewee = findUserById(revieweeId);
-
         Long gatheringId = findGatheringIdParticipatedTogether(reviewerId, revieweeId);
         Gathering gathering = findGatheringById(gatheringId);
-
         validateNotDuplicatedReview(gatheringId, reviewerId, revieweeId);
 
         validateReviewCommentAllowed(reviewCreateRequestDto);
 
-        Review review =
-                Review.create(
-                        reviewer,
-                        reviewee,
-                        gathering,
-                        reviewCreateRequestDto.getRating(),
-                        reviewCreateRequestDto.getComment());
-        reviewRepository.save(review);
-
-        return ReviewCreateResponseDto.from(review);
+        return reviewCommandService.saveReview(
+                reviewer, reviewee, gathering, reviewCreateRequestDto);
     }
 
     private Gathering findGatheringById(Long gatheringId) {
