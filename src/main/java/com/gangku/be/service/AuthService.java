@@ -223,7 +223,8 @@ public class AuthService {
                 new DefaultRedisScript<>(REDIS_CONSUME_EMAIL_BY_TOKEN_SCRIPT, String.class);
 
         String email =
-                stringRedisTemplate.execute(script, List.of(RedisKeys.emailVerificationTokenKey(tokenId)));
+                stringRedisTemplate.execute(
+                        script, List.of(RedisKeys.emailVerificationTokenKey(tokenId)));
 
         if (email == null) {
             throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED);
@@ -305,7 +306,8 @@ public class AuthService {
     }
 
     private void ensureEmailVerificationCompleted(String email) {
-        String verifiedEmailFlag = stringRedisTemplate.opsForValue().get(RedisKeys.verifiedEmailKey(email));
+        String verifiedEmailFlag =
+                stringRedisTemplate.opsForValue().get(RedisKeys.verifiedEmailKey(email));
 
         if (verifiedEmailFlag == null) {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);

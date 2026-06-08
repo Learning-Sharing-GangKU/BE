@@ -97,7 +97,8 @@ public class GetGatheringDetailUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(loginUser));
         when(participationRepository.existsByUserAndGathering(loginUser, gathering))
                 .thenReturn(true);
-        when(participationRepository.findByGatheringIdWithUser(eq(gatheringId), any(Pageable.class)))
+        when(participationRepository.findByGatheringIdWithUser(
+                        eq(gatheringId), any(Pageable.class)))
                 .thenReturn(participationPage);
         when(fileUrlResolver.toPublicUrl("gatherings/g1.png"))
                 .thenReturn("https://cdn.test/gatherings/g1.png");
@@ -159,7 +160,8 @@ public class GetGatheringDetailUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(loginUser));
         when(participationRepository.existsByUserAndGathering(loginUser, gathering))
                 .thenReturn(false);
-        when(participationRepository.findByGatheringIdWithUser(eq(gatheringId), any(Pageable.class)))
+        when(participationRepository.findByGatheringIdWithUser(
+                        eq(gatheringId), any(Pageable.class)))
                 .thenReturn(participationPage);
 
         // when
@@ -201,7 +203,8 @@ public class GetGatheringDetailUnitTest {
         verify(gatheringRepository, times(1)).findById(gatheringId);
         verify(userRepository, never()).findById(anyLong());
         verify(participationRepository, never()).existsByUserAndGathering(any(), any());
-        verify(participationRepository, never()).findByGatheringIdWithUser(anyLong(), any(Pageable.class));
+        verify(participationRepository, never())
+                .findByGatheringIdWithUser(anyLong(), any(Pageable.class));
     }
 
     @Test
@@ -238,6 +241,7 @@ public class GetGatheringDetailUnitTest {
         verify(gatheringRepository, times(1)).findById(gatheringId);
         verify(userRepository, times(1)).findById(userId);
         verify(participationRepository, never()).existsByUserAndGathering(any(), any());
-        verify(participationRepository, never()).findByGatheringIdWithUser(anyLong(), any(Pageable.class));
+        verify(participationRepository, never())
+                .findByGatheringIdWithUser(anyLong(), any(Pageable.class));
     }
 }

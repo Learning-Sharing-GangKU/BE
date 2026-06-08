@@ -13,24 +13,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.hibernate.Session;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * findAllByUserWithGatheringAndHost() N+1 쿼리 수 검증 테스트.
  *
- * <p>게스트가 3개 모임에 참여한 상태에서 findAllByUserWithGatheringAndHost()를 호출했을 때,
- * gathering + host를 JOIN FETCH 하여 쿼리가 정확히 1번만 발생하는지를 Hibernate Statistics로 검증한다.
+ * <p>게스트가 3개 모임에 참여한 상태에서 findAllByUserWithGatheringAndHost()를 호출했을 때, gathering + host를 JOIN FETCH
+ * 하여 쿼리가 정확히 1번만 발생하는지를 Hibernate Statistics로 검증한다.
  *
  * <p>@DataJpaTest를 사용하므로 Redis/Mail/S3/AI 등 외부 인프라 빈 없이 JPA 레이어만 로드한다.
  */
@@ -102,9 +102,8 @@ class ParticipationRepositoryN1Test {
     /**
      * findByGatheringIdWithUser: Participation.user를 JOIN FETCH → 쿼리 상수 개수
      *
-     * <p>한 모임에 게스트 3명이 참여한 상태에서 findByGatheringIdWithUser()를 호출했을 때,
-     * user를 JOIN FETCH 하여 각 참가자의 user 접근에 추가 쿼리가 발생하지 않는지 검증한다.
-     * Page 반환이므로 데이터 쿼리 1개 + count 쿼리 1개 = 최대 2개를 기대한다.
+     * <p>한 모임에 게스트 3명이 참여한 상태에서 findByGatheringIdWithUser()를 호출했을 때, user를 JOIN FETCH 하여 각 참가자의
+     * user 접근에 추가 쿼리가 발생하지 않는지 검증한다. Page 반환이므로 데이터 쿼리 1개 + count 쿼리 1개 = 최대 2개를 기대한다.
      */
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -154,9 +153,8 @@ class ParticipationRepositoryN1Test {
     /**
      * findLatestFinishedCommonGatheringId: limit 1이 JPQL에 반영됐는지 결과셋 크기로 검증.
      *
-     * <p>reviewer + reviewee가 공통으로 참여한 FINISHED 모임이 3개 있을 때, 메서드 호출 결과가
-     * 정확히 1개이고 가장 최신(date desc) 모임의 ID를 반환하는지를 실제 DB 쿼리로 검증한다.
-     * limit 1이 없다면 3개가 반환되어 assertThat(result).isPresent()는 통과하더라도
+     * <p>reviewer + reviewee가 공통으로 참여한 FINISHED 모임이 3개 있을 때, 메서드 호출 결과가 정확히 1개이고 가장 최신(date desc)
+     * 모임의 ID를 반환하는지를 실제 DB 쿼리로 검증한다. limit 1이 없다면 3개가 반환되어 assertThat(result).isPresent()는 통과하더라도
      * 결과셋이 의미상 잘못 크다는 것을 별도 헬퍼를 통해 드러낼 수 있다.
      */
     @Test
@@ -269,8 +267,7 @@ class ParticipationRepositoryN1Test {
         tx.begin();
         try {
             User host =
-                    User.create(
-                            "host@n1test.com", "encodedPw", "hostUser", null, null, null, null);
+                    User.create("host@n1test.com", "encodedPw", "hostUser", null, null, null, null);
             em.persist(host);
 
             User guest =
@@ -296,7 +293,11 @@ class ParticipationRepositoryN1Test {
                                 "openchat-n1-" + System.nanoTime());
                 em.persist(gathering);
 
-                Participation participation = Participation.create(guest, gathering, com.gangku.be.constant.participation.ParticipationRole.GUEST);
+                Participation participation =
+                        Participation.create(
+                                guest,
+                                gathering,
+                                com.gangku.be.constant.participation.ParticipationRole.GUEST);
                 em.persist(participation);
             }
 

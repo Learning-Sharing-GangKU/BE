@@ -29,8 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * ReviewRepository N+1 쿼리 수 검증 테스트.
  *
- * <p>리뷰 3건이 있는 상태에서 각 조회 메서드를 호출했을 때, reviewer를 JOIN FETCH 하여
- * reviewer 접근 시 추가 쿼리가 발생하지 않는지 Hibernate Statistics로 검증한다.
+ * <p>리뷰 3건이 있는 상태에서 각 조회 메서드를 호출했을 때, reviewer를 JOIN FETCH 하여 reviewer 접근 시 추가 쿼리가 발생하지 않는지
+ * Hibernate Statistics로 검증한다.
  *
  * <p>@DataJpaTest를 사용하므로 Redis/Mail/S3/AI 등 외부 인프라 빈 없이 JPA 레이어만 로드한다.
  */
@@ -44,8 +44,8 @@ class ReviewRepositoryN1Test {
     // ── findByRevieweeId (Page 반환) ──────────────────────────────────────────
 
     /**
-     * Propagation.NOT_SUPPORTED: @DataJpaTest가 붙여주는 클래스 레벨 @Transactional을 이 메서드에서만 비활성화한다.
-     * 영속성 컨텍스트 캐시 없이 실제 DB 쿼리 수를 측정하기 위함이다.
+     * Propagation.NOT_SUPPORTED: @DataJpaTest가 붙여주는 클래스 레벨 @Transactional을 이 메서드에서만 비활성화한다. 영속성
+     * 컨텍스트 캐시 없이 실제 DB 쿼리 수를 측정하기 위함이다.
      */
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
