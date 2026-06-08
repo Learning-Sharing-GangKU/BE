@@ -2,6 +2,7 @@ package com.gangku.be.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.gangku.be.constant.participation.ParticipationRole;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
@@ -9,6 +10,8 @@ import com.gangku.be.domain.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.hibernate.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -149,6 +152,35 @@ class ParticipationRepositoryN1Test {
     }
 
     /**
+     * findLatestFinishedCommonGatheringId: limit 1이 JPQL에 반영됐는지 결과셋 크기로 검증.
+     *
+     * <p>reviewer + reviewee가 공통으로 참여한 FINISHED 모임이 3개 있을 때, 메서드 호출 결과가
+     * 정확히 1개이고 가장 최신(date desc) 모임의 ID를 반환하는지를 실제 DB 쿼리로 검증한다.
+     * limit 1이 없다면 3개가 반환되어 assertThat(result).isPresent()는 통과하더라도
+     * 결과셋이 의미상 잘못 크다는 것을 별도 헬퍼를 통해 드러낼 수 있다.
+     */
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @DisplayName("findLatestFinishedCommonGatheringId: limit 1 → 공통 모임이 여럿이어도 최신 1개만 반환")
+    void findLatestFinishedCommonGatheringId_returnsOnlyLatestOne() {
+        // ── 1. SETUP: reviewer + reviewee가 3개의 FINISHED 모임에 공통 참여 ──────
+        long[] ids = persistReviewerRevieweeIn3FinishedGatherings();
+        long reviewerId = ids[0];
+        long revieweeId = ids[1];
+        long latestGatheringId = ids[2];
+
+        // ── 2. 조회 ─────────────────────────────────────────────────────────
+        Optional<Long> result =
+                participationRepository.findLatestFinishedCommonGatheringId(reviewerId, revieweeId);
+
+        // ── 3. 검증: limit 1 → 단 1개 반환, 가장 최신(date desc) 모임 ──────────
+        assertThat(result).isPresent();
+        assertThat(result.get())
+                .as("limit 1 + order by date desc → 가장 최신 모임 ID를 반환해야 한다")
+                .isEqualTo(latestGatheringId);
+    }
+
+    /**
      * 테스트용 데이터를 별도 트랜잭션에서 영속화하고 gatheringId를 반환한다.
      *
      * <ul>
@@ -270,6 +302,94 @@ class ParticipationRepositoryN1Test {
 
             tx.commit();
             return new long[] {guest.getId()};
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * reviewer와 reviewee가 공통으로 APPROVED 참여한 FINISHED 모임 3개를 영속화한다.
+     *
+     * <ul>
+     *   <li>모임 날짜: 2025-01-01, 2025-02-01, 2025-03-01 (순서 보장을 위한 고정값)
+     *   <li>가장 최신(2025-03-01) 모임의 ID를 ids[2]에 담아 반환
+     * </ul>
+     *
+     * @return long[] {reviewerId, revieweeId, latestGatheringId}
+     */
+    private long[] persistReviewerRevieweeIn3FinishedGatherings() {
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+        try {
+            String suffix = UUID.randomUUID().toString().substring(0, 8);
+
+            User host =
+                    User.create(
+                            "h" + suffix + "@n1lmt.com",
+                            "encodedPw",
+                            "h" + suffix,
+                            null,
+                            null,
+                            null,
+                            null);
+            em.persist(host);
+
+            User reviewer =
+                    User.create(
+                            "rv" + suffix + "@n1lmt.com",
+                            "encodedPw",
+                            "rv" + suffix,
+                            null,
+                            null,
+                            null,
+                            null);
+            em.persist(reviewer);
+
+            User reviewee =
+                    User.create(
+                            "re" + suffix + "@n1lmt.com",
+                            "encodedPw",
+                            "re" + suffix,
+                            null,
+                            null,
+                            null,
+                            null);
+            em.persist(reviewee);
+
+            Category cat = new Category();
+            cat.setName("lmt-" + suffix);
+            em.persist(cat);
+
+            long latestGatheringId = -1;
+            for (int i = 1; i <= 3; i++) {
+                Gathering gathering =
+                        Gathering.create(
+                                host,
+                                cat,
+                                "limit 테스트 모임 " + i,
+                                "limit 1 검증용",
+                                null,
+                                10,
+                                LocalDateTime.of(2025, i, 1, 0, 0), // 1월, 2월, 3월 — 최신은 3월
+                                "서울",
+                                "chat-lmt-" + i + suffix);
+                gathering.changeStatusAsFinished();
+                em.persist(gathering);
+
+                em.persist(Participation.create(reviewer, gathering, ParticipationRole.GUEST));
+                em.persist(Participation.create(reviewee, gathering, ParticipationRole.GUEST));
+
+                if (i == 3) {
+                    latestGatheringId = gathering.getId();
+                }
+            }
+
+            tx.commit();
+            return new long[] {reviewer.getId(), reviewee.getId(), latestGatheringId};
         } catch (Exception e) {
             tx.rollback();
             throw e;
