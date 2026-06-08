@@ -57,9 +57,7 @@ public class ReviewService {
 
     private Long findGatheringIdParticipatedTogether(Long reviewerId, Long revieweeId) {
         return participationRepository
-                .findFinishedCommonGatheringIds(reviewerId, revieweeId)
-                .stream()
-                .findFirst()
+                .findLatestFinishedCommonGatheringId(reviewerId, revieweeId)
                 .orElseThrow(
                         () -> new CustomException(ReviewErrorCode.NO_PERMISSION_TO_WRITE_REVIEW));
     }

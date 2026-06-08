@@ -16,7 +16,22 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     Optional<Participation> findByUserAndGathering(User user, Gathering gathering);
 
-    Page<Participation> findByGatheringId(Long gatheringId, Pageable pageable);
+    @Query(
+            value =
+                    """
+        SELECT p
+        FROM Participation p
+        JOIN FETCH p.user
+        WHERE p.gathering.id = :gatheringId
+    """,
+            countQuery =
+                    """
+        SELECT COUNT(p)
+        FROM Participation p
+        WHERE p.gathering.id = :gatheringId
+    """)
+    Page<Participation> findByGatheringIdWithUser(
+            @Param("gatheringId") Long gatheringId, Pageable pageable);
 
     @Query(
             """
@@ -42,8 +57,9 @@ where p1.user.id = :reviewerId
   and p2.status = 'APPROVED'
   and p1.gathering.status = 'FINISHED'
 order by p1.gathering.date desc
+limit 1
 """)
-    List<Long> findFinishedCommonGatheringIds(Long reviewerId, Long revieweeId);
+    Optional<Long> findLatestFinishedCommonGatheringId(Long reviewerId, Long revieweeId);
 
     // user 마다 지금까지 방 참여한 횟수 count 용
     @Query(
@@ -55,5 +71,13 @@ order by p1.gathering.date desc
 """)
     List<Object[]> countApprovedParticipationGroupByUserId();
 
-    List<Participation> findAllByUser(User user);
+    @Query(
+            """
+    SELECT p
+    FROM Participation p
+    JOIN FETCH p.gathering g
+    JOIN FETCH g.host
+    WHERE p.user = :user
+""")
+    List<Participation> findAllByUserWithGatheringAndHost(@Param("user") User user);
 }

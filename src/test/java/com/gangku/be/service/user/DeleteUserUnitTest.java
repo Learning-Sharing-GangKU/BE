@@ -39,14 +39,15 @@ public class DeleteUserUnitTest {
         User user = User.builder().id(targetUserId).participations(new ArrayList<>()).build();
 
         when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
-        when(participationRepository.findAllByUser(user)).thenReturn(Collections.emptyList());
+        when(participationRepository.findAllByUserWithGatheringAndHost(user))
+                .thenReturn(Collections.emptyList());
 
         // when
         userService.deleteUser(targetUserId, currentUserId);
 
         // then
         verify(userRepository, times(1)).findById(targetUserId);
-        verify(participationRepository, times(1)).findAllByUser(user);
+        verify(participationRepository, times(1)).findAllByUserWithGatheringAndHost(user);
         verify(participationRepository, times(1)).deleteAll(Collections.emptyList());
         verify(userRepository, times(1)).delete(user);
 

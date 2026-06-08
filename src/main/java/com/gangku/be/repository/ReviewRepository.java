@@ -12,7 +12,21 @@ import org.springframework.data.repository.query.Param;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    Page<Review> findByRevieweeId(Long revieweeId, Pageable pageable);
+    @Query(
+            value =
+                    """
+        SELECT r
+        FROM Review r
+        JOIN FETCH r.reviewer
+        WHERE r.reviewee.id = :revieweeId
+    """,
+            countQuery =
+                    """
+        SELECT COUNT(r)
+        FROM Review r
+        WHERE r.reviewee.id = :revieweeId
+    """)
+    Page<Review> findByRevieweeId(@Param("revieweeId") Long revieweeId, Pageable pageable);
 
     Long countByRevieweeId(Long revieweeId);
 
@@ -20,6 +34,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             """
             select r
             from Review r
+            join fetch r.reviewer
             where r.reviewee.id = :revieweeId
             """)
     List<Review> findFirstPageByRevieweeId(@Param("revieweeId") Long revieweeId, Pageable pageable);
@@ -28,6 +43,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             """
             select r
             from Review r
+            join fetch r.reviewer
             where r.reviewee.id = :revieweeId
               and (
                     r.createdAt < :createdAt

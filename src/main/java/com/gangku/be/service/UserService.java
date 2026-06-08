@@ -1,5 +1,6 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.auth.RedisKeys;
 import com.gangku.be.constant.user.UserReviewSort;
 import com.gangku.be.domain.*;
 import com.gangku.be.domain.Participation;
@@ -60,6 +61,26 @@ public class UserService {
 
         validateNicknameAllowedFromSignUp(signUpRequestDto);
 
+        // 4) DB에 저장
+        User newUser =
+                User.create(
+                        signUpRequestDto.getEmail(),
+                        passwordEncoder.encode(signUpRequestDto.getPassword()),
+                        signUpRequestDto.getNickname(),
+                        signUpRequestDto.getAge(),
+                        signUpRequestDto.getGender(),
+                        signUpRequestDto.getEnrollNumber(),
+                        signUpRequestDto.getProfileImageObjectKey());
+
+        userRepository.save(newUser);
+
+        stringRedisTemplate.delete(RedisKeys.signupSessionKey(sessionId));
+
+        if (signUpRequestDto.getPreferredCategories() != null) {
+            assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
+        }
+
+        return newUser;
         return userCommandService.saveUser(signUpRequestDto, sessionId);
     }
 
@@ -70,7 +91,8 @@ public class UserService {
 
         validateUserPrincipal(currentUserId, user);
 
-        List<Participation> participations = participationRepository.findAllByUser(user);
+        List<Participation> participations =
+                participationRepository.findAllByUserWithGatheringAndHost(user);
 
         for (Participation participation : participations) {
             Gathering gathering = participation.getGathering();
@@ -213,7 +235,7 @@ public class UserService {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-        String sessionKey = "auth:signup:session:" + sessionId;
+        String sessionKey = RedisKeys.signupSessionKey(sessionId);
         Map<Object, Object> sessionData = stringRedisTemplate.opsForHash().entries(sessionKey);
 
         if (sessionData.isEmpty()) {

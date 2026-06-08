@@ -79,7 +79,7 @@ public class ParticipationService {
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         Page<Participation> participationPage =
-                participationRepository.findByGatheringId(gatheringId, pageable);
+                participationRepository.findByGatheringIdWithUser(gatheringId, pageable);
 
         String sortedByForSpec = "joinedAt,desc";
 

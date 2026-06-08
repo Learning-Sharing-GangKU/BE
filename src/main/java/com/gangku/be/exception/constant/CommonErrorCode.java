@@ -20,7 +20,11 @@ public enum CommonErrorCode implements ErrorCode {
             "AI 서버와의 통신이 원활하게 이루어지지 않았습니다.",
             HttpStatus.GATEWAY_TIMEOUT.value()),
     AI_SERVICE_ERROR(
-            "AI_SERVICE_ERROR", "AI 서버 내부에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+            "AI_SERVICE_ERROR", "AI 서버 내부에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value()),
+    CONCURRENT_MODIFICATION(
+            "CONCURRENT_MODIFICATION",
+            "다른 요청과 충돌했습니다. 잠시 후 다시 시도해 주세요.",
+            HttpStatus.CONFLICT.value());
 
     private final String code;
     private final String message;

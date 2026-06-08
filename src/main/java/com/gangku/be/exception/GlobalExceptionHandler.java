@@ -4,12 +4,21 @@ import com.gangku.be.dto.common.ErrorResponseDto;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponseDto> handleOptimisticLock(
+            ObjectOptimisticLockingFailureException e) {
+        ErrorCode code = CommonErrorCode.CONCURRENT_MODIFICATION;
+        ErrorResponseDto body = ErrorResponseDto.of(code.getCode(), code.getMessage());
+        return ResponseEntity.status(code.getStatus()).body(body);
+    }
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponseDto> handleCustomException(CustomException customException) {

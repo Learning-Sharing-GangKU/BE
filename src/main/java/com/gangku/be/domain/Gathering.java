@@ -20,6 +20,14 @@ public class Gathering {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 낙관적 락(Optimistic Lock) 버전 필드.
+     *
+     * <p>동시에 여러 트랜잭션이 participantCount 등을 수정할 때 Lost Update를 방지한다. Hibernate가 flush 시 UPDATE ...
+     * WHERE id=? AND version=? 로 검사하며, 영향 행이 0이면 ObjectOptimisticLockingFailureException을 던진다.
+     */
+    @Version private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
