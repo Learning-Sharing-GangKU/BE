@@ -59,28 +59,9 @@ public class UserService {
         validateEmailConflict(signUpRequestDto.getEmail());
         validateNicknameConflict(signUpRequestDto.getNickname());
 
+        // AI 검증은 트랜잭션 밖에서 실행 (DB 커넥션 점유 방지)
         validateNicknameAllowedFromSignUp(signUpRequestDto);
 
-        // 4) DB에 저장
-        User newUser =
-                User.create(
-                        signUpRequestDto.getEmail(),
-                        passwordEncoder.encode(signUpRequestDto.getPassword()),
-                        signUpRequestDto.getNickname(),
-                        signUpRequestDto.getAge(),
-                        signUpRequestDto.getGender(),
-                        signUpRequestDto.getEnrollNumber(),
-                        signUpRequestDto.getProfileImageObjectKey());
-
-        userRepository.save(newUser);
-
-        stringRedisTemplate.delete(RedisKeys.signupSessionKey(sessionId));
-
-        if (signUpRequestDto.getPreferredCategories() != null) {
-            assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
-        }
-
-        return newUser;
         return userCommandService.saveUser(signUpRequestDto, sessionId);
     }
 
