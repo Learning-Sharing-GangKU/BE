@@ -11,8 +11,8 @@ public final class AiResponses {
     private AiResponses() {}
 
     /**
-     * CompletableFuture 결과를 블로킹으로 기다린 뒤 반환한다. ExecutionException 내부의 CustomException은
-     * 그대로 재던지고, 그 외 예외는 AI_SERVICE_ERROR로 변환한다.
+     * CompletableFuture 결과를 블로킹으로 기다린 뒤 반환한다. ExecutionException 내부의 CustomException은 그대로 재던지고, 그 외
+     * 예외는 AI_SERVICE_ERROR로 변환한다.
      */
     public static <T> T await(CompletableFuture<T> future) {
         try {

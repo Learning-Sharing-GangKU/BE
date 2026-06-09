@@ -93,5 +93,4 @@ public class ReviewService {
             throw new CustomException(ReviewErrorCode.INVALID_REVIEW_TARGET);
         }
     }
-
 }

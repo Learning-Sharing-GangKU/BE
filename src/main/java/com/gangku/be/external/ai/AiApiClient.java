@@ -43,7 +43,8 @@ public class AiApiClient {
     }
 
     public RecommendationResponseDto recommend(RecommendationRequestDto request) {
-        return post(aiServerProps.getRecommendationsPath(), request, RecommendationResponseDto.class);
+        return post(
+                aiServerProps.getRecommendationsPath(), request, RecommendationResponseDto.class);
     }
 
     public ClusteringRefreshResponse refreshClustering(ClusteringRefreshRequestDto request) {

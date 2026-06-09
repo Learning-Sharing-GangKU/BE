@@ -118,8 +118,8 @@ public class RegisterUserUnitTest {
         verify(hashOperations, times(1)).entries(sessionKey);
 
         verifyNoInteractions(userRepository, userCommandService);
-        verifyNoMoreInteractions(stringRedisTemplate, hashOperations, aiApiClient,
-                aiTextFilterMapper);
+        verifyNoMoreInteractions(
+                stringRedisTemplate, hashOperations, aiApiClient, aiTextFilterMapper);
     }
 
     @Test
@@ -153,7 +153,11 @@ public class RegisterUserUnitTest {
         verify(userRepository, never()).existsByNickname(anyString());
 
         verifyNoInteractions(userCommandService);
-        verifyNoMoreInteractions(userRepository, stringRedisTemplate, hashOperations, aiApiClient,
+        verifyNoMoreInteractions(
+                userRepository,
+                stringRedisTemplate,
+                hashOperations,
+                aiApiClient,
                 aiTextFilterMapper);
     }
 
@@ -189,7 +193,11 @@ public class RegisterUserUnitTest {
         verify(userRepository, times(1)).existsByNickname("중복닉네임");
 
         verifyNoInteractions(userCommandService);
-        verifyNoMoreInteractions(userRepository, stringRedisTemplate, hashOperations, aiApiClient,
+        verifyNoMoreInteractions(
+                userRepository,
+                stringRedisTemplate,
+                hashOperations,
+                aiApiClient,
                 aiTextFilterMapper);
     }
 
