@@ -136,8 +136,7 @@ public class GatheringService {
                 gathering, participantsPreview, gatheringImageUrl, joined);
     }
 
-    // 외부 AI 호출만 -> Client로 위임
-    @Transactional
+    // 외부 AI 호출만 -> Client로 위임 (DB 작업 없음, 트랜잭션 불필요)
     public IntroCreateResponseDto createGatheringIntro(
             IntroCreateRequestDto introCreateRequestDto) {
         return aiApiClient.createIntro(introCreateRequestDto);

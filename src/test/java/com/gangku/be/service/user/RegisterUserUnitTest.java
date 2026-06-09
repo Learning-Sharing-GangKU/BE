@@ -17,6 +17,7 @@ import com.gangku.be.service.UserService;
 import com.gangku.be.service.command.UserCommandService;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,8 @@ public class RegisterUserUnitTest {
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(userRepository.existsByNickname("정상닉네임")).thenReturn(false);
         when(aiTextFilterMapper.fromSignUp(requestDto)).thenReturn(textFilterRequestDto);
-        when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
+        when(aiApiClient.filterTextAsync(textFilterRequestDto))
+                .thenReturn(CompletableFuture.completedFuture(textFilterResponseDto));
         when(textFilterResponseDto.isAllowed()).thenReturn(true);
         when(userCommandService.saveUser(requestDto, sessionId)).thenReturn(expectedUser);
 
@@ -72,12 +74,12 @@ public class RegisterUserUnitTest {
         // then
         assertThat(result).isEqualTo(expectedUser);
 
+        verify(aiTextFilterMapper, times(1)).fromSignUp(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(textFilterRequestDto);
         verify(stringRedisTemplate, times(1)).opsForHash();
         verify(hashOperations, times(1)).entries(sessionKey);
         verify(userRepository, times(1)).existsByEmail("test@example.com");
         verify(userRepository, times(1)).existsByNickname("정상닉네임");
-        verify(aiTextFilterMapper, times(1)).fromSignUp(requestDto);
-        verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
         verify(userCommandService, times(1)).saveUser(requestDto, sessionId);
 
         verifyNoMoreInteractions(
@@ -109,11 +111,15 @@ public class RegisterUserUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.EMAIL_NOT_VERIFIED);
 
+        // AI future는 Redis 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromSignUp(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
         verify(stringRedisTemplate, times(1)).opsForHash();
         verify(hashOperations, times(1)).entries(sessionKey);
 
-        verifyNoInteractions(userRepository, aiApiClient, aiTextFilterMapper, userCommandService);
-        verifyNoMoreInteractions(stringRedisTemplate, hashOperations);
+        verifyNoInteractions(userRepository, userCommandService);
+        verifyNoMoreInteractions(
+                stringRedisTemplate, hashOperations, aiApiClient, aiTextFilterMapper);
     }
 
     @Test
@@ -138,13 +144,21 @@ public class RegisterUserUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.EMAIL_ALREADY_EXISTS);
 
+        // AI future는 Redis/DB 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromSignUp(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
         verify(stringRedisTemplate, times(1)).opsForHash();
         verify(hashOperations, times(1)).entries(sessionKey);
         verify(userRepository, times(1)).existsByEmail("test@example.com");
         verify(userRepository, never()).existsByNickname(anyString());
 
-        verifyNoInteractions(aiApiClient, aiTextFilterMapper, userCommandService);
-        verifyNoMoreInteractions(userRepository, stringRedisTemplate, hashOperations);
+        verifyNoInteractions(userCommandService);
+        verifyNoMoreInteractions(
+                userRepository,
+                stringRedisTemplate,
+                hashOperations,
+                aiApiClient,
+                aiTextFilterMapper);
     }
 
     @Test
@@ -170,13 +184,21 @@ public class RegisterUserUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NICKNAME_ALREADY_EXISTS);
 
+        // AI future는 Redis/DB 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromSignUp(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
         verify(stringRedisTemplate, times(1)).opsForHash();
         verify(hashOperations, times(1)).entries(sessionKey);
         verify(userRepository, times(1)).existsByEmail("test@example.com");
         verify(userRepository, times(1)).existsByNickname("중복닉네임");
 
-        verifyNoInteractions(aiApiClient, aiTextFilterMapper, userCommandService);
-        verifyNoMoreInteractions(userRepository, stringRedisTemplate, hashOperations);
+        verifyNoInteractions(userCommandService);
+        verifyNoMoreInteractions(
+                userRepository,
+                stringRedisTemplate,
+                hashOperations,
+                aiApiClient,
+                aiTextFilterMapper);
     }
 
     @Test
@@ -199,7 +221,8 @@ public class RegisterUserUnitTest {
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(userRepository.existsByNickname("금칙어닉네임")).thenReturn(false);
         when(aiTextFilterMapper.fromSignUp(requestDto)).thenReturn(textFilterRequestDto);
-        when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
+        when(aiApiClient.filterTextAsync(textFilterRequestDto))
+                .thenReturn(CompletableFuture.completedFuture(textFilterResponseDto));
         when(textFilterResponseDto.isAllowed()).thenReturn(false);
 
         // when & then
@@ -208,12 +231,12 @@ public class RegisterUserUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.INVALID_NICKNAME);
 
+        verify(aiTextFilterMapper, times(1)).fromSignUp(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(textFilterRequestDto);
         verify(stringRedisTemplate, times(1)).opsForHash();
         verify(hashOperations, times(1)).entries(sessionKey);
         verify(userRepository, times(1)).existsByEmail("test@example.com");
         verify(userRepository, times(1)).existsByNickname("금칙어닉네임");
-        verify(aiTextFilterMapper, times(1)).fromSignUp(requestDto);
-        verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
 
         verifyNoInteractions(userCommandService);
         verifyNoMoreInteractions(

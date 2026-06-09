@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -22,6 +23,7 @@ public class MockAiApiClient extends AiApiClient {
         super(aiWebClient, aiServerProps);
     }
 
+    @Async("aiTaskExecutor")
     @Override
     public CompletableFuture<TextFilterResponseDto> filterTextAsync(TextFilterRequestDto request) {
         delay();

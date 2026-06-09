@@ -16,7 +16,6 @@ import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.model.ai.PopularityRefreshResponse;
 import io.netty.handler.timeout.TimeoutException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -33,25 +32,32 @@ public class AiApiClient {
     private final WebClient aiWebClient;
     private final AiServerProps aiServerProps;
 
+    // --- 동기 래퍼: 호출 스레드에서 직접 실행 ---
+
     public IntroCreateResponseDto createIntro(IntroCreateRequestDto request) {
-        return getResult(createIntroAsync(request));
+        return post(aiServerProps.getIntroPath(), request, IntroCreateResponseDto.class);
     }
 
     public TextFilterResponseDto filterText(TextFilterRequestDto request) {
-        return getResult(filterTextAsync(request));
+        return post(aiServerProps.getTextFilterPath(), request, TextFilterResponseDto.class);
     }
 
     public RecommendationResponseDto recommend(RecommendationRequestDto request) {
-        return getResult(recommendAsync(request));
+        return post(
+                aiServerProps.getRecommendationsPath(), request, RecommendationResponseDto.class);
     }
 
     public ClusteringRefreshResponse refreshClustering(ClusteringRefreshRequestDto request) {
-        return getResult(refreshClusteringAsync(request));
+        return post(
+                aiServerProps.getRefreshClusteringPath(), request, ClusteringRefreshResponse.class);
     }
 
     public PopularityRefreshResponse refreshPopularity(PopularityRefreshRequestDto request) {
-        return getResult(refreshPopularityAsync(request));
+        return post(
+                aiServerProps.getRefreshPopularityPath(), request, PopularityRefreshResponse.class);
     }
+
+    // --- 비동기 진입점: aiTaskExecutor 스레드에서 실행 ---
 
     @Async("aiTaskExecutor")
     public CompletableFuture<IntroCreateResponseDto> createIntroAsync(
@@ -94,20 +100,6 @@ public class AiApiClient {
                         aiServerProps.getRefreshPopularityPath(),
                         request,
                         PopularityRefreshResponse.class));
-    }
-
-    private <T> T getResult(CompletableFuture<T> future) {
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof CustomException customException) {
-                throw customException;
-            }
-            throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
-        }
     }
 
     private <T> T post(String uri, Object requestDto, Class<T> responseType) {
