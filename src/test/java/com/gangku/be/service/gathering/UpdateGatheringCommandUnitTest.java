@@ -112,7 +112,8 @@ public class UpdateGatheringCommandUnitTest {
         verify(fileUrlResolver, times(1)).toPublicUrl("statics/image/prod/2025/11/new.jpg");
         verify(homeCache, times(1)).invalidateHome();
 
-        verifyNoMoreInteractions(gatheringRepository, categoryRepository, fileUrlResolver, homeCache);
+        verifyNoMoreInteractions(
+                gatheringRepository, categoryRepository, fileUrlResolver, homeCache);
         verifyNoInteractions(userRepository, participationRepository);
     }
 

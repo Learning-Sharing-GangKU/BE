@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 
 /**
- * Redis 캐싱 도입 시 사용하는 GenericJackson2JsonRedisSerializer로 GatheringListResponseDto를
- * serialize → deserialize 했을 때 record 타입(GatheringListItem, PageMeta)이 원본과 동일한지 검증한다.
+ * Redis 캐싱 도입 시 사용하는 GenericJackson2JsonRedisSerializer로 GatheringListResponseDto를 serialize →
+ * deserialize 했을 때 record 타입(GatheringListItem, PageMeta)이 원본과 동일한지 검증한다.
  *
  * <p>Redis 없이 순수 인메모리로 실행 — 인프라 의존 없음.
  */

@@ -34,11 +34,7 @@ public class HomeService {
                         HomeCache.TTL_LATEST,
                         () ->
                                 gatheringService.getGatheringList(
-                                        userId,
-                                        null,
-                                        page,
-                                        size,
-                                        GatheringSort.LATEST.getSort()));
+                                        userId, null, page, size, GatheringSort.LATEST.getSort()));
 
         GatheringListResponseDto popular =
                 homeCache.getOrFetch(
@@ -46,11 +42,7 @@ public class HomeService {
                         HomeCache.TTL_POPULAR,
                         () ->
                                 gatheringService.getGatheringList(
-                                        userId,
-                                        null,
-                                        page,
-                                        size,
-                                        GatheringSort.POPULAR.getSort()));
+                                        userId, null, page, size, GatheringSort.POPULAR.getSort()));
 
         return HomeResponseDto.builder()
                 .recommended(recommended)
