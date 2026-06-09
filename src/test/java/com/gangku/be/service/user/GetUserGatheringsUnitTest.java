@@ -11,10 +11,12 @@ import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.GatheringService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +34,8 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 public class GetUserGatheringsUnitTest {
 
-    @Mock private UserRepository userRepository;
+    @Mock private UserLookup userLookup;
+    @Mock private GatheringLookup gatheringLookup;
     @Mock private GatheringRepository gatheringRepository;
     @Mock private ParticipationRepository participationRepository;
 
@@ -80,7 +83,7 @@ public class GetUserGatheringsUnitTest {
                         .build();
         Page<Gathering> gatheringPage = new PageImpl<>(List.of(gathering1, gathering2));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(userId)).thenReturn(user);
         when(gatheringRepository.findByHostId(eq(user), any(Pageable.class)))
                 .thenReturn(gatheringPage);
 
@@ -96,10 +99,10 @@ public class GetUserGatheringsUnitTest {
         assertThat(response.getMeta().size()).isEqualTo(2);
         assertThat(response.getMeta().sortedBy()).isEqualTo("createdAt,desc");
 
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verify(gatheringRepository, times(1)).findByHostId(eq(user), any(Pageable.class));
         verifyNoInteractions(participationRepository);
-        verifyNoMoreInteractions(userRepository, gatheringRepository);
+        verifyNoMoreInteractions(userLookup, gatheringRepository);
     }
 
     @Test
@@ -145,7 +148,7 @@ public class GetUserGatheringsUnitTest {
 
         Page<Gathering> gatheringPage = new PageImpl<>(List.of(gathering1, gathering2));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(userId)).thenReturn(user);
         when(participationRepository.findJoinedGatheringsByUserId(eq(userId), any(Pageable.class)))
                 .thenReturn(gatheringPage);
 
@@ -161,11 +164,11 @@ public class GetUserGatheringsUnitTest {
         assertThat(response.getMeta().size()).isEqualTo(2);
         assertThat(response.getMeta().sortedBy()).isEqualTo("joinedAt,desc");
 
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verify(participationRepository, times(1))
                 .findJoinedGatheringsByUserId(eq(userId), any(Pageable.class));
         verifyNoInteractions(gatheringRepository);
-        verifyNoMoreInteractions(userRepository, participationRepository);
+        verifyNoMoreInteractions(userLookup, participationRepository);
     }
 
     @Test
@@ -177,7 +180,7 @@ public class GetUserGatheringsUnitTest {
         int page = 1;
         int size = 10;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userLookup.findById(userId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(() -> gatheringService.getUserGatheringList(userId, role, page, size))
@@ -186,9 +189,9 @@ public class GetUserGatheringsUnitTest {
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
         // then
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verifyNoInteractions(gatheringRepository, participationRepository);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 
     @Test
@@ -208,7 +211,7 @@ public class GetUserGatheringsUnitTest {
                         .password("encoded")
                         .build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(userId)).thenReturn(user);
 
         // when
         assertThatThrownBy(() -> gatheringService.getUserGatheringList(userId, role, page, size))
@@ -217,8 +220,8 @@ public class GetUserGatheringsUnitTest {
                 .isEqualTo(CommonErrorCode.INVALID_REQUEST_PARAMETER);
 
         // then
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verifyNoInteractions(gatheringRepository, participationRepository);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 }

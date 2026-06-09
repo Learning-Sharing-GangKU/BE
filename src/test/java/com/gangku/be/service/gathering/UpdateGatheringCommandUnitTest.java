@@ -14,11 +14,13 @@ import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
+import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.GatheringCommandService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.cache.HomeCache;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
@@ -38,7 +40,8 @@ public class UpdateGatheringCommandUnitTest {
     @Mock private GatheringRepository gatheringRepository;
     @Mock private CategoryRepository categoryRepository;
     @Mock private ParticipationRepository participationRepository;
-    @Mock private UserRepository userRepository;
+    @Mock private UserLookup userLookup;
+    @Mock private GatheringLookup gatheringLookup;
     @Mock private FileUrlResolver fileUrlResolver;
     @Mock private HomeCache homeCache;
 
@@ -82,7 +85,7 @@ public class UpdateGatheringCommandUnitTest {
                         "https://open.kakao.com/o/xyz987",
                         "설명 업데이트");
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
         when(categoryRepository.findByName("study")).thenReturn(Optional.of(newCategory));
         when(gatheringRepository.save(gathering)).thenReturn(gathering);
         when(fileUrlResolver.toPublicUrl("statics/image/prod/2025/11/new.jpg"))
@@ -106,7 +109,7 @@ public class UpdateGatheringCommandUnitTest {
         assertThat(response.getId()).isEqualTo("gath_1");
         assertThat(response.getTitle()).isEqualTo("제목 수정");
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
         verify(categoryRepository, times(1)).findByName("study");
         verify(gatheringRepository, times(1)).save(gathering);
         verify(fileUrlResolver, times(1)).toPublicUrl("statics/image/prod/2025/11/new.jpg");
@@ -114,7 +117,7 @@ public class UpdateGatheringCommandUnitTest {
 
         verifyNoMoreInteractions(
                 gatheringRepository, categoryRepository, fileUrlResolver, homeCache);
-        verifyNoInteractions(userRepository, participationRepository);
+        verifyNoInteractions(userLookup, participationRepository);
     }
 
     @Test
@@ -135,7 +138,7 @@ public class UpdateGatheringCommandUnitTest {
                         "https://open.kakao.com/o/xyz987",
                         "설명 업데이트");
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
+        when(gatheringLookup.findById(gatheringId)).thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(
@@ -146,9 +149,9 @@ public class UpdateGatheringCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.GATHERING_NOT_FOUND);
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
-        verifyNoInteractions(categoryRepository, userRepository, participationRepository);
-        verifyNoMoreInteractions(gatheringRepository);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
+        verifyNoInteractions(categoryRepository, userLookup, participationRepository);
+        verifyNoMoreInteractions(gatheringLookup);
     }
 
     @Test
@@ -173,7 +176,7 @@ public class UpdateGatheringCommandUnitTest {
                         "https://open.kakao.com/o/xyz987",
                         "설명 업데이트");
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
 
         // when & then
         assertThatThrownBy(
@@ -184,9 +187,9 @@ public class UpdateGatheringCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.NO_PERMISSION_TO_MANIPULATE_GATHERING);
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
-        verifyNoInteractions(categoryRepository, userRepository, participationRepository);
-        verifyNoMoreInteractions(gatheringRepository);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
+        verifyNoInteractions(categoryRepository, userLookup, participationRepository);
+        verifyNoMoreInteractions(gatheringLookup);
     }
 
     @Test
@@ -212,7 +215,7 @@ public class UpdateGatheringCommandUnitTest {
                 new GatheringUpdateRequestDto(
                         "제목 수정", null, "study", null, null, null, null, "설명 수정");
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
         when(categoryRepository.findByName("study")).thenReturn(Optional.empty());
 
         // when & then
@@ -224,10 +227,10 @@ public class UpdateGatheringCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
         verify(categoryRepository, times(1)).findByName("study");
         verify(gatheringRepository, never()).save(any());
         verifyNoMoreInteractions(gatheringRepository, categoryRepository);
-        verifyNoInteractions(userRepository, participationRepository);
+        verifyNoInteractions(userLookup, participationRepository);
     }
 }

@@ -13,9 +13,11 @@ import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.review.ReviewCursor;
 import com.gangku.be.model.review.ReviewCursorCodec;
+import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 public class GetUserReviewsUnitTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private UserLookup userLookup;
     @Mock private ReviewRepository reviewRepository;
     @Mock private FileUrlResolver fileUrlResolver;
 
@@ -144,7 +147,7 @@ public class GetUserReviewsUnitTest {
                         .updatedAt(LocalDateTime.of(2025, 9, 19, 15, 0, 0))
                         .build();
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(targetUser));
+        when(userLookup.findById(targetUserId)).thenReturn(targetUser);
         when(reviewRepository.findFirstPageByRevieweeId(eq(targetUserId), any(Pageable.class)))
                 .thenReturn(List.of(review1, review2, review3, review4));
 
@@ -174,13 +177,13 @@ public class GetUserReviewsUnitTest {
         assertThat(response.getMeta().hasNext()).isTrue();
         assertThat(response.getMeta().nextCursor()).isNotBlank();
 
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(reviewRepository, times(1))
                 .findFirstPageByRevieweeId(eq(targetUserId), any(Pageable.class));
         verify(fileUrlResolver, times(1)).toPublicUrl("profiles/reviewer1.png");
         verify(fileUrlResolver, times(1)).toPublicUrl("profiles/reviewer2.png");
         verify(fileUrlResolver, times(1)).toPublicUrl("profiles/reviewer3.png");
-        verifyNoMoreInteractions(userRepository, reviewRepository, fileUrlResolver);
+        verifyNoMoreInteractions(userLookup, reviewRepository, fileUrlResolver);
     }
 
     @Test
@@ -269,7 +272,7 @@ public class GetUserReviewsUnitTest {
                 ReviewCursorCodec.encode(
                         new ReviewCursor(LocalDateTime.of(2025, 9, 19, 17, 10, 0), 6L));
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(targetUser));
+        when(userLookup.findById(targetUserId)).thenReturn(targetUser);
         when(reviewRepository.findNextPageByRevieweeIdAndCursorDesc(
                         eq(targetUserId),
                         eq(LocalDateTime.of(2025, 9, 19, 17, 10, 0)),
@@ -293,7 +296,7 @@ public class GetUserReviewsUnitTest {
         assertThat(response.getMeta().hasNext()).isTrue();
         assertThat(response.getMeta().nextCursor()).isNotBlank();
 
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(reviewRepository, times(1))
                 .findNextPageByRevieweeIdAndCursorDesc(
                         eq(targetUserId),
@@ -302,7 +305,7 @@ public class GetUserReviewsUnitTest {
                         any(Pageable.class));
         verify(fileUrlResolver, times(1)).toPublicUrl("profiles/reviewer1.png");
         verify(fileUrlResolver, times(1)).toPublicUrl("profiles/reviewer2.png");
-        verifyNoMoreInteractions(userRepository, reviewRepository, fileUrlResolver);
+        verifyNoMoreInteractions(userLookup, reviewRepository, fileUrlResolver);
     }
 
     @Test
@@ -315,7 +318,7 @@ public class GetUserReviewsUnitTest {
         String cursor = null;
         String sort = "createdAt,desc";
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.empty());
+        when(userLookup.findById(targetUserId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(
@@ -325,9 +328,9 @@ public class GetUserReviewsUnitTest {
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verifyNoInteractions(reviewRepository, fileUrlResolver);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 
     @Test
@@ -350,7 +353,7 @@ public class GetUserReviewsUnitTest {
                         .preferredCategories(new ArrayList<>())
                         .build();
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(targetUser));
+        when(userLookup.findById(targetUserId)).thenReturn(targetUser);
 
         // when
         assertThatThrownBy(
@@ -360,9 +363,9 @@ public class GetUserReviewsUnitTest {
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_VIEW_REVIEW);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verifyNoInteractions(reviewRepository, fileUrlResolver);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 
     @Test
@@ -384,7 +387,7 @@ public class GetUserReviewsUnitTest {
                         .preferredCategories(new ArrayList<>())
                         .build();
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(targetUser));
+        when(userLookup.findById(targetUserId)).thenReturn(targetUser);
 
         // when
         assertThatThrownBy(
@@ -394,8 +397,8 @@ public class GetUserReviewsUnitTest {
                 .isEqualTo(CommonErrorCode.INVALID_REQUEST_PARAMETER);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verifyNoInteractions(reviewRepository, fileUrlResolver);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 }

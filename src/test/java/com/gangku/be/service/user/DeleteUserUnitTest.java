@@ -6,12 +6,13 @@ import static org.mockito.Mockito.*;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
+import com.gangku.be.support.UserLookup;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ public class DeleteUserUnitTest {
 
     @Mock private UserRepository userRepository;
     @Mock private ParticipationRepository participationRepository;
+    @Mock private UserLookup userLookup;
 
     @InjectMocks private UserService userService;
 
@@ -38,7 +40,7 @@ public class DeleteUserUnitTest {
 
         User user = User.builder().id(targetUserId).participations(new ArrayList<>()).build();
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(targetUserId)).thenReturn(user);
         when(participationRepository.findAllByUserWithGatheringAndHost(user))
                 .thenReturn(Collections.emptyList());
 
@@ -46,12 +48,12 @@ public class DeleteUserUnitTest {
         userService.deleteUser(targetUserId, currentUserId);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(participationRepository, times(1)).findAllByUserWithGatheringAndHost(user);
         verify(participationRepository, times(1)).deleteAll(Collections.emptyList());
         verify(userRepository, times(1)).delete(user);
 
-        verifyNoMoreInteractions(userRepository, participationRepository);
+        verifyNoMoreInteractions(userLookup, userRepository, participationRepository);
     }
 
     @Test
@@ -61,7 +63,7 @@ public class DeleteUserUnitTest {
         Long targetUserId = 999L;
         Long currentUserId = 999L;
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.empty());
+        when(userLookup.findById(targetUserId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(() -> userService.deleteUser(targetUserId, currentUserId))
@@ -70,9 +72,9 @@ public class DeleteUserUnitTest {
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, never()).delete(any());
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 
     @Test
@@ -84,7 +86,7 @@ public class DeleteUserUnitTest {
 
         User user = User.builder().id(1L).build();
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(targetUserId)).thenReturn(user);
 
         // when
         assertThatThrownBy(() -> userService.deleteUser(targetUserId, currentUserId))
@@ -93,8 +95,8 @@ public class DeleteUserUnitTest {
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, never()).delete(any());
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 }

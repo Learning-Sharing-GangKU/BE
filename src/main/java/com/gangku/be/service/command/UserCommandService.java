@@ -8,6 +8,7 @@ import com.gangku.be.dto.user.UserProfileUpdateResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.*;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class UserCommandService {
     private final FileUrlResolver fileUrlResolver;
     private final StringRedisTemplate stringRedisTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final UserLookup userLookup;
 
     @Transactional
     public User saveUser(SignUpRequestDto signUpRequestDto, String sessionId) {
@@ -55,7 +57,7 @@ public class UserCommandService {
     public UserProfileUpdateResponseDto updateUserProfile(
             Long targetUserId, Long currentUserId, UserProfileUpdateRequestDto requestDto) {
 
-        User user = findUserById(targetUserId);
+        User user = userLookup.findById(targetUserId);
 
         validateUserProfileOwner(currentUserId, user);
         updateProfileFields(user, requestDto);
@@ -120,12 +122,6 @@ public class UserCommandService {
     private String resolveImageUrl(String key) {
         if (key == null || key.isBlank()) return null;
         return fileUrlResolver.toPublicUrl(key);
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private void validateUserProfileOwner(Long currentUserId, User user) {

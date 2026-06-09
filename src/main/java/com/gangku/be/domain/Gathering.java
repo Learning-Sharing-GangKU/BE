@@ -10,7 +10,6 @@ import lombok.*;
 @Entity
 @Table(name = "gatherings")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -104,6 +103,25 @@ public class Gathering {
 
     public void changeStatusAsFinished() {
         this.status = GatheringStatus.FINISHED;
+    }
+
+    public void updateDetails(
+            String title,
+            String description,
+            String imageKey,
+            Integer capacity,
+            LocalDateTime date,
+            String location,
+            String openChatUrl,
+            Category category) {
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+        if (imageKey != null) this.gatheringImageObjectKey = imageKey;
+        if (capacity != null) this.capacity = capacity;
+        if (date != null) this.date = date;
+        if (location != null) this.location = location;
+        if (openChatUrl != null) this.openChatUrl = openChatUrl;
+        if (category != null) this.category = category;
     }
 
     public static Gathering create(

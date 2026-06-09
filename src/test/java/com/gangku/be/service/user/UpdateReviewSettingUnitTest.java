@@ -8,11 +8,12 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
-import java.util.Optional;
+import com.gangku.be.support.UserLookup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class UpdateReviewSettingUnitTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private UserLookup userLookup;
     @Mock private CategoryRepository categoryRepository;
     @Mock private PreferredCategoryRepository preferredCategoryRepository;
     @Mock private StringRedisTemplate stringRedisTemplate;
@@ -45,7 +47,7 @@ public class UpdateReviewSettingUnitTest {
 
         User user = User.builder().id(targetUserId).build();
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(targetUserId)).thenReturn(user);
         when(userRepository.save(user)).thenReturn(user);
 
         // when
@@ -55,9 +57,9 @@ public class UpdateReviewSettingUnitTest {
         // then
         assertThat(response).isNotNull();
 
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, times(1)).save(user);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup, userRepository);
 
         verifyNoInteractions(
                 categoryRepository,
@@ -74,7 +76,7 @@ public class UpdateReviewSettingUnitTest {
         Long currentUserId = 999L;
         Boolean reviewSetting = false;
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.empty());
+        when(userLookup.findById(targetUserId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(
@@ -86,9 +88,9 @@ public class UpdateReviewSettingUnitTest {
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, never()).save(any());
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
 
         verifyNoInteractions(
                 categoryRepository,
@@ -108,7 +110,7 @@ public class UpdateReviewSettingUnitTest {
 
         User user = User.builder().id(targetUserId).build();
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(targetUserId)).thenReturn(user);
 
         // when
         assertThatThrownBy(
@@ -120,9 +122,9 @@ public class UpdateReviewSettingUnitTest {
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
 
         // then
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, never()).save(any());
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
 
         verifyNoInteractions(
                 categoryRepository,

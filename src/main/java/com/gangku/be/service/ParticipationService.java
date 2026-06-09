@@ -8,13 +8,11 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.participation.ParticipantsPreviewResponseDto;
 import com.gangku.be.dto.participation.ParticipationResponseDto;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ParticipationErrorCode;
-import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.participation.ParticipantsPreview;
-import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import lombok.*;
 import org.springframework.data.domain.Page;
@@ -29,15 +27,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class ParticipationService {
 
     private final ParticipationRepository participationRepository;
-    private final GatheringRepository gatheringRepository;
-    private final UserRepository userRepository;
+    private final UserLookup userLookup;
+    private final GatheringLookup gatheringLookup;
     private final FileUrlResolver fileUrlResolver;
 
     @Transactional
     public ParticipationResponseDto joinParticipation(Long gatheringId, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
-        User user = findUserById(userId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
+        User user = userLookup.findById(userId);
 
         validateConflict(user, gathering);
 
@@ -54,8 +52,8 @@ public class ParticipationService {
     @Transactional
     public void cancelParticipation(Long gatheringId, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
-        User user = findUserById(userId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
+        User user = userLookup.findById(userId);
 
         Participation participation = verifyUserInParticipation(user, gathering);
 
@@ -71,7 +69,7 @@ public class ParticipationService {
     @Transactional(readOnly = true)
     public ParticipantsPreviewResponseDto getParticipants(Long gatheringId, int page, int size) {
 
-        findGatheringById(gatheringId);
+        gatheringLookup.findById(gatheringId);
 
         Sort sort =
                 Sort.by(Sort.Direction.DESC, "joinedAt").and(Sort.by(Sort.Direction.DESC, "id"));
@@ -129,15 +127,4 @@ public class ParticipationService {
         validateGatheringStatus(gathering);
     }
 
-    private User findUserById(Long userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-    }
-
-    private Gathering findGatheringById(Long gatheringId) {
-        return gatheringRepository
-                .findById(gatheringId)
-                .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
-    }
 }

@@ -20,15 +20,15 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
-import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.model.gathering.GatheringList;
 import com.gangku.be.model.participation.ParticipantsPreview;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.GatheringCommandService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.cache.HomeCache;
 import com.gangku.be.util.object.FileUrlResolver;
@@ -53,7 +53,6 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final CategoryRepository categoryRepository;
     private final ParticipationRepository participationRepository;
-    private final UserRepository userRepository;
 
     private final FileUrlResolver fileUrlResolver;
     private final AiApiClient aiApiClient;
@@ -61,6 +60,8 @@ public class GatheringService {
 
     private final GatheringCommandService gatheringCommandService;
     private final HomeCache homeCache;
+    private final UserLookup userLookup;
+    private final GatheringLookup gatheringLookup;
 
     public GatheringResponseDto createGathering(
             GatheringCreateRequestDto gatheringCreateRequestDto, Long hostId) {
@@ -83,7 +84,7 @@ public class GatheringService {
     @Transactional
     public void deleteGathering(Long gatheringId, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
 
         validateGatheringHost(userId, gathering);
 
@@ -94,7 +95,7 @@ public class GatheringService {
     @Transactional
     public void finishGathering(Long gatheringId, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
 
         validateGatheringHost(userId, gathering);
 
@@ -108,8 +109,8 @@ public class GatheringService {
     public GatheringDetailResponseDto getGatheringDetail(
             Long gatheringId, int page, int size, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
-        User user = findUserById(userId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
+        User user = userLookup.findById(userId);
 
         boolean joined = participationRepository.existsByUserAndGathering(user, gathering);
 
@@ -167,7 +168,7 @@ public class GatheringService {
     public GatheringListResponseDto getUserGatheringList(
             Long userId, String role, int page, int size) {
 
-        User user = findUserById(userId);
+        User user = userLookup.findById(userId);
 
         Page<Gathering> gatheringPage;
         String sortedByForSpec;
@@ -216,7 +217,7 @@ public class GatheringService {
             return getNormalGatheringPage(category, GatheringSort.LATEST, page, size);
         }
 
-        User user = findUserById(userId);
+        User user = userLookup.findById(userId);
 
         List<String> preferredCategories =
                 user.getPreferredCategories().stream()
@@ -299,12 +300,6 @@ public class GatheringService {
         return fileUrlResolver.toPublicUrl(key);
     }
 
-    private User findUserById(Long userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-    }
-
     private Category findCategoryByName(String categoryName) {
         Category category = null;
         if (categoryName != null) {
@@ -317,12 +312,6 @@ public class GatheringService {
                                                     CategoryErrorCode.CATEGORY_NOT_FOUND));
         }
         return category;
-    }
-
-    public Gathering findGatheringById(Long gatheringId) {
-        return gatheringRepository
-                .findById(gatheringId)
-                .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
     }
 
     private void validateGatheringHost(Long userId, Gathering gathering) {

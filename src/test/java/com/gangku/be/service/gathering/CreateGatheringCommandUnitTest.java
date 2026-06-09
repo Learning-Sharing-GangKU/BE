@@ -14,11 +14,13 @@ import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
+import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.GatheringCommandService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.cache.HomeCache;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.lang.reflect.Field;
@@ -40,7 +42,8 @@ public class CreateGatheringCommandUnitTest {
     @Mock private GatheringRepository gatheringRepository;
     @Mock private CategoryRepository categoryRepository;
     @Mock private ParticipationRepository participationRepository;
-    @Mock private UserRepository userRepository;
+    @Mock private UserLookup userLookup;
+    @Mock private GatheringLookup gatheringLookup;
     @Mock private FileUrlResolver fileUrlResolver;
     @Mock private HomeCache homeCache;
 
@@ -66,7 +69,7 @@ public class CreateGatheringCommandUnitTest {
         Category category = mock(Category.class);
         when(category.getName()).thenReturn("study");
 
-        when(userRepository.findById(hostId)).thenReturn(Optional.of(host));
+        when(userLookup.findById(hostId)).thenReturn(host);
         when(categoryRepository.findByName("study")).thenReturn(Optional.of(category));
         when(gatheringRepository.save(any(Gathering.class)))
                 .thenAnswer(
@@ -90,7 +93,7 @@ public class CreateGatheringCommandUnitTest {
         assertThat(response.getGatheringImageUrl())
                 .isEqualTo("https://cdn.example.com/gatherings/2025/09/cover-uuid.jpg");
 
-        verify(userRepository, times(1)).findById(hostId);
+        verify(userLookup, times(1)).findById(hostId);
         verify(categoryRepository, times(1)).findByName("study");
         verify(gatheringRepository, times(1)).save(any(Gathering.class));
         verify(participationRepository, times(1)).save(any(Participation.class));
@@ -98,7 +101,7 @@ public class CreateGatheringCommandUnitTest {
         verify(homeCache, times(1)).invalidateHome();
 
         verifyNoMoreInteractions(
-                userRepository,
+                userLookup,
                 categoryRepository,
                 gatheringRepository,
                 participationRepository,
@@ -122,7 +125,7 @@ public class CreateGatheringCommandUnitTest {
                         "https://open.kakao.com/o/abcdef",
                         "기초부터 차근차근 알고리즘을 공부합니다.");
 
-        when(userRepository.findById(hostId)).thenReturn(Optional.empty());
+        when(userLookup.findById(hostId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> gatheringCommandService.saveGathering(requestDto, hostId))
@@ -130,9 +133,9 @@ public class CreateGatheringCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
-        verify(userRepository, times(1)).findById(hostId);
+        verify(userLookup, times(1)).findById(hostId);
         verifyNoInteractions(categoryRepository, gatheringRepository, participationRepository);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 
     @Test
@@ -153,7 +156,7 @@ public class CreateGatheringCommandUnitTest {
 
         User host = User.builder().id(hostId).participations(new ArrayList<>()).build();
 
-        when(userRepository.findById(hostId)).thenReturn(Optional.of(host));
+        when(userLookup.findById(hostId)).thenReturn(host);
         when(categoryRepository.findByName("study")).thenReturn(Optional.empty());
 
         // when & then
@@ -162,9 +165,9 @@ public class CreateGatheringCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
 
-        verify(userRepository, times(1)).findById(hostId);
+        verify(userLookup, times(1)).findById(hostId);
         verify(categoryRepository, times(1)).findByName("study");
         verifyNoInteractions(gatheringRepository, participationRepository);
-        verifyNoMoreInteractions(userRepository, categoryRepository);
+        verifyNoMoreInteractions(userLookup, categoryRepository);
     }
 }

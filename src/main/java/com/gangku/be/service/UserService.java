@@ -26,6 +26,7 @@ import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.UserCommandService;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
@@ -54,7 +56,9 @@ public class UserService {
     private final AiTextFilterMapper aiTextFilterMapper;
 
     private final UserCommandService userCommandService;
+    private final UserLookup userLookup;
 
+    @Transactional
     public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
 
         // in-memory 가드: sessionId null/blank면 AI 호출 전에 즉시 차단
@@ -83,7 +87,7 @@ public class UserService {
     @Transactional
     public void deleteUser(Long targetUserId, Long currentUserId) {
 
-        User user = findUserById(targetUserId);
+        User user = userLookup.findById(targetUserId);
 
         validateUserPrincipal(currentUserId, user);
 
@@ -103,10 +107,9 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    @Transactional(readOnly = true)
     public UserProfileResponseDto getUserProfile(Long userId, Long currentUserId) {
 
-        User user = findUserById(userId);
+        User user = userLookup.findById(userId);
         String profileImageUrl = resolveImageUrl(user.getProfileImageObjectKey());
         List<String> preferredCategories =
                 user.getPreferredCategories().stream()
@@ -147,6 +150,7 @@ public class UserService {
                 reviewsPreview);
     }
 
+    @Transactional
     public UserProfileUpdateResponseDto updateUserProfile(
             Long targetUserId, Long currentUserId, UserProfileUpdateRequestDto requestDto) {
 
@@ -159,7 +163,7 @@ public class UserService {
     public UpdateReviewSettingResponseDto updateReviewSetting(
             Long targetUserId, Long currentUserId, Boolean reviewSetting) {
 
-        User user = findUserById(targetUserId);
+        User user = userLookup.findById(targetUserId);
 
         validateUserPrincipal(currentUserId, user);
 
@@ -170,11 +174,10 @@ public class UserService {
         return UpdateReviewSettingResponseDto.from(updatedUser);
     }
 
-    @Transactional(readOnly = true)
     public ReviewListResponseDto getUserReviews(
             Long targetUserId, Long currentUserId, int size, String cursor) {
 
-        User user = findUserById(targetUserId);
+        User user = userLookup.findById(targetUserId);
 
         validateReviewVisibility(currentUserId, user);
 
@@ -217,7 +220,6 @@ public class UserService {
         return fileUrlResolver.toPublicUrl(key);
     }
 
-    // 반올림 메서드
     private Double roundToOneDecimalPlace(Double value) {
         if (value == null) {
             return null;
@@ -260,12 +262,6 @@ public class UserService {
         if (userRepository.existsByNickname(nickname)) {
             throw new CustomException(UserErrorCode.NICKNAME_ALREADY_EXISTS);
         }
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private void validateUserPrincipal(Long currentUserId, User user) {

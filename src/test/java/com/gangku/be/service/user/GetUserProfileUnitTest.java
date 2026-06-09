@@ -12,6 +12,7 @@ import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import org.springframework.data.domain.Pageable;
 public class GetUserProfileUnitTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private UserLookup userLookup;
     @Mock private ReviewRepository reviewRepository;
     @Mock private FileUrlResolver fileUrlResolver;
 
@@ -123,7 +125,7 @@ public class GetUserProfileUnitTest {
         User reviewer = buildReviewer();
         Page<Review> reviewPage = buildReviewPage(user, reviewer);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(userId)).thenReturn(user);
         when(fileUrlResolver.toPublicUrl("profiles/user1.png"))
                 .thenReturn("https://cdn.example.com/profiles/user1.png");
         when(reviewRepository.countByRevieweeId(userId)).thenReturn(3L);
@@ -146,12 +148,12 @@ public class GetUserProfileUnitTest {
         assertThat(result.getReviewsPreview().data().get(0).reviewerNickname()).isEqualTo("승우");
         assertThat(result.getReviewsPreview().meta().sortedBy()).isNotBlank();
 
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verify(reviewRepository, times(1)).findByRevieweeId(eq(userId), any(Pageable.class));
         verify(reviewRepository, times(1)).findAverageRatingByRevieweeId(userId);
         verify(reviewRepository, times(1)).countByRevieweeId(userId);
         verify(fileUrlResolver, atLeastOnce()).toPublicUrl(anyString());
-        verifyNoMoreInteractions(userRepository, reviewRepository, fileUrlResolver);
+        verifyNoMoreInteractions(userLookup, reviewRepository, fileUrlResolver);
     }
 
     @Test
@@ -165,7 +167,7 @@ public class GetUserProfileUnitTest {
         User reviewer = buildReviewer();
         Page<Review> reviewPage = buildReviewPage(user, reviewer);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(userId)).thenReturn(user);
         when(fileUrlResolver.toPublicUrl("profiles/user1.png"))
                 .thenReturn("https://cdn.example.com/profiles/user1.png");
         when(reviewRepository.countByRevieweeId(userId)).thenReturn(3L);
@@ -180,12 +182,12 @@ public class GetUserProfileUnitTest {
         assertThat(result.getReviewsPreview()).isNotNull();
         assertThat(result.getReviewsPreview().data()).hasSize(3);
 
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verify(reviewRepository, times(1)).findByRevieweeId(eq(userId), any(Pageable.class));
         verify(reviewRepository, times(1)).findAverageRatingByRevieweeId(userId);
         verify(reviewRepository, times(1)).countByRevieweeId(userId);
         verify(fileUrlResolver, atLeastOnce()).toPublicUrl(anyString());
-        verifyNoMoreInteractions(userRepository, reviewRepository, fileUrlResolver);
+        verifyNoMoreInteractions(userLookup, reviewRepository, fileUrlResolver);
     }
 
     @Test
@@ -197,7 +199,7 @@ public class GetUserProfileUnitTest {
 
         User user = buildTargetUser(userId, false); // reviewPublic=false
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(userId)).thenReturn(user);
         when(fileUrlResolver.toPublicUrl("profiles/user1.png"))
                 .thenReturn("https://cdn.example.com/profiles/user1.png");
         when(reviewRepository.countByRevieweeId(userId)).thenReturn(3L);
@@ -210,12 +212,12 @@ public class GetUserProfileUnitTest {
         assertThat(result.getReviewsPreview()).isNull();
         assertThat(result.getAverageRating()).isNull();
 
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verify(reviewRepository, times(1)).countByRevieweeId(userId);
         // 리뷰 비공개이므로 리뷰 조회 쿼리는 호출되지 않아야 함
         verify(reviewRepository, never()).findByRevieweeId(any(), any(Pageable.class));
         verify(reviewRepository, never()).findAverageRatingByRevieweeId(any());
-        verifyNoMoreInteractions(userRepository, reviewRepository, fileUrlResolver);
+        verifyNoMoreInteractions(userLookup, reviewRepository, fileUrlResolver);
     }
 
     // ──────────────────────────────────────────────
@@ -229,7 +231,7 @@ public class GetUserProfileUnitTest {
         Long userId = 999L;
         Long currentUserId = 1L;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userLookup.findById(userId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> userService.getUserProfile(userId, currentUserId))
@@ -237,8 +239,8 @@ public class GetUserProfileUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
-        verify(userRepository, times(1)).findById(userId);
+        verify(userLookup, times(1)).findById(userId);
         verifyNoInteractions(reviewRepository, fileUrlResolver);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 }
