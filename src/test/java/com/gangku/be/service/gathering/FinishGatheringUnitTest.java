@@ -11,6 +11,7 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.service.GatheringService;
+import com.gangku.be.util.cache.HomeCache;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -25,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class FinishGatheringUnitTest {
 
     @Mock private GatheringRepository gatheringRepository;
+    @Mock private HomeCache homeCache;
 
     @InjectMocks private GatheringService gatheringService;
 
@@ -52,6 +54,7 @@ public class FinishGatheringUnitTest {
         assertThat(gathering.getStatus()).isEqualTo(GatheringStatus.FINISHED);
         verify(gatheringRepository, times(1)).findById(gatheringId);
         verify(gatheringRepository, times(1)).save(gathering);
+        verify(homeCache, times(1)).invalidateHome();
     }
 
     @Test

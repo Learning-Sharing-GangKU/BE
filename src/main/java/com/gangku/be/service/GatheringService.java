@@ -30,6 +30,7 @@ import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.GatheringCommandService;
 import com.gangku.be.util.ai.AiTextFilterMapper;
+import com.gangku.be.util.cache.HomeCache;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,7 @@ public class GatheringService {
     private final AiTextFilterMapper aiTextFilterMapper;
 
     private final GatheringCommandService gatheringCommandService;
+    private final HomeCache homeCache;
 
     public GatheringResponseDto createGathering(
             GatheringCreateRequestDto gatheringCreateRequestDto, Long hostId) {
@@ -86,6 +88,7 @@ public class GatheringService {
         validateGatheringHost(userId, gathering);
 
         gatheringRepository.delete(gathering);
+        homeCache.invalidateHome();
     }
 
     @Transactional
@@ -98,6 +101,7 @@ public class GatheringService {
         gathering.changeStatusAsFinished();
 
         gatheringRepository.save(gathering);
+        homeCache.invalidateHome();
     }
 
     @Transactional(readOnly = true)

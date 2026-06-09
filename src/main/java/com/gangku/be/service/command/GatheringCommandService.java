@@ -16,6 +16,7 @@ import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.util.cache.HomeCache;
 import com.gangku.be.util.object.FileUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class GatheringCommandService {
     private final ParticipationRepository participationRepository;
     private final UserRepository userRepository;
     private final FileUrlResolver fileUrlResolver;
+    private final HomeCache homeCache;
 
     @Transactional
     public GatheringResponseDto saveGathering(GatheringCreateRequestDto request, Long hostId) {
@@ -55,6 +57,8 @@ public class GatheringCommandService {
                 Participation.create(host, savedGathering, ParticipationRole.HOST);
         participationRepository.save(participation);
 
+        homeCache.invalidateHome();
+
         return GatheringResponseDto.from(
                 savedGathering,
                 fileUrlResolver.toPublicUrl(gathering.getGatheringImageObjectKey()));
@@ -68,6 +72,8 @@ public class GatheringCommandService {
         validateGatheringHost(userId, gathering);
         updateRequestBody(request, gathering);
         Gathering updatedGathering = gatheringRepository.save(gathering);
+
+        homeCache.invalidateHome();
 
         return GatheringResponseDto.from(
                 updatedGathering,

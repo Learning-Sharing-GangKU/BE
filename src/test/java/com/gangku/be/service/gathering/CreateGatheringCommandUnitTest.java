@@ -19,6 +19,7 @@ import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.GatheringCommandService;
+import com.gangku.be.util.cache.HomeCache;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ public class CreateGatheringCommandUnitTest {
     @Mock private ParticipationRepository participationRepository;
     @Mock private UserRepository userRepository;
     @Mock private FileUrlResolver fileUrlResolver;
+    @Mock private HomeCache homeCache;
 
     @InjectMocks private GatheringCommandService gatheringCommandService;
 
@@ -93,13 +95,15 @@ public class CreateGatheringCommandUnitTest {
         verify(gatheringRepository, times(1)).save(any(Gathering.class));
         verify(participationRepository, times(1)).save(any(Participation.class));
         verify(fileUrlResolver, times(1)).toPublicUrl("statics/image/prod/2025/11/efe6-a7d.jpg");
+        verify(homeCache, times(1)).invalidateHome();
 
         verifyNoMoreInteractions(
                 userRepository,
                 categoryRepository,
                 gatheringRepository,
                 participationRepository,
-                fileUrlResolver);
+                fileUrlResolver,
+                homeCache);
     }
 
     @Test
