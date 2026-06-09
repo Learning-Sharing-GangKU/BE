@@ -11,12 +11,14 @@ import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ReviewErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
+import com.gangku.be.external.ai.AiResponses;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.ReviewCommandService;
 import com.gangku.be.util.ai.AiTextFilterMapper;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,15 +37,26 @@ public class ReviewService {
     public ReviewCreateResponseDto createReview(
             Long reviewerId, Long revieweeId, ReviewCreateRequestDto reviewCreateRequestDto) {
 
+        // in-memory 가드: 명백히 잘못된 요청은 AI 호출 전에 차단
         validateDifferentUser(reviewerId, revieweeId);
 
+        // AI 검증을 aiTaskExecutor 스레드에서 비동기 시작 (DB 검증과 병렬 실행)
+        TextFilterRequestDto filterReq =
+                aiTextFilterMapper.fromReviewCreate(reviewCreateRequestDto);
+        CompletableFuture<TextFilterResponseDto> aiFuture = aiApiClient.filterTextAsync(filterReq);
+
+        // DB 검증 (AI 호출과 병렬로 실행됨)
         User reviewer = findUserById(reviewerId);
         User reviewee = findUserById(revieweeId);
         Long gatheringId = findGatheringIdParticipatedTogether(reviewerId, revieweeId);
         Gathering gathering = findGatheringById(gatheringId);
         validateNotDuplicatedReview(gatheringId, reviewerId, revieweeId);
 
-        validateReviewCommentAllowed(reviewCreateRequestDto);
+        // AI 결과 수신 (DB 검증 완료 후 await, 이미 완료됐을 가능성 높음)
+        TextFilterResponseDto filterResult = AiResponses.await(aiFuture);
+        if (!filterResult.isAllowed()) {
+            throw new CustomException(ReviewErrorCode.INVALID_REVIEW_COMMENT);
+        }
 
         return reviewCommandService.saveReview(
                 reviewer, reviewee, gathering, reviewCreateRequestDto);
@@ -81,13 +94,4 @@ public class ReviewService {
         }
     }
 
-    private void validateReviewCommentAllowed(ReviewCreateRequestDto reviewCreateRequestDto) {
-        TextFilterRequestDto textFilterRequestDto =
-                aiTextFilterMapper.fromReviewCreate(reviewCreateRequestDto);
-        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
-
-        if (!textFilterResponseDto.isAllowed()) {
-            throw new CustomException(ReviewErrorCode.INVALID_REVIEW_COMMENT);
-        }
-    }
 }

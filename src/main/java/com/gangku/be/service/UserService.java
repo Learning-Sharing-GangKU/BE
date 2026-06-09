@@ -17,6 +17,7 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
+import com.gangku.be.external.ai.AiResponses;
 import com.gangku.be.model.review.ReviewCursor;
 import com.gangku.be.model.review.ReviewCursorCodec;
 import com.gangku.be.model.review.ReviewPageables;
@@ -29,6 +30,7 @@ import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,12 +57,25 @@ public class UserService {
 
     public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
 
+        // in-memory 가드: sessionId null/blank면 AI 호출 전에 즉시 차단
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        // AI 검증을 aiTaskExecutor 스레드에서 비동기 시작 (Redis/DB 검증과 병렬 실행)
+        TextFilterRequestDto filterReq = aiTextFilterMapper.fromSignUp(signUpRequestDto);
+        CompletableFuture<TextFilterResponseDto> aiFuture = aiApiClient.filterTextAsync(filterReq);
+
+        // Redis/DB 검증 (AI 호출과 병렬로 실행됨)
         validateEmailVerification(sessionId, signUpRequestDto.getEmail());
         validateEmailConflict(signUpRequestDto.getEmail());
         validateNicknameConflict(signUpRequestDto.getNickname());
 
-        // AI 검증은 트랜잭션 밖에서 실행 (DB 커넥션 점유 방지)
-        validateNicknameAllowedFromSignUp(signUpRequestDto);
+        // AI 결과 수신 (검증 완료 후 await, 이미 완료됐을 가능성 높음)
+        TextFilterResponseDto filterResult = AiResponses.await(aiFuture);
+        if (!filterResult.isAllowed()) {
+            throw new CustomException(UserErrorCode.INVALID_NICKNAME);
+        }
 
         return userCommandService.saveUser(signUpRequestDto, sessionId);
     }
@@ -290,12 +305,4 @@ public class UserService {
         }
     }
 
-    private void validateNicknameAllowedFromSignUp(SignUpRequestDto signUpRequestDto) {
-        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromSignUp(signUpRequestDto);
-        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
-
-        if (!textFilterResponseDto.isAllowed()) {
-            throw new CustomException(UserErrorCode.INVALID_NICKNAME);
-        }
-    }
 }
