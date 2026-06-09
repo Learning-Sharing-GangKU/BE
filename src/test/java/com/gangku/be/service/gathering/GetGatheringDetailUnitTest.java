@@ -23,7 +23,6 @@ import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -193,7 +192,8 @@ public class GetGatheringDetailUnitTest {
         int page = 1;
         int size = 5;
 
-        when(gatheringLookup.findById(gatheringId)).thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
+        when(gatheringLookup.findById(gatheringId))
+                .thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(
@@ -231,7 +231,8 @@ public class GetGatheringDetailUnitTest {
                         .build();
 
         when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
-        when(userLookup.findById(userId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(userId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(

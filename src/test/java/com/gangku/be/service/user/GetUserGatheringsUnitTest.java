@@ -11,14 +11,12 @@ import com.gangku.be.dto.gathering.response.GatheringListResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.support.GatheringLookup;
 import com.gangku.be.support.UserLookup;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -180,7 +178,8 @@ public class GetUserGatheringsUnitTest {
         int page = 1;
         int size = 10;
 
-        when(userLookup.findById(userId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(userId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(() -> gatheringService.getUserGatheringList(userId, role, page, size))

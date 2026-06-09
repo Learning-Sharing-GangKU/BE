@@ -13,7 +13,6 @@ import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.model.review.ReviewCursor;
 import com.gangku.be.model.review.ReviewCursorCodec;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
@@ -22,7 +21,6 @@ import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -318,7 +316,8 @@ public class GetUserReviewsUnitTest {
         String cursor = null;
         String sort = "createdAt,desc";
 
-        when(userLookup.findById(targetUserId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(targetUserId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(

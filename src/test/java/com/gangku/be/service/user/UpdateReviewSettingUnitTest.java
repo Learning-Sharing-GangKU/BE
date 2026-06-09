@@ -8,7 +8,6 @@ import com.gangku.be.domain.User;
 import com.gangku.be.dto.user.UpdateReviewSettingResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.UserRepository;
@@ -76,7 +75,8 @@ public class UpdateReviewSettingUnitTest {
         Long currentUserId = 999L;
         Boolean reviewSetting = false;
 
-        when(userLookup.findById(targetUserId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(targetUserId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(

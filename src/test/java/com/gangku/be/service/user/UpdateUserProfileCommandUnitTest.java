@@ -12,7 +12,6 @@ import com.gangku.be.dto.user.UserProfileUpdateRequestDto;
 import com.gangku.be.dto.user.UserProfileUpdateResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.UserRepository;
@@ -21,7 +20,6 @@ import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -103,7 +101,11 @@ public class UpdateUserProfileCommandUnitTest {
         verify(fileUrlResolver, times(1)).toPublicUrl("new/profile.png");
 
         verifyNoMoreInteractions(
-                userLookup, userRepository, categoryRepository, preferredCategoryRepository, fileUrlResolver);
+                userLookup,
+                userRepository,
+                categoryRepository,
+                preferredCategoryRepository,
+                fileUrlResolver);
     }
 
     @Test
@@ -117,7 +119,8 @@ public class UpdateUserProfileCommandUnitTest {
                 new UserProfileUpdateRequestDto(
                         null, "새로운닉네임", 24, "MALE", 20, List.of("SPORTS", "MUSIC"));
 
-        when(userLookup.findById(targetUserId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(targetUserId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(

@@ -17,7 +17,6 @@ import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -231,7 +230,8 @@ public class GetUserProfileUnitTest {
         Long userId = 999L;
         Long currentUserId = 1L;
 
-        when(userLookup.findById(userId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(userId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> userService.getUserProfile(userId, currentUserId))

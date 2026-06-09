@@ -14,7 +14,6 @@ import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -125,7 +124,8 @@ public class CreateGatheringCommandUnitTest {
                         "https://open.kakao.com/o/abcdef",
                         "기초부터 차근차근 알고리즘을 공부합니다.");
 
-        when(userLookup.findById(hostId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(hostId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> gatheringCommandService.saveGathering(requestDto, hostId))

@@ -14,7 +14,6 @@ import com.gangku.be.dto.gathering.response.GatheringResponseDto;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
@@ -138,7 +137,8 @@ public class UpdateGatheringCommandUnitTest {
                         "https://open.kakao.com/o/xyz987",
                         "설명 업데이트");
 
-        when(gatheringLookup.findById(gatheringId)).thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
+        when(gatheringLookup.findById(gatheringId))
+                .thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(

@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.UserErrorCode;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
@@ -63,7 +62,8 @@ public class DeleteUserUnitTest {
         Long targetUserId = 999L;
         Long currentUserId = 999L;
 
-        when(userLookup.findById(targetUserId)).thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
+        when(userLookup.findById(targetUserId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when
         assertThatThrownBy(() -> userService.deleteUser(targetUserId, currentUserId))

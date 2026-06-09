@@ -9,7 +9,6 @@ import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
 import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
-import com.gangku.be.exception.CustomException;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.service.GatheringService;
 import com.gangku.be.support.GatheringLookup;
@@ -68,7 +67,8 @@ public class FinishGatheringUnitTest {
         Long gatheringId = 999L;
         Long userId = 100L;
 
-        when(gatheringLookup.findById(gatheringId)).thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
+        when(gatheringLookup.findById(gatheringId))
+                .thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> gatheringService.finishGathering(gatheringId, userId))

@@ -214,10 +214,7 @@ public class CreateReviewUnitTest {
         verify(userLookup, never()).findById(revieweeId);
 
         verifyNoInteractions(
-                participationRepository,
-                gatheringLookup,
-                reviewRepository,
-                reviewCommandService);
+                participationRepository, gatheringLookup, reviewRepository, reviewCommandService);
         verifyNoMoreInteractions(userLookup, aiApiClient, aiTextFilterMapper);
     }
 
@@ -249,10 +246,7 @@ public class CreateReviewUnitTest {
         verify(userLookup, times(1)).findById(revieweeId);
 
         verifyNoInteractions(
-                participationRepository,
-                gatheringLookup,
-                reviewRepository,
-                reviewCommandService);
+                participationRepository, gatheringLookup, reviewRepository, reviewCommandService);
         verifyNoMoreInteractions(userLookup, aiApiClient, aiTextFilterMapper);
     }
 
