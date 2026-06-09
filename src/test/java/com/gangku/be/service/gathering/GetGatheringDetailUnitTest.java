@@ -17,12 +17,12 @@ import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.GatheringService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -39,8 +39,9 @@ import org.springframework.data.domain.Pageable;
 public class GetGatheringDetailUnitTest {
 
     @Mock private GatheringRepository gatheringRepository;
+    @Mock private GatheringLookup gatheringLookup;
+    @Mock private UserLookup userLookup;
     @Mock private ParticipationRepository participationRepository;
-    @Mock private UserRepository userRepository;
     @Mock private FileUrlResolver fileUrlResolver;
 
     @InjectMocks private GatheringService gatheringService;
@@ -93,8 +94,8 @@ public class GetGatheringDetailUnitTest {
 
         Page<Participation> participationPage = new PageImpl<>(List.of(participation));
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(loginUser));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
+        when(userLookup.findById(userId)).thenReturn(loginUser);
         when(participationRepository.existsByUserAndGathering(loginUser, gathering))
                 .thenReturn(true);
         when(participationRepository.findByGatheringIdWithUser(
@@ -116,8 +117,8 @@ public class GetGatheringDetailUnitTest {
         assertThat(response.getCategory()).isEqualTo("운동");
         assertThat(response.getGatheringImageUrl()).isEqualTo("https://cdn.test/gatherings/g1.png");
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
-        verify(userRepository, times(1)).findById(userId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
+        verify(userLookup, times(1)).findById(userId);
         verify(participationRepository, times(1)).existsByUserAndGathering(loginUser, gathering);
         verify(participationRepository, times(1))
                 .findByGatheringIdWithUser(eq(gatheringId), any(Pageable.class));
@@ -156,8 +157,8 @@ public class GetGatheringDetailUnitTest {
 
         Page<Participation> participationPage = new PageImpl<>(List.of());
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(loginUser));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
+        when(userLookup.findById(userId)).thenReturn(loginUser);
         when(participationRepository.existsByUserAndGathering(loginUser, gathering))
                 .thenReturn(false);
         when(participationRepository.findByGatheringIdWithUser(
@@ -174,8 +175,8 @@ public class GetGatheringDetailUnitTest {
         assertThat(response.getTitle()).isEqualTo("백엔드 스터디");
         assertThat(response.getCategory()).isEqualTo("스터디");
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
-        verify(userRepository, times(1)).findById(userId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
+        verify(userLookup, times(1)).findById(userId);
         verify(participationRepository, times(1)).existsByUserAndGathering(loginUser, gathering);
         verify(participationRepository, times(1))
                 .findByGatheringIdWithUser(eq(gatheringId), any(Pageable.class));
@@ -191,7 +192,8 @@ public class GetGatheringDetailUnitTest {
         int page = 1;
         int size = 5;
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
+        when(gatheringLookup.findById(gatheringId))
+                .thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(
@@ -200,8 +202,8 @@ public class GetGatheringDetailUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.GATHERING_NOT_FOUND);
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
-        verify(userRepository, never()).findById(anyLong());
+        verify(gatheringLookup, times(1)).findById(gatheringId);
+        verify(userLookup, never()).findById(anyLong());
         verify(participationRepository, never()).existsByUserAndGathering(any(), any());
         verify(participationRepository, never())
                 .findByGatheringIdWithUser(anyLong(), any(Pageable.class));
@@ -228,8 +230,9 @@ public class GetGatheringDetailUnitTest {
                         .description("한강 러닝")
                         .build();
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
+        when(userLookup.findById(userId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(
@@ -238,8 +241,8 @@ public class GetGatheringDetailUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
-        verify(userRepository, times(1)).findById(userId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
+        verify(userLookup, times(1)).findById(userId);
         verify(participationRepository, never()).existsByUserAndGathering(any(), any());
         verify(participationRepository, never())
                 .findByGatheringIdWithUser(anyLong(), any(Pageable.class));

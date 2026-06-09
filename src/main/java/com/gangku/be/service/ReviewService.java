@@ -7,16 +7,14 @@ import com.gangku.be.dto.ai.response.TextFilterResponseDto;
 import com.gangku.be.dto.review.ReviewCreateRequestDto;
 import com.gangku.be.dto.review.ReviewCreateResponseDto;
 import com.gangku.be.exception.CustomException;
-import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ReviewErrorCode;
-import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.external.ai.AiResponses;
-import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.ReviewRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.ReviewCommandService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +25,12 @@ import org.springframework.stereotype.Service;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final UserRepository userRepository;
-    private final GatheringRepository gatheringRepository;
+    private final UserLookup userLookup;
+    private final GatheringLookup gatheringLookup;
     private final ParticipationRepository participationRepository;
     private final AiApiClient aiApiClient;
     private final AiTextFilterMapper aiTextFilterMapper;
-    private final ReviewCommandService reviewCommandService; // 추가
+    private final ReviewCommandService reviewCommandService;
 
     public ReviewCreateResponseDto createReview(
             Long reviewerId, Long revieweeId, ReviewCreateRequestDto reviewCreateRequestDto) {
@@ -46,10 +44,10 @@ public class ReviewService {
         CompletableFuture<TextFilterResponseDto> aiFuture = aiApiClient.filterTextAsync(filterReq);
 
         // DB 검증 (AI 호출과 병렬로 실행됨)
-        User reviewer = findUserById(reviewerId);
-        User reviewee = findUserById(revieweeId);
+        User reviewer = userLookup.findById(reviewerId);
+        User reviewee = userLookup.findById(revieweeId);
         Long gatheringId = findGatheringIdParticipatedTogether(reviewerId, revieweeId);
-        Gathering gathering = findGatheringById(gatheringId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
         validateNotDuplicatedReview(gatheringId, reviewerId, revieweeId);
 
         // AI 결과 수신 (DB 검증 완료 후 await, 이미 완료됐을 가능성 높음)
@@ -60,12 +58,6 @@ public class ReviewService {
 
         return reviewCommandService.saveReview(
                 reviewer, reviewee, gathering, reviewCreateRequestDto);
-    }
-
-    private Gathering findGatheringById(Long gatheringId) {
-        return gatheringRepository
-                .findById(gatheringId)
-                .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
     }
 
     private Long findGatheringIdParticipatedTogether(Long reviewerId, Long revieweeId) {
@@ -80,12 +72,6 @@ public class ReviewService {
                 gatheringId, reviewerId, revieweeId)) {
             throw new CustomException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
         }
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     private void validateDifferentUser(Long reviewerId, Long revieweeId) {

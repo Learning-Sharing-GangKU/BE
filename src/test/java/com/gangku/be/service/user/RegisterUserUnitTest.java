@@ -15,6 +15,7 @@ import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.UserService;
 import com.gangku.be.service.command.UserCommandService;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +39,7 @@ public class RegisterUserUnitTest {
     @Mock private AiTextFilterMapper aiTextFilterMapper;
     @Mock private HashOperations<String, Object, Object> hashOperations;
     @Mock private UserCommandService userCommandService;
+    @Mock private UserLookup userLookup;
 
     @InjectMocks private UserService userService;
 

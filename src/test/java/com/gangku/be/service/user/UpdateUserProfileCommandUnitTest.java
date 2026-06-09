@@ -16,10 +16,10 @@ import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.command.UserCommandService;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class UpdateUserProfileCommandUnitTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private UserLookup userLookup;
     @Mock private CategoryRepository categoryRepository;
     @Mock private PreferredCategoryRepository preferredCategoryRepository;
     @Mock private FileUrlResolver fileUrlResolver;
@@ -69,7 +70,7 @@ public class UpdateUserProfileCommandUnitTest {
         when(sports.getName()).thenReturn("SPORTS");
         when(music.getName()).thenReturn("MUSIC");
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(targetUserId)).thenReturn(user);
         when(userRepository.existsByNicknameAndIdNot("새로운닉네임", targetUserId)).thenReturn(false);
         when(categoryRepository.findByNameIn(List.of("SPORTS", "MUSIC")))
                 .thenReturn(List.of(sports, music));
@@ -91,7 +92,7 @@ public class UpdateUserProfileCommandUnitTest {
         assertThat(result.getEnrollNumber()).isEqualTo(20);
         assertThat(result.getPreferredCategories()).containsExactly("SPORTS", "MUSIC");
 
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, times(1)).existsByNicknameAndIdNot("새로운닉네임", targetUserId);
         verify(userRepository, times(1)).flush();
         verify(categoryRepository, times(1)).findByNameIn(List.of("SPORTS", "MUSIC"));
@@ -100,7 +101,11 @@ public class UpdateUserProfileCommandUnitTest {
         verify(fileUrlResolver, times(1)).toPublicUrl("new/profile.png");
 
         verifyNoMoreInteractions(
-                userRepository, categoryRepository, preferredCategoryRepository, fileUrlResolver);
+                userLookup,
+                userRepository,
+                categoryRepository,
+                preferredCategoryRepository,
+                fileUrlResolver);
     }
 
     @Test
@@ -114,7 +119,8 @@ public class UpdateUserProfileCommandUnitTest {
                 new UserProfileUpdateRequestDto(
                         null, "새로운닉네임", 24, "MALE", 20, List.of("SPORTS", "MUSIC"));
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.empty());
+        when(userLookup.findById(targetUserId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(
@@ -125,9 +131,9 @@ public class UpdateUserProfileCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verifyNoInteractions(categoryRepository, preferredCategoryRepository, fileUrlResolver);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 
     @Test
@@ -148,7 +154,7 @@ public class UpdateUserProfileCommandUnitTest {
         UserProfileUpdateRequestDto requestDto =
                 new UserProfileUpdateRequestDto(null, "새로운닉네임", 24, "MALE", 20, List.of("SPORTS"));
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(targetUserId)).thenReturn(user);
 
         // when & then
         assertThatThrownBy(
@@ -159,10 +165,10 @@ public class UpdateUserProfileCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NO_PERMISSION_TO_UPDATE_PROFILE);
 
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, never()).save(any());
         verifyNoInteractions(categoryRepository, preferredCategoryRepository, fileUrlResolver);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 
     @Test
@@ -183,7 +189,7 @@ public class UpdateUserProfileCommandUnitTest {
         UserProfileUpdateRequestDto requestDto =
                 new UserProfileUpdateRequestDto(null, "중복닉네임", 24, "MALE", 20, null);
 
-        when(userRepository.findById(targetUserId)).thenReturn(Optional.of(user));
+        when(userLookup.findById(targetUserId)).thenReturn(user);
         when(userRepository.existsByNicknameAndIdNot("중복닉네임", targetUserId)).thenReturn(true);
 
         // when & then
@@ -195,10 +201,10 @@ public class UpdateUserProfileCommandUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.NICKNAME_ALREADY_EXISTS);
 
-        verify(userRepository, times(1)).findById(targetUserId);
+        verify(userLookup, times(1)).findById(targetUserId);
         verify(userRepository, times(1)).existsByNicknameAndIdNot("중복닉네임", targetUserId);
         verify(userRepository, never()).save(any());
         verifyNoInteractions(categoryRepository, preferredCategoryRepository, fileUrlResolver);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoMoreInteractions(userLookup);
     }
 }
