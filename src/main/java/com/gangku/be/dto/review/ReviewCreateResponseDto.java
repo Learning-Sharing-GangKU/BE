@@ -19,8 +19,8 @@ public class ReviewCreateResponseDto {
 
     @JsonFormat(
             shape = JsonFormat.Shape.STRING,
-            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
-            timezone = "UTC")
+            pattern = "yyyy-MM-dd'T'HH:mm:ss",
+            timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
 
     public static ReviewCreateResponseDto from(Review review) {
