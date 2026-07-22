@@ -2,7 +2,6 @@ package com.gangku.be.service;
 
 import com.gangku.be.constant.gathering.GatheringSort;
 import com.gangku.be.constant.gathering.GatheringStatus;
-import com.gangku.be.constant.participation.ParticipationRole;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.Participation;
@@ -21,15 +20,17 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
-import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
 import com.gangku.be.model.gathering.GatheringList;
 import com.gangku.be.model.participation.ParticipantsPreview;
 import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.UserRepository;
+import com.gangku.be.service.command.GatheringCommandService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.ai.AiTextFilterMapper;
+import com.gangku.be.util.cache.HomeCache;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
 import java.util.Map;
@@ -52,97 +53,64 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final CategoryRepository categoryRepository;
     private final ParticipationRepository participationRepository;
-    private final UserRepository userRepository;
 
     private final FileUrlResolver fileUrlResolver;
     private final AiApiClient aiApiClient;
     private final AiTextFilterMapper aiTextFilterMapper;
 
-    // 모임 생성 메서드
-    @Transactional
+    private final GatheringCommandService gatheringCommandService;
+    private final HomeCache homeCache;
+    private final UserLookup userLookup;
+    private final GatheringLookup gatheringLookup;
+
     public GatheringResponseDto createGathering(
             GatheringCreateRequestDto gatheringCreateRequestDto, Long hostId) {
 
-        User host = findUserById(hostId);
-
-        Category category = findCategoryByName(gatheringCreateRequestDto.getCategory());
-
         validateGatheringContentFromGatheringCreate(gatheringCreateRequestDto);
 
-        // 엔티티 생성
-        Gathering gathering =
-                Gathering.create(
-                        host,
-                        category,
-                        gatheringCreateRequestDto.getTitle(),
-                        gatheringCreateRequestDto.getDescription(),
-                        gatheringCreateRequestDto.getGatheringImageObjectKey(),
-                        gatheringCreateRequestDto.getCapacity(),
-                        gatheringCreateRequestDto.getDate(),
-                        gatheringCreateRequestDto.getLocation(),
-                        gatheringCreateRequestDto.getOpenChatUrl());
-        Gathering savedGathering = gatheringRepository.save(gathering);
-
-        // 호스트도 참여자로 추가
-        Participation participation =
-                Participation.create(host, savedGathering, ParticipationRole.HOST);
-        participationRepository.save(participation);
-
-        // 4. 응답 DTO 생성
-        return GatheringResponseDto.from(
-                savedGathering,
-                fileUrlResolver.toPublicUrl(gathering.getGatheringImageObjectKey()));
+        return gatheringCommandService.saveGathering(gatheringCreateRequestDto, hostId);
     }
 
-    // 모임 수정 메서드
-    @Transactional
     public GatheringResponseDto updateGathering(
             Long gatheringId, Long userId, GatheringUpdateRequestDto gatheringUpdateRequestDto) {
 
-        Gathering gathering = findGatheringById(gatheringId);
-
-        validateGatheringHost(userId, gathering);
-
         validateGatheringContentFromGatheringUpdate(gatheringUpdateRequestDto);
 
-        updateRequestBody(gatheringUpdateRequestDto, gathering);
-
-        Gathering updatedGathering = gatheringRepository.save(gathering);
-
-        return GatheringResponseDto.from(
-                updatedGathering,
-                fileUrlResolver.toPublicUrl(updatedGathering.getGatheringImageObjectKey()));
+        return gatheringCommandService.updateGathering(
+                gatheringId, userId, gatheringUpdateRequestDto);
     }
 
     // 모임 삭제 메서드
     @Transactional
     public void deleteGathering(Long gatheringId, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
 
         validateGatheringHost(userId, gathering);
 
         gatheringRepository.delete(gathering);
+        homeCache.invalidateHome();
     }
 
     @Transactional
     public void finishGathering(Long gatheringId, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
 
         validateGatheringHost(userId, gathering);
 
         gathering.changeStatusAsFinished();
 
         gatheringRepository.save(gathering);
+        homeCache.invalidateHome();
     }
 
     @Transactional(readOnly = true)
     public GatheringDetailResponseDto getGatheringDetail(
             Long gatheringId, int page, int size, Long userId) {
 
-        Gathering gathering = findGatheringById(gatheringId);
-        User user = findUserById(userId);
+        Gathering gathering = gatheringLookup.findById(gatheringId);
+        User user = userLookup.findById(userId);
 
         boolean joined = participationRepository.existsByUserAndGathering(user, gathering);
 
@@ -152,7 +120,7 @@ public class GatheringService {
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         Page<Participation> participationPage =
-                participationRepository.findByGatheringId(gatheringId, pageable);
+                participationRepository.findByGatheringIdWithUser(gatheringId, pageable);
 
         String sortedByForSpec = "joinedAt,desc";
         ParticipantsPreview participantsPreview =
@@ -169,8 +137,7 @@ public class GatheringService {
                 gathering, participantsPreview, gatheringImageUrl, joined);
     }
 
-    // 외부 AI 호출만 -> Client로 위임
-    @Transactional
+    // 외부 AI 호출만 -> Client로 위임 (DB 작업 없음, 트랜잭션 불필요)
     public IntroCreateResponseDto createGatheringIntro(
             IntroCreateRequestDto introCreateRequestDto) {
         return aiApiClient.createIntro(introCreateRequestDto);
@@ -201,7 +168,7 @@ public class GatheringService {
     public GatheringListResponseDto getUserGatheringList(
             Long userId, String role, int page, int size) {
 
-        User user = findUserById(userId);
+        User user = userLookup.findById(userId);
 
         Page<Gathering> gatheringPage;
         String sortedByForSpec;
@@ -250,7 +217,7 @@ public class GatheringService {
             return getNormalGatheringPage(category, GatheringSort.LATEST, page, size);
         }
 
-        User user = findUserById(userId);
+        User user = userLookup.findById(userId);
 
         List<String> preferredCategories =
                 user.getPreferredCategories().stream()
@@ -333,12 +300,6 @@ public class GatheringService {
         return fileUrlResolver.toPublicUrl(key);
     }
 
-    private User findUserById(Long userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-    }
-
     private Category findCategoryByName(String categoryName) {
         Category category = null;
         if (categoryName != null) {
@@ -351,34 +312,6 @@ public class GatheringService {
                                                     CategoryErrorCode.CATEGORY_NOT_FOUND));
         }
         return category;
-    }
-
-    public Gathering findGatheringById(Long gatheringId) {
-        return gatheringRepository
-                .findById(gatheringId)
-                .orElseThrow(() -> new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
-    }
-
-    private void updateRequestBody(
-            GatheringUpdateRequestDto gatheringUpdateRequestDto, Gathering gathering) {
-        if (gatheringUpdateRequestDto.getTitle() != null)
-            gathering.setTitle(gatheringUpdateRequestDto.getTitle());
-        if (gatheringUpdateRequestDto.getGatheringImageObjectKey() != null)
-            gathering.setGatheringImageObjectKey(
-                    gatheringUpdateRequestDto.getGatheringImageObjectKey());
-        if (gatheringUpdateRequestDto.getCategory() != null
-                && !gatheringUpdateRequestDto.getCategory().isBlank())
-            gathering.setCategory(findCategoryByName(gatheringUpdateRequestDto.getCategory()));
-        if (gatheringUpdateRequestDto.getCapacity() != null)
-            gathering.setCapacity(gatheringUpdateRequestDto.getCapacity());
-        if (gatheringUpdateRequestDto.getDate() != null)
-            gathering.setDate(gatheringUpdateRequestDto.getDate());
-        if (gatheringUpdateRequestDto.getLocation() != null)
-            gathering.setLocation(gatheringUpdateRequestDto.getLocation());
-        if (gatheringUpdateRequestDto.getOpenChatUrl() != null)
-            gathering.setOpenChatUrl(gatheringUpdateRequestDto.getOpenChatUrl());
-        if (gatheringUpdateRequestDto.getDescription() != null)
-            gathering.setDescription(gatheringUpdateRequestDto.getDescription());
     }
 
     private void validateGatheringHost(Long userId, Gathering gathering) {

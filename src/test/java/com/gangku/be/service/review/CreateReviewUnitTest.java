@@ -2,11 +2,9 @@ package com.gangku.be.service.review;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.gangku.be.domain.Gathering;
-import com.gangku.be.domain.Review;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
@@ -17,19 +15,19 @@ import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.exception.constant.ReviewErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
-import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.repository.ParticipationRepository;
 import com.gangku.be.repository.ReviewRepository;
-import com.gangku.be.repository.UserRepository;
 import com.gangku.be.service.ReviewService;
+import com.gangku.be.service.command.ReviewCommandService;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.ai.AiTextFilterMapper;
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,11 +37,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class CreateReviewUnitTest {
 
     @Mock private ReviewRepository reviewRepository;
-    @Mock private UserRepository userRepository;
-    @Mock private GatheringRepository gatheringRepository;
+    @Mock private UserLookup userLookup;
+    @Mock private GatheringLookup gatheringLookup;
     @Mock private ParticipationRepository participationRepository;
     @Mock private AiApiClient aiApiClient;
     @Mock private AiTextFilterMapper aiTextFilterMapper;
+    @Mock private ReviewCommandService reviewCommandService;
 
     @InjectMocks private ReviewService reviewService;
 
@@ -63,60 +62,50 @@ public class CreateReviewUnitTest {
 
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
+        ReviewCreateResponseDto expectedResponse = mock(ReviewCreateResponseDto.class);
 
-        when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
-        when(userRepository.findById(revieweeId)).thenReturn(Optional.of(reviewee));
-        when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
-                .thenReturn(List.of(gatheringId));
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
-        when(reviewRepository.save(any(Review.class)))
-                .thenAnswer(
-                        inv -> {
-                            Review r = inv.getArgument(0);
-                            java.lang.reflect.Field f = Review.class.getDeclaredField("id");
-                            f.setAccessible(true);
-                            f.set(r, 1L);
-                            return r;
-                        });
+        when(userLookup.findById(reviewerId)).thenReturn(reviewer);
+        when(userLookup.findById(revieweeId)).thenReturn(reviewee);
+        when(participationRepository.findLatestFinishedCommonGatheringId(reviewerId, revieweeId))
+                .thenReturn(Optional.of(gatheringId));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
                         gatheringId, reviewerId, revieweeId))
                 .thenReturn(false);
         when(aiTextFilterMapper.fromReviewCreate(requestDto)).thenReturn(textFilterRequestDto);
-        when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
+        when(aiApiClient.filterTextAsync(textFilterRequestDto))
+                .thenReturn(CompletableFuture.completedFuture(textFilterResponseDto));
         when(textFilterResponseDto.isAllowed()).thenReturn(true);
+        when(reviewCommandService.saveReview(reviewer, reviewee, gathering, requestDto))
+                .thenReturn(expectedResponse);
 
         // when
         ReviewCreateResponseDto response =
                 reviewService.createReview(reviewerId, revieweeId, requestDto);
 
         // then
-        ArgumentCaptor<Review> captor = ArgumentCaptor.forClass(Review.class);
-        verify(reviewRepository, times(1)).save(captor.capture());
-        Review savedReview = captor.getValue();
+        assertThat(response).isEqualTo(expectedResponse);
 
-        assertThat(savedReview.getReviewer()).isEqualTo(reviewer);
-        assertThat(savedReview.getReviewee()).isEqualTo(reviewee);
-        assertThat(savedReview.getGathering()).isEqualTo(gathering);
-        assertThat(savedReview.getRating()).isEqualTo(4);
-        assertThat(savedReview.getContent()).isEqualTo("좋았어요!");
-
-        assertThat(response).isNotNull();
-
-        verify(userRepository, times(1)).findById(reviewerId);
-        verify(userRepository, times(1)).findById(revieweeId);
-        verify(participationRepository, times(1))
-                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
-        verify(gatheringRepository, times(1)).findById(gatheringId);
         verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
-        verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(textFilterRequestDto);
+        verify(userLookup, times(1)).findById(reviewerId);
+        verify(userLookup, times(1)).findById(revieweeId);
+        verify(participationRepository, times(1))
+                .findLatestFinishedCommonGatheringId(reviewerId, revieweeId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
+        verify(reviewRepository, times(1))
+                .existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId);
+        verify(reviewCommandService, times(1))
+                .saveReview(reviewer, reviewee, gathering, requestDto);
 
         verifyNoMoreInteractions(
-                userRepository,
+                userLookup,
                 participationRepository,
-                gatheringRepository,
+                gatheringLookup,
                 reviewRepository,
                 aiTextFilterMapper,
-                aiApiClient);
+                aiApiClient,
+                reviewCommandService);
     }
 
     @Test
@@ -128,19 +117,24 @@ public class CreateReviewUnitTest {
 
         ReviewCreateRequestDto requestDto = new ReviewCreateRequestDto(4, "좋았어요!");
 
-        // when
+        // when & then
         assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ReviewErrorCode.INVALID_REVIEW_TARGET);
 
-        // then
         verifyNoInteractions(
-                userRepository, participationRepository, gatheringRepository, reviewRepository);
+                userLookup,
+                participationRepository,
+                gatheringLookup,
+                reviewRepository,
+                aiApiClient,
+                aiTextFilterMapper,
+                reviewCommandService);
     }
 
     @Test
-    @DisplayName("리뷰 작성 (400 Bad Request): 리뷰 내용에 금칙어가 있으면 INVALID_REVIEW_CONTENT 예외")
+    @DisplayName("리뷰 작성 (400 Bad Request): 리뷰 내용에 금칙어가 있으면 INVALID_REVIEW_COMMENT 예외")
     void createReview_invalidContent() {
         // given
         Long reviewerId = 1L;
@@ -156,42 +150,40 @@ public class CreateReviewUnitTest {
         TextFilterRequestDto textFilterRequestDto = mock(TextFilterRequestDto.class);
         TextFilterResponseDto textFilterResponseDto = mock(TextFilterResponseDto.class);
 
-        when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
-        when(userRepository.findById(revieweeId)).thenReturn(Optional.of(reviewee));
-        when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
-                .thenReturn(List.of(gatheringId));
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(userLookup.findById(reviewerId)).thenReturn(reviewer);
+        when(userLookup.findById(revieweeId)).thenReturn(reviewee);
+        when(participationRepository.findLatestFinishedCommonGatheringId(reviewerId, revieweeId))
+                .thenReturn(Optional.of(gatheringId));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
                         gatheringId, reviewerId, revieweeId))
                 .thenReturn(false);
-
         when(aiTextFilterMapper.fromReviewCreate(requestDto)).thenReturn(textFilterRequestDto);
-        when(aiApiClient.filterText(textFilterRequestDto)).thenReturn(textFilterResponseDto);
+        when(aiApiClient.filterTextAsync(textFilterRequestDto))
+                .thenReturn(CompletableFuture.completedFuture(textFilterResponseDto));
         when(textFilterResponseDto.isAllowed()).thenReturn(false);
 
-        // when
+        // when & then
         assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ReviewErrorCode.INVALID_REVIEW_COMMENT);
 
-        // then
-        verify(userRepository, times(1)).findById(reviewerId);
-        verify(userRepository, times(1)).findById(revieweeId);
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(textFilterRequestDto);
+        verify(userLookup, times(1)).findById(reviewerId);
+        verify(userLookup, times(1)).findById(revieweeId);
         verify(participationRepository, times(1))
-                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
-        verify(gatheringRepository, times(1)).findById(gatheringId);
+                .findLatestFinishedCommonGatheringId(reviewerId, revieweeId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
         verify(reviewRepository, times(1))
                 .existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId);
-        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
-        verify(aiApiClient, times(1)).filterText(textFilterRequestDto);
 
-        verify(reviewRepository, never()).save(any());
-
+        verifyNoInteractions(reviewCommandService);
         verifyNoMoreInteractions(
-                userRepository,
+                userLookup,
                 participationRepository,
-                gatheringRepository,
+                gatheringLookup,
                 reviewRepository,
                 aiTextFilterMapper,
                 aiApiClient);
@@ -206,20 +198,24 @@ public class CreateReviewUnitTest {
 
         ReviewCreateRequestDto requestDto = new ReviewCreateRequestDto(4, "좋았어요!");
 
-        when(userRepository.findById(reviewerId)).thenReturn(Optional.empty());
+        when(userLookup.findById(reviewerId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
-        // when
+        // when & then
         assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
-        // then
-        verify(userRepository, times(1)).findById(reviewerId);
-        verify(userRepository, never()).findById(revieweeId);
+        // AI future는 DB 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
+        verify(userLookup, times(1)).findById(reviewerId);
+        verify(userLookup, never()).findById(revieweeId);
 
-        verifyNoInteractions(participationRepository, gatheringRepository, reviewRepository);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoInteractions(
+                participationRepository, gatheringLookup, reviewRepository, reviewCommandService);
+        verifyNoMoreInteractions(userLookup, aiApiClient, aiTextFilterMapper);
     }
 
     @Test
@@ -233,21 +229,25 @@ public class CreateReviewUnitTest {
 
         User reviewer = User.builder().id(reviewerId).build();
 
-        when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
-        when(userRepository.findById(revieweeId)).thenReturn(Optional.empty());
+        when(userLookup.findById(reviewerId)).thenReturn(reviewer);
+        when(userLookup.findById(revieweeId))
+                .thenThrow(new CustomException(UserErrorCode.USER_NOT_FOUND));
 
-        // when
+        // when & then
         assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_NOT_FOUND);
 
-        // then
-        verify(userRepository, times(1)).findById(reviewerId);
-        verify(userRepository, times(1)).findById(revieweeId);
+        // AI future는 DB 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
+        verify(userLookup, times(1)).findById(reviewerId);
+        verify(userLookup, times(1)).findById(revieweeId);
 
-        verifyNoInteractions(participationRepository, gatheringRepository, reviewRepository);
-        verifyNoMoreInteractions(userRepository);
+        verifyNoInteractions(
+                participationRepository, gatheringLookup, reviewRepository, reviewCommandService);
+        verifyNoMoreInteractions(userLookup, aiApiClient, aiTextFilterMapper);
     }
 
     @Test
@@ -262,25 +262,28 @@ public class CreateReviewUnitTest {
         User reviewer = User.builder().id(reviewerId).build();
         User reviewee = User.builder().id(revieweeId).build();
 
-        when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
-        when(userRepository.findById(revieweeId)).thenReturn(Optional.of(reviewee));
-        when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
-                .thenReturn(List.of());
+        when(userLookup.findById(reviewerId)).thenReturn(reviewer);
+        when(userLookup.findById(revieweeId)).thenReturn(reviewee);
+        when(participationRepository.findLatestFinishedCommonGatheringId(reviewerId, revieweeId))
+                .thenReturn(Optional.empty());
 
-        // when
+        // when & then
         assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ReviewErrorCode.NO_PERMISSION_TO_WRITE_REVIEW);
 
-        // then
-        verify(userRepository, times(1)).findById(reviewerId);
-        verify(userRepository, times(1)).findById(revieweeId);
+        // AI future는 DB 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
+        verify(userLookup, times(1)).findById(reviewerId);
+        verify(userLookup, times(1)).findById(revieweeId);
         verify(participationRepository, times(1))
-                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
+                .findLatestFinishedCommonGatheringId(reviewerId, revieweeId);
 
-        verifyNoInteractions(gatheringRepository, reviewRepository);
-        verifyNoMoreInteractions(userRepository, participationRepository);
+        verifyNoInteractions(gatheringLookup, reviewRepository, reviewCommandService);
+        verifyNoMoreInteractions(
+                userLookup, participationRepository, aiApiClient, aiTextFilterMapper);
     }
 
     @Test
@@ -296,27 +299,35 @@ public class CreateReviewUnitTest {
         User reviewer = User.builder().id(reviewerId).build();
         User reviewee = User.builder().id(revieweeId).build();
 
-        when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
-        when(userRepository.findById(revieweeId)).thenReturn(Optional.of(reviewee));
-        when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
-                .thenReturn(List.of(gatheringId));
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
+        when(userLookup.findById(reviewerId)).thenReturn(reviewer);
+        when(userLookup.findById(revieweeId)).thenReturn(reviewee);
+        when(participationRepository.findLatestFinishedCommonGatheringId(reviewerId, revieweeId))
+                .thenReturn(Optional.of(gatheringId));
+        when(gatheringLookup.findById(gatheringId))
+                .thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
 
-        // when
+        // when & then
         assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.GATHERING_NOT_FOUND);
 
-        // then
-        verify(userRepository, times(1)).findById(reviewerId);
-        verify(userRepository, times(1)).findById(revieweeId);
+        // AI future는 DB 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
+        verify(userLookup, times(1)).findById(reviewerId);
+        verify(userLookup, times(1)).findById(revieweeId);
         verify(participationRepository, times(1))
-                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
-        verify(gatheringRepository, times(1)).findById(gatheringId);
+                .findLatestFinishedCommonGatheringId(reviewerId, revieweeId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
 
-        verifyNoInteractions(reviewRepository);
-        verifyNoMoreInteractions(userRepository, participationRepository, gatheringRepository);
+        verifyNoInteractions(reviewRepository, reviewCommandService);
+        verifyNoMoreInteractions(
+                userLookup,
+                participationRepository,
+                gatheringLookup,
+                aiApiClient,
+                aiTextFilterMapper);
     }
 
     @Test
@@ -333,34 +344,39 @@ public class CreateReviewUnitTest {
         User reviewee = User.builder().id(revieweeId).build();
         Gathering gathering = Gathering.builder().id(gatheringId).build();
 
-        when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
-        when(userRepository.findById(revieweeId)).thenReturn(Optional.of(reviewee));
-        when(participationRepository.findFinishedCommonGatheringIds(reviewerId, revieweeId))
-                .thenReturn(List.of(gatheringId));
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(userLookup.findById(reviewerId)).thenReturn(reviewer);
+        when(userLookup.findById(revieweeId)).thenReturn(reviewee);
+        when(participationRepository.findLatestFinishedCommonGatheringId(reviewerId, revieweeId))
+                .thenReturn(Optional.of(gatheringId));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
         when(reviewRepository.existsByGatheringIdAndReviewerIdAndRevieweeId(
                         gatheringId, reviewerId, revieweeId))
                 .thenReturn(true);
 
-        // when
+        // when & then
         assertThatThrownBy(() -> reviewService.createReview(reviewerId, revieweeId, requestDto))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
 
-        // then
-        verify(userRepository, times(1)).findById(reviewerId);
-        verify(userRepository, times(1)).findById(revieweeId);
+        // AI future는 DB 검증 전에 kickoff됨 (병렬화 설계)
+        verify(aiTextFilterMapper, times(1)).fromReviewCreate(requestDto);
+        verify(aiApiClient, times(1)).filterTextAsync(any());
+        verify(userLookup, times(1)).findById(reviewerId);
+        verify(userLookup, times(1)).findById(revieweeId);
         verify(participationRepository, times(1))
-                .findFinishedCommonGatheringIds(reviewerId, revieweeId);
-        verify(gatheringRepository, times(1)).findById(gatheringId);
-
+                .findLatestFinishedCommonGatheringId(reviewerId, revieweeId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
         verify(reviewRepository, times(1))
                 .existsByGatheringIdAndReviewerIdAndRevieweeId(gatheringId, reviewerId, revieweeId);
 
-        verify(reviewRepository, never()).save(any());
-
+        verifyNoInteractions(reviewCommandService);
         verifyNoMoreInteractions(
-                userRepository, participationRepository, gatheringRepository, reviewRepository);
+                userLookup,
+                participationRepository,
+                gatheringLookup,
+                reviewRepository,
+                aiTextFilterMapper,
+                aiApiClient);
     }
 }

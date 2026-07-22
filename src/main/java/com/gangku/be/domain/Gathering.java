@@ -10,7 +10,6 @@ import lombok.*;
 @Entity
 @Table(name = "gatherings")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -19,6 +18,14 @@ public class Gathering {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * 낙관적 락(Optimistic Lock) 버전 필드.
+     *
+     * <p>동시에 여러 트랜잭션이 participantCount 등을 수정할 때 Lost Update를 방지한다. Hibernate가 flush 시 UPDATE ...
+     * WHERE id=? AND version=? 로 검사하며, 영향 행이 0이면 ObjectOptimisticLockingFailureException을 던진다.
+     */
+    @Version private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id", nullable = false)
@@ -96,6 +103,25 @@ public class Gathering {
 
     public void changeStatusAsFinished() {
         this.status = GatheringStatus.FINISHED;
+    }
+
+    public void updateDetails(
+            String title,
+            String description,
+            String imageKey,
+            Integer capacity,
+            LocalDateTime date,
+            String location,
+            String openChatUrl,
+            Category category) {
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+        if (imageKey != null) this.gatheringImageObjectKey = imageKey;
+        if (capacity != null) this.capacity = capacity;
+        if (date != null) this.date = date;
+        if (location != null) this.location = location;
+        if (openChatUrl != null) this.openChatUrl = openChatUrl;
+        if (category != null) this.category = category;
     }
 
     public static Gathering create(

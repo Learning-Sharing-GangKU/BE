@@ -14,9 +14,12 @@ import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.model.ai.ClusteringRefreshResponse;
 import com.gangku.be.model.ai.PopularityRefreshResponse;
+import io.netty.handler.timeout.TimeoutException;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -29,9 +32,10 @@ public class AiApiClient {
     private final WebClient aiWebClient;
     private final AiServerProps aiServerProps;
 
-    public IntroCreateResponseDto createIntro(IntroCreateRequestDto introCreateRequestDto) {
-        return post(
-                aiServerProps.getIntroPath(), introCreateRequestDto, IntroCreateResponseDto.class);
+    // --- 동기 래퍼: 호출 스레드에서 직접 실행 ---
+
+    public IntroCreateResponseDto createIntro(IntroCreateRequestDto request) {
+        return post(aiServerProps.getIntroPath(), request, IntroCreateResponseDto.class);
     }
 
     public TextFilterResponseDto filterText(TextFilterRequestDto request) {
@@ -51,6 +55,51 @@ public class AiApiClient {
     public PopularityRefreshResponse refreshPopularity(PopularityRefreshRequestDto request) {
         return post(
                 aiServerProps.getRefreshPopularityPath(), request, PopularityRefreshResponse.class);
+    }
+
+    // --- 비동기 진입점: aiTaskExecutor 스레드에서 실행 ---
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<IntroCreateResponseDto> createIntroAsync(
+            IntroCreateRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(aiServerProps.getIntroPath(), request, IntroCreateResponseDto.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<TextFilterResponseDto> filterTextAsync(TextFilterRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(aiServerProps.getTextFilterPath(), request, TextFilterResponseDto.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<RecommendationResponseDto> recommendAsync(
+            RecommendationRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(
+                        aiServerProps.getRecommendationsPath(),
+                        request,
+                        RecommendationResponseDto.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<ClusteringRefreshResponse> refreshClusteringAsync(
+            ClusteringRefreshRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(
+                        aiServerProps.getRefreshClusteringPath(),
+                        request,
+                        ClusteringRefreshResponse.class));
+    }
+
+    @Async("aiTaskExecutor")
+    public CompletableFuture<PopularityRefreshResponse> refreshPopularityAsync(
+            PopularityRefreshRequestDto request) {
+        return CompletableFuture.completedFuture(
+                post(
+                        aiServerProps.getRefreshPopularityPath(),
+                        request,
+                        PopularityRefreshResponse.class));
     }
 
     private <T> T post(String uri, Object requestDto, Class<T> responseType) {
@@ -110,6 +159,9 @@ public class AiApiClient {
         } catch (WebClientException e) {
             log.error("AI 서버 통신 실패. uri={}, message={}", uri, e.getMessage(), e);
             throw new CustomException(CommonErrorCode.AI_SERVICE_ERROR);
+        } catch (TimeoutException e) {
+            log.error("AI 서버 응답 시간 초과. uri={}, message={}", uri, e.getMessage(), e);
+            throw new CustomException(CommonErrorCode.AI_TIMEOUT_ERROR);
         }
     }
 }

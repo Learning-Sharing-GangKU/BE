@@ -2,6 +2,7 @@ package com.gangku.be.service;
 
 import com.gangku.be.config.auth.EmailVerificationProps;
 import com.gangku.be.constant.auth.EmailConstants;
+import com.gangku.be.constant.auth.RedisKeys;
 import com.gangku.be.constant.auth.TokenProperty;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.User;
@@ -174,12 +175,12 @@ public class AuthService {
         stringRedisTemplate
                 .opsForValue()
                 .set(
-                        emailVerificationTokenKey(emailVerificationToken.tokenId()),
+                        RedisKeys.emailVerificationTokenKey(emailVerificationToken.tokenId()),
                         email,
                         timeToLive);
 
         String sessionId = UUID.randomUUID().toString();
-        String sessionKey = signupSessionKey(sessionId);
+        String sessionKey = RedisKeys.signupSessionKey(sessionId);
 
         stringRedisTemplate.opsForHash().put(sessionKey, "email", email);
         stringRedisTemplate.opsForHash().put(sessionKey, "verified", "0");
@@ -214,7 +215,7 @@ public class AuthService {
 
     private void markEmailAsVerified(String email) {
         Duration timeToLive = Duration.ofMinutes(emailVerificationProps.getTokenTtlMinutes());
-        stringRedisTemplate.opsForValue().set(verifiedEmailKey(email), "1", timeToLive);
+        stringRedisTemplate.opsForValue().set(RedisKeys.verifiedEmailKey(email), "1", timeToLive);
     }
 
     private String consumeEmailByTokenId(String tokenId) {
@@ -222,7 +223,8 @@ public class AuthService {
                 new DefaultRedisScript<>(REDIS_CONSUME_EMAIL_BY_TOKEN_SCRIPT, String.class);
 
         String email =
-                stringRedisTemplate.execute(script, List.of(emailVerificationTokenKey(tokenId)));
+                stringRedisTemplate.execute(
+                        script, List.of(RedisKeys.emailVerificationTokenKey(tokenId)));
 
         if (email == null) {
             throw new CustomException(AuthErrorCode.EMAIL_TOKEN_EXPIRED);
@@ -234,18 +236,6 @@ public class AuthService {
     private String extractTokenIdFromVerifiedJwt(String emailVerificationTokenString) {
         Jws<Claims> parsedToken = emailVerificationJwt.parseClaims(emailVerificationTokenString);
         return parsedToken.getBody().getId();
-    }
-
-    private static String emailVerificationTokenKey(String tokenId) {
-        return "auth:signup:email-verification-token:" + tokenId;
-    }
-
-    private static String signupSessionKey(String sessionId) {
-        return "auth:signup:session:" + sessionId;
-    }
-
-    private static String verifiedEmailKey(String email) {
-        return "auth:signup:verified-email:" + email;
     }
 
     private User findUserByEmailAndPassword(String email, String rawPassword) {
@@ -295,7 +285,7 @@ public class AuthService {
             throw new CustomException(AuthErrorCode.INVALID_SESSION);
         }
 
-        String sessionKey = signupSessionKey(sessionId);
+        String sessionKey = RedisKeys.signupSessionKey(sessionId);
         Boolean exists = stringRedisTemplate.hasKey(sessionKey);
 
         if (exists == null || !exists) {
@@ -316,7 +306,8 @@ public class AuthService {
     }
 
     private void ensureEmailVerificationCompleted(String email) {
-        String verifiedEmailFlag = stringRedisTemplate.opsForValue().get(verifiedEmailKey(email));
+        String verifiedEmailFlag =
+                stringRedisTemplate.opsForValue().get(RedisKeys.verifiedEmailKey(email));
 
         if (verifiedEmailFlag == null) {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);

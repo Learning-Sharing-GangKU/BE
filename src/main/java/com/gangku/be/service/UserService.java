@@ -1,10 +1,9 @@
 package com.gangku.be.service;
 
+import com.gangku.be.constant.auth.RedisKeys;
 import com.gangku.be.constant.user.UserReviewSort;
 import com.gangku.be.domain.*;
-import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Participation;
-import com.gangku.be.domain.PreferredCategory;
 import com.gangku.be.domain.User;
 import com.gangku.be.dto.ai.request.TextFilterRequestDto;
 import com.gangku.be.dto.ai.response.TextFilterResponseDto;
@@ -18,87 +17,82 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.AuthErrorCode;
 import com.gangku.be.exception.constant.UserErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
+import com.gangku.be.external.ai.AiResponses;
 import com.gangku.be.model.review.ReviewCursor;
 import com.gangku.be.model.review.ReviewCursorCodec;
 import com.gangku.be.model.review.ReviewPageables;
 import com.gangku.be.model.review.ReviewsPreview;
-import com.gangku.be.repository.CategoryRepository;
 import com.gangku.be.repository.ParticipationRepository;
-import com.gangku.be.repository.PreferredCategoryRepository;
 import com.gangku.be.repository.ReviewRepository;
 import com.gangku.be.repository.UserRepository;
+import com.gangku.be.service.command.UserCommandService;
+import com.gangku.be.support.UserLookup;
 import com.gangku.be.util.ai.AiTextFilterMapper;
 import com.gangku.be.util.object.FileUrlResolver;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
     private final ParticipationRepository participationRepository;
-    private final PreferredCategoryRepository preferredCategoryRepository;
 
     private final FileUrlResolver fileUrlResolver;
     private final StringRedisTemplate stringRedisTemplate;
-    private final PasswordEncoder passwordEncoder;
     private final ReviewRepository reviewRepository;
 
     private final AiApiClient aiApiClient;
     private final AiTextFilterMapper aiTextFilterMapper;
 
+    private final UserCommandService userCommandService;
+    private final UserLookup userLookup;
+
+    @Transactional
     public User registerUser(SignUpRequestDto signUpRequestDto, String sessionId) {
 
-        validateEmailVerification(sessionId, signUpRequestDto.getEmail());
-
-        // 중복된 이메일 예외처리
-        validateEmailConflict(signUpRequestDto.getEmail());
-
-        // 중복된 닉네임 예외처리
-        validateNicknameConflict(signUpRequestDto.getNickname());
-
-        validateNicknameAllowedFromSignUp(signUpRequestDto);
-
-        // 4) DB에 저장
-        User newUser =
-                User.create(
-                        signUpRequestDto.getEmail(),
-                        passwordEncoder.encode(signUpRequestDto.getPassword()),
-                        signUpRequestDto.getNickname(),
-                        signUpRequestDto.getAge(),
-                        signUpRequestDto.getGender(),
-                        signUpRequestDto.getEnrollNumber(),
-                        signUpRequestDto.getProfileImageObjectKey());
-
-        userRepository.save(newUser);
-
-        stringRedisTemplate.delete("auth:signup:session:" + sessionId);
-
-        if (signUpRequestDto.getPreferredCategories() != null) {
-            assignPreferredCategories(signUpRequestDto.getPreferredCategories(), newUser);
+        // in-memory 가드: sessionId null/blank면 AI 호출 전에 즉시 차단
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-        return newUser;
+        // AI 검증을 aiTaskExecutor 스레드에서 비동기 시작 (Redis/DB 검증과 병렬 실행)
+        TextFilterRequestDto filterReq = aiTextFilterMapper.fromSignUp(signUpRequestDto);
+        CompletableFuture<TextFilterResponseDto> aiFuture = aiApiClient.filterTextAsync(filterReq);
+
+        // Redis/DB 검증 (AI 호출과 병렬로 실행됨)
+        validateEmailVerification(sessionId, signUpRequestDto.getEmail());
+        validateEmailConflict(signUpRequestDto.getEmail());
+        validateNicknameConflict(signUpRequestDto.getNickname());
+
+        // AI 결과 수신 (검증 완료 후 await, 이미 완료됐을 가능성 높음)
+        TextFilterResponseDto filterResult = AiResponses.await(aiFuture);
+        if (!filterResult.isAllowed()) {
+            throw new CustomException(UserErrorCode.INVALID_NICKNAME);
+        }
+
+        return userCommandService.saveUser(signUpRequestDto, sessionId);
     }
 
+    @Transactional
     public void deleteUser(Long targetUserId, Long currentUserId) {
 
-        User user = findUserById(targetUserId);
+        User user = userLookup.findById(targetUserId);
 
         validateUserPrincipal(currentUserId, user);
 
-        List<Participation> participations = participationRepository.findAllByUser(user);
+        List<Participation> participations =
+                participationRepository.findAllByUserWithGatheringAndHost(user);
 
         for (Participation participation : participations) {
             Gathering gathering = participation.getGathering();
@@ -113,10 +107,9 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    @Transactional(readOnly = true)
     public UserProfileResponseDto getUserProfile(Long userId, Long currentUserId) {
 
-        User user = findUserById(userId);
+        User user = userLookup.findById(userId);
         String profileImageUrl = resolveImageUrl(user.getProfileImageObjectKey());
         List<String> preferredCategories =
                 user.getPreferredCategories().stream()
@@ -161,35 +154,16 @@ public class UserService {
     public UserProfileUpdateResponseDto updateUserProfile(
             Long targetUserId, Long currentUserId, UserProfileUpdateRequestDto requestDto) {
 
-        User user = findUserById(targetUserId);
-
-        validateUserProfileOwner(currentUserId, user);
-
         validateNickNameAllowedFromProfileUpdate(requestDto);
 
-        updateProfileFields(user, requestDto);
-
-        if (requestDto.getPreferredCategories() != null) {
-            replacePreferredCategories(user, requestDto.getPreferredCategories());
-        }
-
-        User savedUser = userRepository.save(user);
-
-        String profileImageUrl = resolveImageUrl(savedUser.getProfileImageObjectKey());
-
-        List<String> preferredCategories =
-                savedUser.getPreferredCategories().stream()
-                        .map(pc -> pc.getCategory().getName())
-                        .toList();
-
-        return UserProfileUpdateResponseDto.from(savedUser, profileImageUrl, preferredCategories);
+        return userCommandService.updateUserProfile(targetUserId, currentUserId, requestDto);
     }
 
     @Transactional
     public UpdateReviewSettingResponseDto updateReviewSetting(
             Long targetUserId, Long currentUserId, Boolean reviewSetting) {
 
-        User user = findUserById(targetUserId);
+        User user = userLookup.findById(targetUserId);
 
         validateUserPrincipal(currentUserId, user);
 
@@ -200,11 +174,10 @@ public class UserService {
         return UpdateReviewSettingResponseDto.from(updatedUser);
     }
 
-    @Transactional(readOnly = true)
     public ReviewListResponseDto getUserReviews(
             Long targetUserId, Long currentUserId, int size, String cursor) {
 
-        User user = findUserById(targetUserId);
+        User user = userLookup.findById(targetUserId);
 
         validateReviewVisibility(currentUserId, user);
 
@@ -247,32 +220,11 @@ public class UserService {
         return fileUrlResolver.toPublicUrl(key);
     }
 
-    private void updateProfileFields(User user, UserProfileUpdateRequestDto requestDto) {
-        if (requestDto.getNickname() != null
-                && userRepository.existsByNicknameAndIdNot(
-                        requestDto.getNickname(), user.getId())) {
-            throw new CustomException(UserErrorCode.NICKNAME_ALREADY_EXISTS);
-        }
-        user.updateProfile(
-                requestDto.getProfileImageObjectKey(),
-                requestDto.getNickname(),
-                requestDto.getAge(),
-                requestDto.getGender(),
-                requestDto.getEnrollNumber());
-    }
-
-    // 반올림 메서드
     private Double roundToOneDecimalPlace(Double value) {
         if (value == null) {
             return null;
         }
         return Math.round(value * 10) / 10.0;
-    }
-
-    private void replacePreferredCategories(User user, List<String> preferredCategories) {
-        user.getPreferredCategories().clear();
-        userRepository.flush();
-        assignPreferredCategories(preferredCategories, user);
     }
 
     /** --- 검증 및 반환 헬퍼 메서드 --- */
@@ -281,7 +233,7 @@ public class UserService {
             throw new CustomException(AuthErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-        String sessionKey = "auth:signup:session:" + sessionId;
+        String sessionKey = RedisKeys.signupSessionKey(sessionId);
         Map<Object, Object> sessionData = stringRedisTemplate.opsForHash().entries(sessionKey);
 
         if (sessionData.isEmpty()) {
@@ -312,47 +264,9 @@ public class UserService {
         }
     }
 
-    private void assignPreferredCategories(List<String> preferredCategories, User newUser) {
-
-        if (preferredCategories != null && preferredCategories.isEmpty()) {
-            return;
-        }
-
-        List<String> distinctCategories = preferredCategories.stream().distinct().toList();
-
-        List<Category> categories = categoryRepository.findByNameIn(distinctCategories);
-
-        List<PreferredCategory> preferredCategoryList =
-                categories.stream()
-                        .map(
-                                category -> {
-                                    PreferredCategory preferredCategory = new PreferredCategory();
-                                    preferredCategory.assignCategory(category);
-
-                                    newUser.addPreferredCategory(preferredCategory);
-
-                                    return preferredCategory;
-                                })
-                        .toList();
-
-        preferredCategoryRepository.saveAll(preferredCategoryList);
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
-    }
-
     private void validateUserPrincipal(Long currentUserId, User user) {
         if (!user.getId().equals(currentUserId)) {
             throw new CustomException(UserErrorCode.NO_PERMISSION_TO_ACCESS_OTHER_USER_INFORMATION);
-        }
-    }
-
-    private void validateUserProfileOwner(Long currentUserId, User user) {
-        if (!user.getId().equals(currentUserId)) {
-            throw new CustomException(UserErrorCode.NO_PERMISSION_TO_UPDATE_PROFILE);
         }
     }
 
@@ -384,15 +298,6 @@ public class UserService {
             if (!textFilterResponseDto.isAllowed()) {
                 throw new CustomException(UserErrorCode.INVALID_NICKNAME);
             }
-        }
-    }
-
-    private void validateNicknameAllowedFromSignUp(SignUpRequestDto signUpRequestDto) {
-        TextFilterRequestDto textFilterRequestDto = aiTextFilterMapper.fromSignUp(signUpRequestDto);
-        TextFilterResponseDto textFilterResponseDto = aiApiClient.filterText(textFilterRequestDto);
-
-        if (!textFilterResponseDto.isAllowed()) {
-            throw new CustomException(UserErrorCode.INVALID_NICKNAME);
         }
     }
 }

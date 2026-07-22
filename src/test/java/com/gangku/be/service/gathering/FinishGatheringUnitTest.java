@@ -11,7 +11,9 @@ import com.gangku.be.exception.CustomException;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.repository.GatheringRepository;
 import com.gangku.be.service.GatheringService;
-import java.util.Optional;
+import com.gangku.be.support.GatheringLookup;
+import com.gangku.be.support.UserLookup;
+import com.gangku.be.util.cache.HomeCache;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class FinishGatheringUnitTest {
 
     @Mock private GatheringRepository gatheringRepository;
+    @Mock private GatheringLookup gatheringLookup;
+    @Mock private UserLookup userLookup;
+    @Mock private HomeCache homeCache;
 
     @InjectMocks private GatheringService gatheringService;
 
@@ -43,15 +48,16 @@ public class FinishGatheringUnitTest {
                         .status(GatheringStatus.RECRUITING)
                         .build();
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
 
         // when
         gatheringService.finishGathering(gatheringId, userId);
 
         // then
         assertThat(gathering.getStatus()).isEqualTo(GatheringStatus.FINISHED);
-        verify(gatheringRepository, times(1)).findById(gatheringId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
         verify(gatheringRepository, times(1)).save(gathering);
+        verify(homeCache, times(1)).invalidateHome();
     }
 
     @Test
@@ -61,7 +67,8 @@ public class FinishGatheringUnitTest {
         Long gatheringId = 999L;
         Long userId = 100L;
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.empty());
+        when(gatheringLookup.findById(gatheringId))
+                .thenThrow(new CustomException(GatheringErrorCode.GATHERING_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> gatheringService.finishGathering(gatheringId, userId))
@@ -69,7 +76,7 @@ public class FinishGatheringUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.GATHERING_NOT_FOUND);
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
         verify(gatheringRepository, never()).save(any());
     }
 
@@ -89,7 +96,7 @@ public class FinishGatheringUnitTest {
                         .status(GatheringStatus.RECRUITING)
                         .build();
 
-        when(gatheringRepository.findById(gatheringId)).thenReturn(Optional.of(gathering));
+        when(gatheringLookup.findById(gatheringId)).thenReturn(gathering);
 
         // when & then
         assertThatThrownBy(() -> gatheringService.finishGathering(gatheringId, otherUserId))
@@ -97,7 +104,7 @@ public class FinishGatheringUnitTest {
                 .extracting("errorCode")
                 .isEqualTo(GatheringErrorCode.NO_PERMISSION_TO_MANIPULATE_GATHERING);
 
-        verify(gatheringRepository, times(1)).findById(gatheringId);
+        verify(gatheringLookup, times(1)).findById(gatheringId);
         verify(gatheringRepository, never()).save(any());
         assertThat(gathering.getStatus()).isNotEqualTo(GatheringStatus.FINISHED);
     }
