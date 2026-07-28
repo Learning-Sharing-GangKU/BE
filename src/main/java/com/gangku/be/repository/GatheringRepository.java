@@ -4,6 +4,7 @@ import com.gangku.be.constant.gathering.GatheringStatus;
 import com.gangku.be.domain.Category;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.domain.User;
+import com.gangku.be.repository.projection.ParticipantCountProjection;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -112,4 +113,10 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long> {
 
     // AI가 추천해준 ID 리스트로 조회
     List<Gathering> findByIdIn(Collection<Long> ids);
+
+    // 홈 캐시 병합용: id별 실시간 participantCount 배치 조회
+    @Query(
+            "SELECT g.id AS id, g.participantCount AS participantCount FROM Gathering g WHERE g.id IN :ids")
+    List<ParticipantCountProjection> findParticipantCountsByIdIn(
+            @Param("ids") Collection<Long> ids);
 }

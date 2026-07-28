@@ -26,4 +26,15 @@ public record GatheringListItem(
                 gathering.getLocation(),
                 gathering.getParticipantCount());
     }
+
+    public static GatheringListItem from(CacheableGatheringListItem cached, int participantCount) {
+        return new GatheringListItem(
+                cached.id(),
+                cached.gatheringImageUrl(),
+                cached.category(),
+                cached.title(),
+                cached.description(),
+                cached.location(),
+                participantCount);
+    }
 }

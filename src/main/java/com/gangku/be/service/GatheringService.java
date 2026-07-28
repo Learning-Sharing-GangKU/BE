@@ -21,6 +21,7 @@ import com.gangku.be.exception.constant.CategoryErrorCode;
 import com.gangku.be.exception.constant.CommonErrorCode;
 import com.gangku.be.exception.constant.GatheringErrorCode;
 import com.gangku.be.external.ai.AiApiClient;
+import com.gangku.be.model.gathering.CacheableGatheringList;
 import com.gangku.be.model.gathering.GatheringList;
 import com.gangku.be.model.participation.ParticipantsPreview;
 import com.gangku.be.repository.CategoryRepository;
@@ -162,6 +163,26 @@ public class GatheringService {
                 GatheringList.from(gatheringPage, sortedByForSpec, this::resolveGatheringImageUrl);
 
         return GatheringListResponseDto.from(gatheringList);
+    }
+
+    // 홈 캐시 전용: participantCount를 뺀 경량 리스트 (캐시에 저장되는 실제 형태)
+    @Transactional(readOnly = true)
+    public CacheableGatheringList getCacheableGatheringList(
+            Long userId, String categoryName, int page, int size, String sort) {
+
+        Category category = findCategoryByName(categoryName);
+        GatheringSort sortType = GatheringSort.from(sort);
+
+        Page<Gathering> gatheringPage =
+                switch (sortType) {
+                    case LATEST, POPULAR -> getNormalGatheringPage(category, sortType, page, size);
+                    case RECOMMEND -> getRecommendedGatheringPage(userId, category, page, size);
+                };
+
+        String sortedByForSpec = getSortedByForSpec(sortType);
+
+        return CacheableGatheringList.from(
+                gatheringPage, sortedByForSpec, this::resolveGatheringImageUrl);
     }
 
     @Transactional(readOnly = true)
