@@ -58,7 +58,7 @@ assets:
 ai:
   server:
     connect-timeout-millis: 3000
-    response-timeout-millis: 5000
+    response-timeout-millis: 10000
     intro-path: /api/ai/v1/intro
     text-filter-path: /api/ai/v2/text/filter
     recommendations-path: /api/ai/v2/recommendations
