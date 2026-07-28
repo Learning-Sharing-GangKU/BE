@@ -1,8 +1,10 @@
 package com.gangku.be.model.gathering;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gangku.be.constant.id.ResourceType;
 import com.gangku.be.domain.Gathering;
 import com.gangku.be.model.common.PrefixedId;
+import java.time.LocalDateTime;
 
 public record GatheringListItem(
         String id,
@@ -11,7 +13,11 @@ public record GatheringListItem(
         String title,
         String description,
         String location,
-        int participantCount) {
+        @JsonFormat(
+                        shape = JsonFormat.Shape.STRING,
+                        pattern = "yyyy-MM-dd'T'HH:mm:ss",
+                        timezone = "Asia/Seoul")
+                LocalDateTime date) {
     public static GatheringListItem from(Gathering gathering, String gatheringImageUrl) {
 
         String publicGatheringId =
@@ -24,6 +30,6 @@ public record GatheringListItem(
                 gathering.getTitle(),
                 gathering.getDescription(),
                 gathering.getLocation(),
-                gathering.getParticipantCount());
+                gathering.getDate());
     }
 }

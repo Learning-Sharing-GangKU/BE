@@ -1,31 +1,41 @@
 package com.gangku.be.dto.gathering.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
+import com.gangku.be.config.redis.RedisConfig;
 import com.gangku.be.model.common.PageMeta;
 import com.gangku.be.model.gathering.GatheringListItem;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
- * Redis 캐싱 도입 시 사용하는 GenericJackson2JsonRedisSerializer로 GatheringListResponseDto를 serialize →
- * deserialize 했을 때 record 타입(GatheringListItem, PageMeta)이 원본과 동일한지 검증한다.
+ * 실제 운영에서 쓰는 RedisConfig의 값 직렬화기로 GatheringListResponseDto를 serialize → deserialize 했을 때 record 타입
+ * (GatheringListItem, PageMeta)과 LocalDateTime 필드가 원본과 동일하게 복원되는지 검증한다.
  *
  * <p>Redis 없이 순수 인메모리로 실행 — 인프라 의존 없음.
  */
 @Tag("unit")
 class GatheringListResponseDtoSerializationTest {
 
-    private final GenericJackson2JsonRedisSerializer serializer =
-            new GenericJackson2JsonRedisSerializer();
+    @SuppressWarnings("unchecked")
+    private final RedisSerializer<Object> serializer =
+            (RedisSerializer<Object>)
+                    new RedisConfig()
+                            .redisTemplate(mock(RedisConnectionFactory.class))
+                            .getValueSerializer();
 
     @Test
     @DisplayName("GatheringListResponseDto (record 내포) 직렬화/역직렬화 라운드트립 성공")
     void roundtrip_gatheringListResponseDto() {
         // given
+        LocalDateTime gatheringDate = LocalDateTime.of(2026, 4, 1, 19, 0);
         GatheringListItem item =
                 new GatheringListItem(
                         "gathering_1",
@@ -34,7 +44,7 @@ class GatheringListResponseDtoSerializationTest {
                         "알고리즘 스터디",
                         "함께 코딩 실력을 키워요",
                         "서울 강남구",
-                        5);
+                        gatheringDate);
 
         PageMeta meta =
                 new PageMeta(
@@ -70,7 +80,7 @@ class GatheringListResponseDtoSerializationTest {
         assertThat(restoredItem.id()).isEqualTo("gathering_1");
         assertThat(restoredItem.category()).isEqualTo("스터디");
         assertThat(restoredItem.title()).isEqualTo("알고리즘 스터디");
-        assertThat(restoredItem.participantCount()).isEqualTo(5);
+        assertThat(restoredItem.date()).isEqualTo(gatheringDate);
     }
 
     @Test
