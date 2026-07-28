@@ -26,8 +26,8 @@ public class SignUpResponseDto {
 
     @JsonFormat(
             shape = JsonFormat.Shape.STRING,
-            pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
-            timezone = "UTC")
+            pattern = "yyyy-MM-dd'T'HH:mm:ss",
+            timezone = "Asia/Seoul")
     private final LocalDateTime createdAt;
 
     public static SignUpResponseDto from(User user, String profileImageUrl) {

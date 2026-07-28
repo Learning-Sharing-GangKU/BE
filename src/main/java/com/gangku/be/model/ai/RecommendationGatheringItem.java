@@ -13,8 +13,8 @@ public record RecommendationGatheringItem(
         Integer participantCount,
         @JsonFormat(
                         shape = JsonFormat.Shape.STRING,
-                        pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'",
-                        timezone = "UTC")
+                        pattern = "yyyy-MM-dd'T'HH:mm:ss",
+                        timezone = "Asia/Seoul")
                 LocalDateTime createdAt) {
 
     public static RecommendationGatheringItem from(Gathering gathering) {
